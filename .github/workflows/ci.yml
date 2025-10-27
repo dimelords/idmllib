@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  GO_VERSION: 1.25
+  GOLANGCI_LINT_VERSION: 2.5.0
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      # Set up Go environment
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      # Cache Go modules to speed up subsequent runs
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      # Cache golangci-lint results for faster linting
+      - name: Cache golangci-lint
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/golangci-lint
+          key: ${{ runner.os }}-golangci-lint-${{ env.GOLANGCI_LINT_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-golangci-lint-
+
+      # Download golangci-lint v2.5.0 manually
+      - name: Download golangci-lint v2.5.0
+        run: |
+          curl -sSfL https://github.com/golangci/golangci-lint/releases/download/v${{ env.GOLANGCI_LINT_VERSION }}/golangci-lint-${{ env.GOLANGCI_LINT_VERSION }}-linux-amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/golangci-lint-${{ env.GOLANGCI_LINT_VERSION }}-linux-amd64/golangci-lint /usr/local/bin/
+
+      # Run lint with a 5-minute timeout
+      - name: Run golangci-lint
+        run: golangci-lint run --timeout=5m
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      # Set up Go environment
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      # Cache Go modules to speed up builds and tests
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      # Download dependencies
+      - name: Download dependencies
+        run: go mod download
+
+      # Verify dependency integrity
+      - name: Verify dependencies
+        run: go mod verify
+
+      # Build all packages
+      - name: Build
+        run: go build -v ./...
+
+      # Build the CLI binary
+      - name: Build CLI
+        run: go build -v -o bin/idmllib ./cmd/idmllib
+
+      # Run tests with race detection and coverage
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+      # Upload coverage to Codecov (only once for Go 1.25)
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.txt
+          flags: unittests
+          name: codecov-umbrella
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
