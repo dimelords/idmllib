@@ -3,7 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/dimelords/idmllib.svg)](https://pkg.go.dev/github.com/dimelords/idmllib)
 [![Go Report Card](https://goreportcard.com/badge/github.com/dimelords/idmllib)](https://goreportcard.com/report/github.com/dimelords/idmllib)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Go](https://github.com/dimelords/idmllib/actions/workflows/test.yml/badge.svg)](https://github.com/dimelords/idmllib/actions/workflows/test.yml)
+[![Go](https://github.com/dimelords/idmllib/actions/workflows/test.yml/badge.svg)](https://github.com/dimelords/idmllib/actions/workflows/ci.yml)
 
 A Go library and CLI tool for working with InDesign Markup Language (IDML) files. Parse IDML documents and export TextFrames as InDesign Snippets (IDMS) with intelligent filtering of styles, colors, and resources.
 
