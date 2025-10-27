@@ -1,4 +1,6 @@
 // Package types provides type definitions for InDesign IDML and IDMS files.
+//
+//revive:disable:var-naming
 package types
 
 import (
