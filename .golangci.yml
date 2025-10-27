@@ -20,11 +20,13 @@ issues:
   max-issues-per-linter: 0
   max-same-issues: 0
   exclude-rules:
+    # Exclude specific linters for test files
     - path: "_test\\.go"
       linters:
         - errcheck
         - revive
         - staticcheck
-    - text: "var-naming: avoid meaningless package names"
-      linters:
+
+    - linters:
         - revive
+      text: "var-naming: avoid meaningless package names"
