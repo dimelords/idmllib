@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Document xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="20.4" Self="d" Version="20.4">
+	<Properties>
+		<Label>
+			<KeyValuePair Key="test" Value="hello" />
+		</Label>
+	</Properties>
+	<Language Self="Language/$ID/English%3a UK" Name="$ID/English: UK" />
+	<idPkg:Graphic src="Resources/Graphic.xml" />
+</Document>

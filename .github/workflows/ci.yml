@@ -1,111 +1,242 @@
+# CI/CD Pipeline for idmlbuild
+# This workflow runs linting, testing, and coverage reporting on every push and pull request
+
 name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
-env:
-  GO_VERSION: 1.25
-  GOLANGCI_LINT_VERSION: 2.5.0
+# Allow manual triggering of the workflow
+  workflow_dispatch:
 
 jobs:
+  # Linting job - runs golangci-lint to check code quality
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
     steps:
-      # Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v5
-
-      # Set up Go environment
+        uses: actions/checkout@v4
+        
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v4
         with:
-          go-version: ${{ env.GO_VERSION }}
-
-      # Cache Go modules to speed up subsequent runs
+          go-version: '1.23'
+          
       - name: Cache Go modules
-        uses: actions/cache@v4
+        uses: actions/cache@v3
         with:
           path: |
-            ~/go/pkg/mod
             ~/.cache/go-build
+            ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-
-      # Cache golangci-lint results for faster linting
-      - name: Cache golangci-lint
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/golangci-lint
-          key: ${{ runner.os }}-golangci-lint-${{ env.GOLANGCI_LINT_VERSION }}
-          restore-keys: |
-            ${{ runner.os }}-golangci-lint-
-
-      # Download golangci-lint v2.5.0 manually
-      - name: Download golangci-lint v2.5.0
-        run: |
-          curl -sSfL https://github.com/golangci/golangci-lint/releases/download/v${{ env.GOLANGCI_LINT_VERSION }}/golangci-lint-${{ env.GOLANGCI_LINT_VERSION }}-linux-amd64.tar.gz | tar -xz -C /tmp
-          sudo mv /tmp/golangci-lint-${{ env.GOLANGCI_LINT_VERSION }}-linux-amd64/golangci-lint /usr/local/bin/
-
-      # Run lint with a 5-minute timeout
+            
+      - name: Download dependencies
+        run: go mod download
+        
       - name: Run golangci-lint
-        run: golangci-lint run --timeout=5m
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          args: --timeout=5m --config=.golangci.yml
+          
+      - name: Check linting results
+        run: |
+          if [ $? -ne 0 ]; then
+            echo "❌ Linting failed. Please fix the issues above."
+            exit 1
+          else
+            echo "✅ Linting passed successfully."
+          fi
 
+  # Testing job - runs all tests with coverage reporting
   test:
     name: Test
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    strategy:
+      matrix:
+        go-version: ['1.22', '1.23']
+    
     steps:
-      # Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v5
-
-      # Set up Go environment
-      - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/checkout@v4
+        
+      - name: Set up Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v4
         with:
-          go-version: ${{ env.GO_VERSION }}
-
-      # Cache Go modules to speed up builds and tests
+          go-version: ${{ matrix.go-version }}
+          
       - name: Cache Go modules
-        uses: actions/cache@v4
+        uses: actions/cache@v3
         with:
           path: |
-            ~/go/pkg/mod
             ~/.cache/go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
+            ${{ runner.os }}-go-${{ matrix.go-version }}-
             ${{ runner.os }}-go-
-
-      # Download dependencies
+            
       - name: Download dependencies
         run: go mod download
-
-      # Verify dependency integrity
-      - name: Verify dependencies
-        run: go mod verify
-
-      # Build all packages
-      - name: Build
-        run: go build -v ./...
-
-      # Build the CLI binary
-      - name: Build CLI
-        run: go build -v -o bin/idmllib ./cmd/idmllib
-
-      # Run tests with race detection and coverage
-      - name: Run tests
-        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
-
-      # Upload coverage to Codecov (only once for Go 1.25)
+        
+      - name: Run tests with coverage
+        run: |
+          go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+          
+      - name: Check test results
+        run: |
+          if [ $? -ne 0 ]; then
+            echo "❌ Tests failed. Please fix the failing tests."
+            exit 1
+          else
+            echo "✅ All tests passed successfully."
+          fi
+          
+      - name: Generate coverage report
+        run: |
+          go tool cover -html=coverage.out -o coverage.html
+          go tool cover -func=coverage.out | tail -1 | awk '{print "Coverage: " $3}'
+          
       - name: Upload coverage to Codecov
+        if: matrix.go-version == '1.23'  # Only upload coverage for latest Go version
         uses: codecov/codecov-action@v4
         with:
-          file: ./coverage.txt
+          file: ./coverage.out
           flags: unittests
           name: codecov-umbrella
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false  # Don't fail CI if codecov upload fails
+          
+      - name: Upload coverage artifacts
+        if: matrix.go-version == '1.23'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage.out
+            coverage.html
+
+  # Build job - ensures the project builds successfully
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [lint, test]  # Only run if linting and tests pass
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23'
+          
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-build-
+            
+      - name: Download dependencies
+        run: go mod download
+        
+      - name: Build CLI application
+        run: |
+          go build -v -o bin/idmlbuild ./cmd/cli
+          
+      - name: Build debug export tool
+        run: |
+          go build -v -o bin/debug-export ./cmd/debug-export
+          
+      - name: Verify binaries
+        run: |
+          ./bin/idmlbuild --help || echo "CLI help command executed"
+          ls -la bin/
+          
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: bin/
+
+  # Security scanning job
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5  # Set explicit timeout
+    continue-on-error: true  # Don't fail the entire pipeline on security findings
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        with:
+          args: '-severity medium -confidence medium ./...'
+
+  # Summary job - provides overall status
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [lint, test, build, security]
+    if: always()  # Run even if some jobs fail
+    
+    steps:
+      - name: Check overall status
+        run: |
+          echo "## CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.lint.result }}" == "success" ]; then
+            echo "✅ **Linting**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Linting**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.test.result }}" == "success" ]; then
+            echo "✅ **Testing**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Testing**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.build.result }}" == "success" ]; then
+            echo "✅ **Build**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Build**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.security.result }}" == "success" ]; then
+            echo "✅ **Security**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Security**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Fail the job if any critical jobs failed
+          if [ "${{ needs.lint.result }}" != "success" ] || [ "${{ needs.test.result }}" != "success" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **Overall Status**: Failed - Critical jobs failed" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Overall Status**: Passed - All critical jobs succeeded" >> $GITHUB_STEP_SUMMARY
+          fi

@@ -1,27 +1,76 @@
-# Binaries
-bin/
+# Binaries for programs and plugins
 *.exe
 *.exe~
 *.dll
 *.so
-*.so.*
 *.dylib
 
-# Test binaries
+# Test binary, built with `go test -c`
 *.test
-*.out
 
-# IDE
-.idea/
+# Output of the go coverage tool
+*.out
+coverage.txt
+coverage.html
+
+# Go workspace file
+go.work
+
+# Dependency directories
+vendor/
+
+# Go build cache
+.cache/
+
+# IDEs and editors
 .vscode/
+.idea/
 *.swp
 *.swo
 *~
+
+# OS specific
+Thumbs.db
 .DS_Store
+.AppleDouble
+.LSOverride
 
-# Go
-go.sum
+# Temporary files
+*.tmp
+tmp/
+temp/
 
-# Output
-*.idms
-output/
+# Test artifacts and temporary output
+test_output/
+*_test_output/
+*.test.idml
+*.test.idms
+
+# Test output files
+testdata/*_roundtrip.idml
+testdata/*_extracted/
+output_test.idml
+
+# CLI-generated files
+export.idms
+export_*.idms
+
+# Debug test output
+debug_test_output/
+debug_*.idml
+debug_*.idms
+*_debug.idml
+*_debug.idms
+
+# Debug files
+debug
+__debug_bin
+
+# Environment files
+.env
+.env.local
+
+# Kiro
+.kiro/
+
+.claude/

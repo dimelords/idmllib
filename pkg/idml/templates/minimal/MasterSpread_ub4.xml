@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<idPkg:MasterSpread xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="{{.DOMVersion}}">
+	<MasterSpread Self="ub4" Name="A-Master" NamePrefix="A" BaseName="Master" ShowMasterItems="true" PageCount="1" OverriddenPageItemProps="" PrimaryTextFrame="n" ItemTransform="1 0 0 1 0 0">
+		<Properties>
+			<PageColor type="enumeration">UseMasterColor</PageColor>
+		</Properties>
+		<Page Self="ub5" TabOrder="" AppliedMaster="n" OverrideList="" MasterPageTransform="1 0 0 1 0 0" Name="A" GeometricBounds="0 0 {{.PageHeight}} {{.PageWidth}}" ItemTransform="1 0 0 1 -{{.CenterX}} -{{.CenterY}}" GridStartingPoint="TopOutside" UseMasterGrid="true">
+			<Properties>
+				<PageColor type="enumeration">UseMasterColor</PageColor>
+			</Properties>
+			<MarginPreference ColumnCount="{{.ColumnCount}}" ColumnGutter="{{.ColumnGutter}}" Top="36" Bottom="36" Left="36" Right="36" ColumnDirection="Horizontal" />
+		</Page>
+	</MasterSpread>
+</idPkg:MasterSpread>
