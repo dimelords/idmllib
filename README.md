@@ -441,19 +441,19 @@ Fredrik Gustafsson ([@dimelords](https://github.com/dimelords))
 
 ## Changelog
 
-### v0.3.0 (2025-01-13)
-- ✅ Go 1.23 compatibility with downgraded dependencies
-- ✅ Epic 5: Domain-driven architecture refactoring
-- ✅ 8 focused packages for better organization
+### v2.0.0 (2025-01-13)
+- ✅ **BREAKING**: Updated module path to `github.com/dimelords/idmllib/v2` following Go module versioning semantics
+- ✅ Complete IDML read/write support with roundtrip fidelity
+- ✅ Domain-driven package architecture mirroring IDML file structure
+- ✅ Go 1.23 compatibility with comprehensive security fixes
+- ✅ CLI tool with interactive TUI interface
+- ✅ ResourceManager for tracking, validating, and cleaning up resources
+- ✅ Selection API for programmatically selecting elements by ID
+- ✅ IDMS snippet export functionality
+- ✅ Zero external dependencies (Go stdlib only)
+- ✅ 74% overall test coverage with comprehensive roundtrip tests
 - ✅ Clean separation of concerns with zero circular dependencies
-- ✅ All tests passing, zero regressions
-- ✅ Comprehensive linting and CI/CD pipeline
-
-### v0.2.0 (2025-11-16)
-- ✅ Epic 2: Full modification API
-- ✅ Resource management and dependency tracking
-- ✅ Selection API for programmatic element access
-- ✅ IDMS export foundation
+- ✅ Comprehensive linting and CI/CD pipeline with security scanning
 
 ### v0.1.0
 - ✅ Initial release with basic IDML read/write
