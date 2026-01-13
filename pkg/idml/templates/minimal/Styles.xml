@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<idPkg:Styles xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="20.4">
+	<RootParagraphStyleGroup Self="u23">
+		<ParagraphStyle Self="ParagraphStyle/$ID/NormalParagraphStyle" Name="$ID/NormalParagraphStyle" />
+	</RootParagraphStyleGroup>
+	<RootCharacterStyleGroup Self="u30">
+		<CharacterStyle Self="CharacterStyle/$ID/[No character style]" Name="$ID/[No character style]" />
+	</RootCharacterStyleGroup>
+</idPkg:Styles>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="20.5(48)" ?>
+<Document xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="{{.DOMVersion}}">
+	<Language Name="$ID/English: USA" SingleQuotes="&#39;&#39;" DoubleQuotes="&#34;&#34;" PrimaryWritingScript="$ID/Roman" />
+	<idPkg:Graphic src="Resources/Graphic.xml" />
+	<idPkg:Fonts src="Resources/Fonts.xml" />
+	<idPkg:Styles src="Resources/Styles.xml" />
+	<idPkg:Preferences src="Resources/Preferences.xml" />
+	<idPkg:Tags src="XML/Tags.xml" />
+	<idPkg:MasterSpread src="MasterSpreads/MasterSpread_ub4.xml" />
+	<ViewPreference HorizontalMeasurementUnits="Points" VerticalMeasurementUnits="Points" />
+	<DocumentPreference PageWidth="{{printf "%.3f" .PageWidth}}" PageHeight="{{printf "%.3f" .PageHeight}}" PageOrientation="{{.Orientation}}" ColumnCount="{{.ColumnCount}}" ColumnGutter="{{.ColumnGutter}}" />
+</Document>

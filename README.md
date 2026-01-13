@@ -6,305 +6,455 @@
   [![Go Reference](https://pkg.go.dev/badge/github.com/dimelords/idmllib.svg)](https://pkg.go.dev/github.com/dimelords/idmllib)
   [![Go Report Card](https://goreportcard.com/badge/github.com/dimelords/idmllib)](https://goreportcard.com/report/github.com/dimelords/idmllib)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-  [![Go](https://github.com/dimelords/idmllib/actions/workflows/test.yml/badge.svg)](https://github.com/dimelords/idmllib/actions/workflows/ci.yml)
-
-  **A Go library and CLI tool for working with InDesign Markup Language (IDML) files.**
+  [![Go](https://github.com/dimelords/idmllib/actions/workflows/ci.yml/badge.svg)](https://github.com/dimelords/idmllib/actions/workflows/ci.yml)
+  
+  **A Go library for reading, writing, and manipulating Adobe InDesign IDML (InDesign Markup Language) files.**
   
   Parse IDML documents and export TextFrames as InDesign Snippets (IDMS) with intelligent filtering of styles, colors, and resources.
 </div>
 
-## Features
+## Status
 
-- 📖 **Parse IDML** - Read and parse InDesign IDML files
-- 📤 **Export IDMS** - Extract TextFrames as InDesign Snippet (IDMS) files
-- 🎨 **Smart Filtering** - Include only used styles, colors, and resources
-- 🔗 **Dependency Resolution** - Automatically include base styles (BasedOn, NextStyle)
-- ✨ **InDesign Compatible** - Output matches InDesign's native snippet format
+✅ **Production Ready** - Full parsing, modification API, and IDMS export
 
-## Architecture
+### Current Capabilities
 
-The library is organized into three main packages:
+- ✅ Read IDML files (ZIP archive handling)
+- ✅ Parse `designmap.xml` with full Document structure
+- ✅ Parse Stories, Spreads, and Resources (Styles, Fonts, Graphics)
+- ✅ Marshal all types back to XML with perfect roundtrip
+- ✅ Content modification API (add/update/remove stories and resources)
+- ✅ Dependency tracking and resource management
+- ✅ Selection API for programmatic element access
+- ✅ IDMS snippet export functionality
+- ✅ Domain-driven architecture for maintainability
 
-- **`idml`** - Parses IDML files and provides read-only access to stories and spreads
-- **`idms`** - Exports IDMS snippets with intelligent filtering using predicates
-- **`types`** - Shared data structures for IDML/IDMS documents
+## Overview
 
-This separation allows for clean, flexible usage where IDML handles reading and IDMS handles export.
+IDML is Adobe InDesign's XML-based file format. This library provides a clean, type-safe API for working with IDML files in Go.
+
+### Package Structure
+
+```
+pkg/
+├── idml/          # Main API - Package coordinator and backward-compatible types
+├── common/        # Shared types (Properties, PathGeometry, etc.)
+├── document/      # Document structure (designmap.xml)
+├── spread/        # Page layouts (Spreads/*.xml)
+├── story/         # Text content (Stories/*.xml)
+├── resources/     # Styles, fonts, and graphics (Resources/*.xml)
+├── analysis/      # Dependency tracking
+└── idms/          # IDMS snippet export
+```
+
+### Features
+
+- ✅ **Epic 1: Foundation** - Core IDML read/write with ZIP handling
+- ✅ **Epic 2: Modification API** - Full document manipulation capabilities
+- ✅ **Epic 3: IDMS Export** - Generate InDesign snippets from selections
+- ✅ **Epic 5: Architecture** - Domain-driven package structure
+- 📋 **Future: High-Level APIs** - Simplified document creation and editing
 
 ## Installation
-
-### As a Library
 
 ```bash
 go get github.com/dimelords/idmllib
 ```
 
-### As a CLI Tool
+## Usage
 
-```bash
-go install github.com/dimelords/idmllib/cmd/idmllib@latest
-```
-
-Or build from source:
-
-```bash
-git clone https://github.com/dimelords/idmllib.git
-cd idmllib
-go build -o bin/idmllib ./cmd/idmllib
-```
-
-## Quick Start
-
-### Library Usage
+### Reading and Inspecting IDML Files
 
 ```go
 package main
 
 import (
     "log"
-    
-    "github.com/dimelords/idmllib/idml"
-    "github.com/dimelords/idmllib/idms"
-    "github.com/dimelords/idmllib/types"
+    "github.com/dimelords/idmllib/pkg/idml"
 )
 
 func main() {
-    // Open IDML file (read-only)
-    pkg, err := idml.Open("document.idml")
+    // Read an IDML file
+    pkg, err := idml.Read("document.idml")
     if err != nil {
         log.Fatal(err)
     }
-    defer pkg.Close()
 
-    // List all stories
-    for _, story := range pkg.Stories {
-        log.Printf("Story: %s\n", story.Self)
+    // Access parsed document structure
+    doc, err := pkg.Document()
+    if err != nil {
+        log.Fatal(err)
     }
 
-    // Export using predicate (e.g., export specific TextFrame)
+    // Inspect document properties
+    log.Printf("Document version: %s", doc.Version)
+    log.Printf("Stories: %d", len(doc.Stories))
+    log.Printf("Spreads: %d", len(doc.Spreads))
+
+    // Access a story
+    story, err := pkg.Story("Stories/Story_u123.xml")
+    if err != nil {
+        log.Fatal(err)
+    }
+    log.Printf("Story has %d paragraph ranges",
+        len(story.StoryElement.ParagraphStyleRanges))
+
+    // Access a spread
+    spread, err := pkg.Spread("Spreads/Spread_ue6.xml")
+    if err != nil {
+        log.Fatal(err)
+    }
+    log.Printf("Spread has %d text frames", len(spread.InnerSpread.TextFrames))
+}
+```
+
+### Modifying Content
+
+```go
+package main
+
+import (
+    "log"
+    "github.com/dimelords/idmllib/pkg/idml"
+    "github.com/dimelords/idmllib/pkg/story"
+)
+
+func main() {
+    pkg, err := idml.Read("document.idml")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Create a new story
+    newStory := &story.Story{}
+    newStory.StoryElement.Self = "u1234"
+    newStory.StoryElement.ParagraphStyleRanges = []story.ParagraphStyleRange{
+        {
+            AppliedParagraphStyle: "ParagraphStyle/$ID/NormalParagraphStyle",
+            CharacterStyleRanges: []story.CharacterStyleRange{
+                story.NewCharacterStyleRange(
+                    "CharacterStyle/$ID/[No character style]",
+                    "Hello, World!",
+                ),
+            },
+        },
+    }
+
+    // Add the story to the package
+    err = pkg.AddStory("Stories/Story_u1234.xml", newStory)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Save the modified document
+    err = idml.Write(pkg, "output.idml")
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+```
+
+### Resource Management
+
+```go
+package main
+
+import (
+    "log"
+    "github.com/dimelords/idmllib/pkg/idml"
+)
+
+func main() {
+    pkg, err := idml.Read("document.idml")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Create a resource manager
+    rm := idml.NewResourceManager(pkg)
+
+    // Find orphaned resources (unused styles, colors, etc.)
+    report := rm.FindOrphans()
+    log.Printf("Found %d orphaned styles", len(report.OrphanedStyles))
+    log.Printf("Found %d orphaned colors", len(report.OrphanedColors))
+
+    // Clean up orphaned resources
+    cleanupReport := rm.CleanupOrphans()
+    log.Printf("Removed %d unused resources", cleanupReport.TotalRemoved)
+
+    // Save the cleaned document
+    err = idml.Write(pkg, "cleaned.idml")
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+```
+
+### Exporting IDMS Snippets
+
+```go
+package main
+
+import (
+    "log"
+    "github.com/dimelords/idmllib/pkg/idml"
+    "github.com/dimelords/idmllib/pkg/idms"
+)
+
+func main() {
+    // Read source IDML document
+    pkg, err := idml.Read("document.idml")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Select elements to export
+    sel := idml.NewSelection()
+    textFrame, _ := pkg.SelectTextFrameByID("u1e6")
+    sel.AddTextFrame(textFrame)
+
+    // Export as IDMS snippet
     exporter := idms.NewExporter(pkg)
-    
-    // Export TextFrame with ID "u123"
-    predicate := func(tf *types.TextFrame) bool {
-        return tf.Self == "u123"
-    }
-    
-    err = exporter.ExportXML("output.idms", predicate)
+    snippet, err := exporter.ExportSelection(sel)
     if err != nil {
         log.Fatal(err)
     }
-    
-    // Or export all TextFrames for a specific story
-    storyID := "u222"
-    storyPredicate := func(tf *types.TextFrame) bool {
-        return tf.ParentStory == storyID
-    }
-    
-    err = exporter.ExportXML("story.idms", storyPredicate)
+
+    // Write the snippet
+    err = snippet.Write("snippet.idms")
     if err != nil {
         log.Fatal(err)
     }
 }
 ```
 
-### CLI Usage
+## CLI Tool
 
-#### List all stories
-
-```bash
-idmllib -idml document.idml -list
-```
-
-Output shows:
-- Story ID (e.g., `u222`)
-- Story self reference
-
-#### Export a TextFrame as IDMS snippet
+The project includes an interactive CLI tool for exploring and manipulating IDML files:
 
 ```bash
-idmllib -idml document.idml -textframe u123 -output textframe.idms
+# Build the CLI
+go build -o bin/idmllib ./cmd/cli
+
+# Run interactively
+./bin/idmllib
 ```
 
-The exported IDMS file includes:
-- TextFrame content with all formatting
-- Only the styles actually used (with dependency resolution)
-- Only the colors and swatches referenced
-- Only the TextFrames linked to the story
-- Proper ColorGroup structure
+Features:
+- Browse document structure
+- Inspect stories, spreads, and resources
+- Export IDMS snippets
+- Analyze dependencies
+- Resource management
 
-## Command-Line Options
+## Development
 
-```
--idml string
-    Path to IDML file (required)
-    
--list
-    List all stories in the IDML file
-    
--textframe string
-    TextFrame ID to export (e.g., "u123")
-    
--output string
-    Output IDMS file path (required with -textframe)
-```
+### Requirements
 
-## How It Works
+- Go 1.23 or later
+- golangci-lint (for code quality checks)
 
-### IDML Structure
+### Code Quality and Linting
 
-IDML files are ZIP archives containing:
-- `designmap.xml` - Document structure and story index
-- `Stories/` - Text content (Story_*.xml files)
-- `Resources/Styles.xml` - Character, paragraph, and object styles
-- `Resources/Graphic.xml` - Colors and swatches
-- `Spreads/` - Page layouts and TextFrames
+This project uses [golangci-lint](https://golangci-lint.run/) for comprehensive code quality checks.
 
-### IDMS Export Process
-
-1. **Parse IDML** - Extract story content and structure
-2. **Apply Predicate** - Select TextFrames based on custom logic
-3. **Analyze Dependencies** - Find all used styles, colors, and layers
-4. **Resolve Relationships** - Include base styles and referenced resources
-5. **Filter Resources** - Remove unused styles, colors, and swatches
-6. **Build IDMS** - Create InDesign-compatible snippet with minimal data
-
-## API Documentation
-
-Full API documentation is available at [pkg.go.dev](https://pkg.go.dev/github.com/dimelords/idmllib).
-
-### Core Packages
-
-#### idml Package
-```go
-// Open and parse an IDML file
-pkg, err := idml.Open("document.idml")
-
-// Access stories and spreads
-stories := pkg.Stories
-spreads := pkg.Spreads
-
-// Get specific story
-story, err := pkg.GetStory("u222")
-```
-
-#### idms Package
-```go
-// Create exporter with IDML package as reader
-exporter := idms.NewExporter(pkg)
-
-// Export with custom predicate
-predicate := func(tf *types.TextFrame) bool {
-    return tf.Self == "u123" || tf.ParentStory == "u222"
-}
-err := exporter.ExportXML("output.idms", predicate)
-
-// Or use ExportStoryXML convenience method
-err := exporter.ExportStoryXML("u222", "story.idms")
-```
-
-## Testing
-
-Run the test suite:
+#### Installation
 
 ```bash
+# Install golangci-lint
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+# Or using homebrew on macOS
+brew install golangci-lint
+
+# Or using the install script
+curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.2
+```
+
+#### Running Linting
+
+```bash
+# Run all linting checks
+golangci-lint run
+
+# Run with specific timeout
+golangci-lint run --timeout=10m
+
+# Run on specific files or directories
+golangci-lint run ./pkg/idml/
+
+# Fix auto-fixable issues
+golangci-lint run --fix
+```
+
+#### Linting Configuration
+
+The project uses a comprehensive `.golangci.yml` configuration that includes:
+
+- **Error checking**: errcheck, gosec, staticcheck
+- **Code quality**: gosimple, ineffassign, unused
+- **Formatting**: gofmt, goimports, misspell
+- **Type safety**: typecheck, govet
+
+The configuration is designed to be strict but practical for existing codebases.
+
+#### Continuous Integration
+
+The project includes a comprehensive CI/CD pipeline (`.github/workflows/ci.yml`) that:
+
+- **Runs on every push and pull request** to main/develop branches
+- **Linting**: Fails the build if any linting violations are found
+- **Testing**: Runs tests on multiple Go versions (1.22, 1.23) with race detection
+- **Coverage**: Generates coverage reports and uploads to Codecov
+- **Security**: Runs Gosec security scanning
+- **Build**: Ensures all binaries build successfully
+
+The pipeline is configured to **fail fast** - if linting or tests fail, subsequent jobs are skipped.
+
+### Testing
+
+```bash
+# Run all tests
 go test ./...
-```
 
-
-With coverage:
-
-```bash
+# Run with coverage
 go test -cover ./...
+
+# Run with race detection and coverage
+go test -v -race -coverprofile=coverage.out ./...
+
+# Generate HTML coverage report
+go tool cover -html=coverage.out -o coverage.html
+
+# Run specific package tests
+go test ./pkg/idml -v
+
+# Update golden files when intentionally changing output
+UPDATE_GOLDEN=1 go test ./pkg/idml
 ```
 
-Run specific package tests:
+#### Test Cleanup Patterns
 
-```bash
-# Test IDML parsing
-go test -v ./idml
+This project follows strict test cleanup patterns to keep the repository clean:
 
-# Test IDMS export and filtering
-go test -v ./idms
-
-# Test filter logic
-go test -v ./idms/filter
+**Automatic Cleanup**:
+```go
+func TestExample(t *testing.T) {
+    // Use t.TempDir() for automatic cleanup
+    tempDir := t.TempDir()
+    outputPath := filepath.Join(tempDir, "output.idml")
+    
+    // Test logic here...
+    // No manual cleanup needed - t.TempDir() handles it
+}
 ```
 
-Run specific tests:
-
-```bash
-go test -v -run TestStyleFiltering ./idms
-go test -v -run TestOpen ./idml
+**Debug Mode with Cleanup**:
+```go
+func TestExampleWithDebug(t *testing.T) {
+    var outputPath string
+    
+    if *preserveTestOutput {
+        outputPath = "debug_output.idml"
+        t.Cleanup(func() {
+            if !t.Failed() {
+                os.Remove(outputPath)
+            }
+        })
+    } else {
+        tempDir := t.TempDir()
+        outputPath = filepath.Join(tempDir, "output.idml")
+    }
+    
+    // Test logic...
+}
 ```
+
+**Test Artifact Guidelines**:
+- Never commit test output files to the repository
+- Use `t.TempDir()` for temporary files that should be cleaned up automatically
+- Place persistent test data in `testdata/` directories
+- Use debug flags sparingly and ensure cleanup after debugging
+
+### Test Coverage
+
+- Overall: ~74%
+- pkg/analysis: 93.6%
+- pkg/idml: 61.1%
+- pkg/idms: 70.6%
+- internal/xmlutil: 79.5%
+
+### Project Structure
+
+```
+idmllib/
+├── pkg/
+│   ├── idml/          # Main API and coordinator
+│   ├── common/        # Shared types
+│   ├── document/      # Document structure
+│   ├── spread/        # Page layouts
+│   ├── story/         # Text content
+│   ├── resources/     # Styles, fonts, graphics
+│   ├── analysis/      # Dependency tracking
+│   └── idms/          # IDMS export
+├── internal/
+│   ├── xmlutil/       # XML utilities
+│   └── testutil/      # Test helpers
+├── cmd/
+│   ├── cli/           # Interactive CLI tool
+│   └── debug-export/  # Debug utilities
+├── docs/              # Documentation
+└── testdata/          # Test IDML files
+```
+
+## Architecture
+
+This library uses a domain-driven architecture where packages mirror the IDML file structure:
+
+- **pkg/common**: Shared types used across domains
+- **pkg/document**: designmap.xml types
+- **pkg/spread**: Spreads/*.xml types (page items, layouts)
+- **pkg/story**: Stories/*.xml types (text content)
+- **pkg/resources**: Resources/*.xml types (styles, fonts, graphics)
+- **pkg/idml**: Main coordinator and public API
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation.
+
+## Resources
+
+- [Adobe IDML Specification](https://www.adobe.com/devnet/indesign/sdk.html)
+- [Project Documentation](claude.md)
+- [Architecture Documentation](ARCHITECTURE.md)
+
+## License
+
+[License TBD]
 
 ## Contributing
 
 Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Write tests for your changes
-4. Ensure tests pass (`go test ./...`)
-5. Commit your changes (`git commit -am 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
-## Package Structure
-
-```
-github.com/dimelords/idmllib/
-├── types/              # Shared data structures
-│   ├── idms.go        # IDMS document types
-│   ├── story.go       # Story types
-│   ├── spread.go      # Spread types
-│   └── predicates.go  # Predicate types
-├── idml/              # IDML parsing (read-only)
-│   ├── package.go     # Package struct
-│   ├── parser.go      # IDML parser
-│   ├── reader.go      # Reader methods
-│   └── resource_loader.go
-├── idms/              # IDMS export with filtering
-│   ├── exporter.go    # Export logic
-│   └── filter/        # Filtering logic
-│       ├── styles.go
-│       ├── colors.go
-│       └── dependencies.go
-├── cmd/idmllib/       # CLI tool
-└── testdata/          # Shared test fixtures
-```
-
-## Known Limitations
-
-- Graphics and images are not included in exports (by design)
-- Complex nested style groups may require additional testing
-- Right-to-left languages have limited testing
-
-## Troubleshooting
-
-#### "WARN XML file not found file=XML/Mapping.xml"
-This is normal for documents without XML structure tagging. Can be safely ignored.
-
-#### "WARN Graphics directory not found or empty"
-This is normal for text-only documents. Graphics are not included in IDMS exports.
-
-#### Export is missing some styles
-Verify the styles are actually applied in the TextFrames. The filtering removes unused styles to minimize file size.
-
-#### No TextFrames matched the predicate
-Your predicate function returned false for all TextFrames. Check that:
-- The TextFrame ID is correct
-- The predicate logic matches your intent
-- Use `-list` to see available stories and their IDs
-
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
 ## Author
 
-Fredrik Gustafsson
+Fredrik Gustafsson ([@dimelords](https://github.com/dimelords))
 
-## Acknowledgments
+## Changelog
 
-- InDesign IDML specification
-- Go community for excellent XML handling libraries
+### v0.3.0 (2025-01-13)
+- ✅ Go 1.23 compatibility with downgraded dependencies
+- ✅ Epic 5: Domain-driven architecture refactoring
+- ✅ 8 focused packages for better organization
+- ✅ Clean separation of concerns with zero circular dependencies
+- ✅ All tests passing, zero regressions
+- ✅ Comprehensive linting and CI/CD pipeline
+
+### v0.2.0 (2025-11-16)
+- ✅ Epic 2: Full modification API
+- ✅ Resource management and dependency tracking
+- ✅ Selection API for programmatic element access
+- ✅ IDMS export foundation
+
+### v0.1.0
+- ✅ Initial release with basic IDML read/write
+- ✅ Document, Story, and Spread parsing
+- ✅ Full roundtrip capability
