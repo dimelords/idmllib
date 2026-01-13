@@ -5,7 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 
-	"github.com/dimelords/idmllib/pkg/common"
+	"github.com/dimelords/idmllib/v2/pkg/common"
 )
 
 // NamespaceConfig holds configuration for namespace handling.

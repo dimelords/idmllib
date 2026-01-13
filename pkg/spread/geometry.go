@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dimelords/idmllib/pkg/common"
+	"github.com/dimelords/idmllib/v2/pkg/common"
 )
 
 // Bounds represents the width and height of a frame in points.

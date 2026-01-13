@@ -3,8 +3,8 @@ package resources
 import (
 	"encoding/xml"
 
-	"github.com/dimelords/idmllib/internal/xmlutil"
-	"github.com/dimelords/idmllib/pkg/common"
+	"github.com/dimelords/idmllib/v2/internal/xmlutil"
+	"github.com/dimelords/idmllib/v2/pkg/common"
 )
 
 // ParseFontsFile parses a Fonts.xml file into a FontsFile struct.

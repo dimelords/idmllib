@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/dimelords/idmllib/pkg/common"
+	"github.com/dimelords/idmllib/v2/pkg/common"
 )
 
 // TestMetadataFileParsing_ParsesIndividualFiles tests parsing individual metadata files

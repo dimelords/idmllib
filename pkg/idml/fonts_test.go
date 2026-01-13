@@ -3,7 +3,7 @@ package idml_test
 import (
 	"testing"
 
-	"github.com/dimelords/idmllib/pkg/idml"
+	"github.com/dimelords/idmllib/v2/pkg/idml"
 )
 
 func TestPackage_GetFontPostScriptName(t *testing.T) {

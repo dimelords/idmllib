@@ -3,7 +3,7 @@ package idml
 import (
 	"testing"
 
-	"github.com/dimelords/idmllib/pkg/spread"
+	"github.com/dimelords/idmllib/v2/pkg/spread"
 )
 
 // TestParseSpreadWithRectangles_ParsesRectangles tests parsing a spread containing rectangles and images.

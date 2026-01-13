@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/dimelords/idmllib/pkg/story"
+	"github.com/dimelords/idmllib/v2/pkg/story"
 )
 
 // Example demonstrates basic usage of the story package.

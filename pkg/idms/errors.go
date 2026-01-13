@@ -1,7 +1,7 @@
 package idms
 
 import (
-	"github.com/dimelords/idmllib/pkg/common"
+	"github.com/dimelords/idmllib/v2/pkg/common"
 )
 
 // Legacy aliases for backward compatibility

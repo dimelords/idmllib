@@ -4,8 +4,8 @@ import (
 	"encoding/xml"
 	"testing"
 
-	"github.com/dimelords/idmllib/pkg/resources"
-	"github.com/dimelords/idmllib/pkg/story"
+	"github.com/dimelords/idmllib/v2/pkg/resources"
+	"github.com/dimelords/idmllib/v2/pkg/story"
 )
 
 // TestValidateReferences_EmptyPackage tests validation with an empty package.

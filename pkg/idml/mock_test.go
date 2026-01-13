@@ -1,10 +1,10 @@
 package idml
 
 import (
-	"github.com/dimelords/idmllib/pkg/common"
-	"github.com/dimelords/idmllib/pkg/resources"
-	"github.com/dimelords/idmllib/pkg/spread"
-	"github.com/dimelords/idmllib/pkg/story"
+	"github.com/dimelords/idmllib/v2/pkg/common"
+	"github.com/dimelords/idmllib/v2/pkg/resources"
+	"github.com/dimelords/idmllib/v2/pkg/spread"
+	"github.com/dimelords/idmllib/v2/pkg/story"
 )
 
 // MockPackage is a test double for Package that implements PackageAccessor.

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/xml"
 
-	"github.com/dimelords/idmllib/pkg/common"
+	"github.com/dimelords/idmllib/v2/pkg/common"
 )
 
 // ResourceFile represents a generic resource XML file (Graphic, Fonts, Styles, Preferences).

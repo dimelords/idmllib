@@ -3,8 +3,8 @@ package spread
 import (
 	"encoding/xml"
 
-	"github.com/dimelords/idmllib/internal/xmlutil"
-	"github.com/dimelords/idmllib/pkg/common"
+	"github.com/dimelords/idmllib/v2/internal/xmlutil"
+	"github.com/dimelords/idmllib/v2/pkg/common"
 )
 
 // UnmarshalXML implements custom XML unmarshaling for Spread.

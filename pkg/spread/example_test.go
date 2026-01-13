@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/dimelords/idmllib/pkg/spread"
+	"github.com/dimelords/idmllib/v2/pkg/spread"
 )
 
 // Example demonstrates basic usage of the spread package.

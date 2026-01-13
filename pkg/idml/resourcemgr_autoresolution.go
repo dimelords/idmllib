@@ -3,8 +3,8 @@ package idml
 import (
 	"fmt"
 
-	"github.com/dimelords/idmllib/pkg/common"
-	"github.com/dimelords/idmllib/pkg/resources"
+	"github.com/dimelords/idmllib/v2/pkg/common"
+	"github.com/dimelords/idmllib/v2/pkg/resources"
 )
 
 // ============================================================================

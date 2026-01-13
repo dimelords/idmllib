@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/dimelords/idmllib/pkg/idml"
+	"github.com/dimelords/idmllib/v2/pkg/idml"
 )
 
 // ExampleRead demonstrates reading an IDML file.

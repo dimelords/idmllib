@@ -3,7 +3,7 @@
   
   # IDML Library
 
-  [![Go Reference](https://pkg.go.dev/badge/github.com/dimelords/idmllib.svg)](https://pkg.go.dev/github.com/dimelords/idmllib)
+  [![Go Reference](https://pkg.go.dev/badge/github.com/dimelords/idmllib/v2.svg)](https://pkg.go.dev/github.com/dimelords/idmllib/v2)
   [![Go Report Card](https://goreportcard.com/badge/github.com/dimelords/idmllib)](https://goreportcard.com/report/github.com/dimelords/idmllib)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![CI](https://github.com/dimelords/idmllib/actions/workflows/ci.yml/badge.svg)](https://github.com/dimelords/idmllib/actions/workflows/ci.yml)
@@ -59,7 +59,7 @@ pkg/
 ## Installation
 
 ```bash
-go get github.com/dimelords/idmllib
+go get github.com/dimelords/idmllib/v2
 ```
 
 ## Usage
@@ -71,7 +71,7 @@ package main
 
 import (
     "log"
-    "github.com/dimelords/idmllib/pkg/idml"
+    "github.com/dimelords/idmllib/v2/pkg/idml"
 )
 
 func main() {
@@ -116,8 +116,8 @@ package main
 
 import (
     "log"
-    "github.com/dimelords/idmllib/pkg/idml"
-    "github.com/dimelords/idmllib/pkg/story"
+    "github.com/dimelords/idmllib/v2/pkg/idml"
+    "github.com/dimelords/idmllib/v2/pkg/story"
 )
 
 func main() {
@@ -162,7 +162,7 @@ package main
 
 import (
     "log"
-    "github.com/dimelords/idmllib/pkg/idml"
+    "github.com/dimelords/idmllib/v2/pkg/idml"
 )
 
 func main() {
@@ -198,8 +198,8 @@ package main
 
 import (
     "log"
-    "github.com/dimelords/idmllib/pkg/idml"
-    "github.com/dimelords/idmllib/pkg/idms"
+    "github.com/dimelords/idmllib/v2/pkg/idml"
+    "github.com/dimelords/idmllib/v2/pkg/idms"
 )
 
 func main() {

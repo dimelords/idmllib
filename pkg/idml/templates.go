@@ -8,7 +8,7 @@ import (
 	"sync"
 	"text/template"
 
-	"github.com/dimelords/idmllib/pkg/common"
+	"github.com/dimelords/idmllib/v2/pkg/common"
 )
 
 // Template initialization with sync.Once for thread-safe lazy loading

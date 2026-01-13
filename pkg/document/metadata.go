@@ -1,7 +1,7 @@
 package document
 
 import (
-	"github.com/dimelords/idmllib/internal/xmlutil"
+	"github.com/dimelords/idmllib/v2/internal/xmlutil"
 )
 
 // ProcessingInstruction represents an XML processing instruction like <?aid ...?>

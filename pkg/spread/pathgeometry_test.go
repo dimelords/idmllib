@@ -3,7 +3,7 @@ package spread
 import (
 	"testing"
 
-	"github.com/dimelords/idmllib/pkg/common"
+	"github.com/dimelords/idmllib/v2/pkg/common"
 )
 
 func TestBoundsFromPathGeometry(t *testing.T) {

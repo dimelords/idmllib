@@ -3,8 +3,8 @@ package idml_test
 import (
 	"testing"
 
-	"github.com/dimelords/idmllib/internal/testutil"
-	"github.com/dimelords/idmllib/pkg/idml"
+	"github.com/dimelords/idmllib/v2/internal/testutil"
+	"github.com/dimelords/idmllib/v2/pkg/idml"
 )
 
 // TestGoldenRoundtrip_ExampleIDML tests roundtrip using golden file comparison.

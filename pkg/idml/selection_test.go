@@ -3,7 +3,7 @@ package idml
 import (
 	"testing"
 
-	"github.com/dimelords/idmllib/pkg/spread"
+	"github.com/dimelords/idmllib/v2/pkg/spread"
 )
 
 // TestNewSelection_CreatesEmptySelection tests creating a new empty selection

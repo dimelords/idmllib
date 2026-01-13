@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/dimelords/idmllib/internal/testutil"
+	"github.com/dimelords/idmllib/v2/internal/testutil"
 )
 
 // TestGoldenMarshal_TextOnly tests that marshaling produces consistent output

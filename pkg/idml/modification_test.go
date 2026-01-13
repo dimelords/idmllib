@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dimelords/idmllib/pkg/common"
-	"github.com/dimelords/idmllib/pkg/spread"
-	"github.com/dimelords/idmllib/pkg/story"
+	"github.com/dimelords/idmllib/v2/pkg/common"
+	"github.com/dimelords/idmllib/v2/pkg/spread"
+	"github.com/dimelords/idmllib/v2/pkg/story"
 )
 
 // ============================================================================

@@ -6,12 +6,12 @@ import (
 	"encoding/xml"
 	"fmt"
 
-	"github.com/dimelords/idmllib/pkg/analysis"
-	"github.com/dimelords/idmllib/pkg/common"
-	"github.com/dimelords/idmllib/pkg/document"
-	"github.com/dimelords/idmllib/pkg/idml"
-	"github.com/dimelords/idmllib/pkg/resources"
-	"github.com/dimelords/idmllib/pkg/story"
+	"github.com/dimelords/idmllib/v2/pkg/analysis"
+	"github.com/dimelords/idmllib/v2/pkg/common"
+	"github.com/dimelords/idmllib/v2/pkg/document"
+	"github.com/dimelords/idmllib/v2/pkg/idml"
+	"github.com/dimelords/idmllib/v2/pkg/resources"
+	"github.com/dimelords/idmllib/v2/pkg/story"
 )
 
 // Exporter builds IDMS snippet files from selected page items in an IDML document.

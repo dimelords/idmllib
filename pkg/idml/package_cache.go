@@ -1,10 +1,10 @@
 package idml
 
 import (
-	"github.com/dimelords/idmllib/pkg/document"
-	"github.com/dimelords/idmllib/pkg/resources"
-	"github.com/dimelords/idmllib/pkg/spread"
-	"github.com/dimelords/idmllib/pkg/story"
+	"github.com/dimelords/idmllib/v2/pkg/document"
+	"github.com/dimelords/idmllib/v2/pkg/resources"
+	"github.com/dimelords/idmllib/v2/pkg/spread"
+	"github.com/dimelords/idmllib/v2/pkg/story"
 )
 
 // Cache management methods for Package struct.

@@ -5,8 +5,8 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/dimelords/idmllib/pkg/analysis"
-	"github.com/dimelords/idmllib/pkg/idml"
+	"github.com/dimelords/idmllib/v2/pkg/analysis"
+	"github.com/dimelords/idmllib/v2/pkg/idml"
 )
 
 // Example demonstrates basic usage of the analysis package.

@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/dimelords/idmllib/internal/testutil"
+	"github.com/dimelords/idmllib/v2/internal/testutil"
 )
 
 func TestIsValidZipPath_ValidatesZipPaths(t *testing.T) {

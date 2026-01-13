@@ -3,7 +3,7 @@ package idml
 import (
 	"testing"
 
-	"github.com/dimelords/idmllib/internal/xmlutil"
+	"github.com/dimelords/idmllib/v2/internal/xmlutil"
 )
 
 // TestXMLRoundtrip verifies that we can read XML files from a Package,

@@ -3,8 +3,8 @@ package idml
 import (
 	"fmt"
 
-	"github.com/dimelords/idmllib/pkg/common"
-	"github.com/dimelords/idmllib/pkg/spread"
+	"github.com/dimelords/idmllib/v2/pkg/common"
+	"github.com/dimelords/idmllib/v2/pkg/spread"
 )
 
 // selectPageItemByID is a generic helper that searches for a page item by ID across all spreads.

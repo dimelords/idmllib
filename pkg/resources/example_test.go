@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/dimelords/idmllib/pkg/resources"
+	"github.com/dimelords/idmllib/v2/pkg/resources"
 )
 
 // Example demonstrates basic usage of the resources package.

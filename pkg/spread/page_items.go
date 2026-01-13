@@ -3,7 +3,7 @@ package spread
 import (
 	"encoding/xml"
 
-	"github.com/dimelords/idmllib/pkg/common"
+	"github.com/dimelords/idmllib/v2/pkg/common"
 )
 
 // Rectangle represents a rectangular page item in a spread.

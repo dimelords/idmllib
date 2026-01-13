@@ -4,8 +4,8 @@ import (
 	"encoding/xml"
 	"testing"
 
-	"github.com/dimelords/idmllib/internal/testutil"
-	"github.com/dimelords/idmllib/pkg/common"
+	"github.com/dimelords/idmllib/v2/internal/testutil"
+	"github.com/dimelords/idmllib/v2/pkg/common"
 
 	"github.com/google/go-cmp/cmp"
 )

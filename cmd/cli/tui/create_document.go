@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/dimelords/idmllib/pkg/idml"
+	"github.com/dimelords/idmllib/v2/pkg/idml"
 )
 
 type createStep int

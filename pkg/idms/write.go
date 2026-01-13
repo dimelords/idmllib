@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dimelords/idmllib/pkg/common"
-	"github.com/dimelords/idmllib/pkg/document"
+	"github.com/dimelords/idmllib/v2/pkg/common"
+	"github.com/dimelords/idmllib/v2/pkg/document"
 )
 
 // Write writes an IDMS Package to the given path.

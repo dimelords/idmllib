@@ -3,8 +3,8 @@ package analysis
 import (
 	"testing"
 
-	"github.com/dimelords/idmllib/internal/testutil"
-	"github.com/dimelords/idmllib/pkg/idml"
+	"github.com/dimelords/idmllib/v2/internal/testutil"
+	"github.com/dimelords/idmllib/v2/pkg/idml"
 )
 
 // loadExampleIDML loads the standard example.idml test file.

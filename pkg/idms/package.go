@@ -18,9 +18,9 @@ package idms
 import (
 	"fmt"
 
-	"github.com/dimelords/idmllib/pkg/document"
-	"github.com/dimelords/idmllib/pkg/spread"
-	"github.com/dimelords/idmllib/pkg/story"
+	"github.com/dimelords/idmllib/v2/pkg/document"
+	"github.com/dimelords/idmllib/v2/pkg/spread"
+	"github.com/dimelords/idmllib/v2/pkg/story"
 )
 
 // Package represents an InDesign Snippet (IDMS) file.

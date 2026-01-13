@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/dimelords/idmllib/cmd/cli/tui"
+	"github.com/dimelords/idmllib/v2/cmd/cli/tui"
 )
 
 func main() {

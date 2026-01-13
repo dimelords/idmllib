@@ -3,9 +3,9 @@ package idms_test
 import (
 	"testing"
 
-	"github.com/dimelords/idmllib/pkg/idml"
-	"github.com/dimelords/idmllib/pkg/idms"
-	"github.com/dimelords/idmllib/pkg/spread"
+	"github.com/dimelords/idmllib/v2/pkg/idml"
+	"github.com/dimelords/idmllib/v2/pkg/idms"
+	"github.com/dimelords/idmllib/v2/pkg/spread"
 )
 
 func TestNewExporter(t *testing.T) {
