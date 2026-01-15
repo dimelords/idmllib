@@ -21,6 +21,7 @@ import (
 	"github.com/dimelords/idmllib/v2/pkg/document"
 	"github.com/dimelords/idmllib/v2/pkg/spread"
 	"github.com/dimelords/idmllib/v2/pkg/story"
+	"github.com/dimelords/idmllib/v2/pkg/xmp"
 )
 
 // Package represents an InDesign Snippet (IDMS) file.
@@ -155,4 +156,18 @@ func (p *Package) Stories() []story.StoryElement {
 		return nil
 	}
 	return p.Document.InlineStories
+}
+
+// XMP returns an XMP accessor for the package metadata.
+// This allows reading and modifying XMP metadata in a type-safe way.
+// Returns an XMP Metadata instance that can be used to update timestamps,
+// remove thumbnails, or modify specific fields.
+func (p *Package) XMP() *xmp.Metadata {
+	return xmp.Parse(p.XMPMetadata)
+}
+
+// SetXMP updates the package XMP metadata.
+// This should be called after modifying XMP metadata to persist changes.
+func (p *Package) SetXMP(x *xmp.Metadata) {
+	p.XMPMetadata = x.String()
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/dimelords/idmllib/v2/pkg/resources"
 	"github.com/dimelords/idmllib/v2/pkg/spread"
 	"github.com/dimelords/idmllib/v2/pkg/story"
+	"github.com/dimelords/idmllib/v2/pkg/xmp"
 )
 
 // fileEntry stores both the content and ZIP metadata for a file.
@@ -78,6 +79,11 @@ type Package struct {
 	// metadata caches optional metadata files (META-INF/*, XML/*).
 	// Map key is the file path (e.g., "META-INF/container.xml").
 	metadata map[string]*MetadataFile
+
+	// XMPMetadata contains the XMP packet extracted from designmap.xml.
+	// XMP is Adobe's standard for embedding metadata in documents.
+	// Example: <?xpacket begin="" id="..."?>...<x:xmpmeta>...</x:xmpmeta><?xpacket end="r"?>
+	XMPMetadata string
 
 	// indexState holds the item index for O(1) page item lookups.
 	// Built lazily on first SelectXxxByID call.
@@ -426,6 +432,20 @@ func (p *Package) SetStyles(styles *resources.StylesFile) {
 // The file will be marshaled when Write() is called.
 func (p *Package) SetGraphics(graphics *resources.GraphicFile) {
 	p.cacheGraphics(graphics)
+}
+
+// XMP returns an XMP accessor for the package metadata.
+// This allows reading and modifying XMP metadata in a type-safe way.
+// Returns an XMP Metadata instance that can be used to update timestamps,
+// remove thumbnails, or modify specific fields.
+func (p *Package) XMP() *xmp.Metadata {
+	return xmp.Parse(p.XMPMetadata)
+}
+
+// SetXMP updates the package XMP metadata.
+// This should be called after modifying XMP metadata to persist changes.
+func (p *Package) SetXMP(x *xmp.Metadata) {
+	p.XMPMetadata = x.String()
 }
 
 // ============================================================================

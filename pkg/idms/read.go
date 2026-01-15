@@ -30,11 +30,7 @@ func Parse(data []byte) (*Package, error) {
 	}
 
 	// Step 1: Extract XMP metadata (it's embedded in the Document element)
-	xmpRegex := regexp.MustCompile(`(?s)(<\?xpacket begin=.*?<\?xpacket end=.*?\?>)`)
-	xmpMatch := xmpRegex.FindSubmatch(data)
-	if len(xmpMatch) > 1 {
-		pkg.XMPMetadata = string(xmpMatch[1])
-	}
+	pkg.XMPMetadata = extractXMPMetadata(string(data))
 
 	// Step 2: Parse XML with decoder to extract PIs and Document
 	decoder := xml.NewDecoder(bytes.NewReader(data))
@@ -97,7 +93,8 @@ func Parse(data []byte) (*Package, error) {
 				// Remove XMP metadata from Document XML before parsing
 				docXML := docBuf.Bytes()
 				if pkg.XMPMetadata != "" {
-					docXML = xmpRegex.ReplaceAll(docXML, []byte(""))
+					xmpPattern := regexp.MustCompile(`(?s)<\?xpacket begin.*?<\?xpacket end[^>]*\?>`)
+					docXML = xmpPattern.ReplaceAll(docXML, []byte(""))
 				}
 
 				// Parse the Document using document.ParseDocument
@@ -114,4 +111,12 @@ func Parse(data []byte) (*Package, error) {
 	}
 
 	return pkg, nil
+}
+
+// extractXMPMetadata extracts the XMP packet from IDMS XML.
+// Returns empty string if no XMP packet is found.
+func extractXMPMetadata(xmlContent string) string {
+	// Match from <?xpacket begin to <?xpacket end
+	xmpPattern := regexp.MustCompile(`(?s)<\?xpacket begin.*?<\?xpacket end[^>]*\?>`)
+	return xmpPattern.FindString(xmlContent)
 }

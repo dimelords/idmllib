@@ -42,9 +42,9 @@ jobs:
         run: go mod download
         
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v7
         with:
-          version: latest
+          version: v2.8.0
           args: --timeout=5m --config=.golangci.yml
           
       - name: Check linting results
