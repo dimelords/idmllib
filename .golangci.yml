@@ -60,14 +60,7 @@ linters-settings:
   
   # staticcheck configuration
   staticcheck:
-    checks: 
-      - "all"
-      - "-SA1019"  # Deprecation warnings
-      - "-SA5008"  # XML tag conflicts
-      - "-SA9003"  # Empty branches
-      - "-QF1003"  # Tagged switch suggestions
-      - "-QF1006"  # Loop condition suggestions
-      - "-QF1008"  # Embedded field selector suggestions
+    checks: ["all"]
 
 # Issue filtering and exclusions
 issues:
