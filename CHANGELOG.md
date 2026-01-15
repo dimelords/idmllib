@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [2.1.0] - 2025-01-15
+
+### Added
 - New `pkg/xmp` package for XMP (Extensible Metadata Platform) metadata support
 - XMP metadata parsing and extraction from IDML and IDMS files
 - `XMP()` and `SetXMP()` methods on IDML and IDMS Package types
@@ -20,10 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `.golangci.yml` to v2 configuration format for golangci-lint v2.8.0 compatibility
 - Updated Go version in linter config from 1.21 to 1.23
 - IDML and IDMS packages now automatically extract and preserve XMP metadata during read/write operations
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 - Fixed `.golangci.yml` configuration errors (version field, output format, deprecated linters)
