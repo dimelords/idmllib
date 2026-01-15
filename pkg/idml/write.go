@@ -3,6 +3,8 @@ package idml
 import (
 	"archive/zip"
 	"os"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/dimelords/idmllib/v2/pkg/common"
@@ -15,6 +17,11 @@ import (
 // marshalCachedObjects marshals all cached objects back to XML data.
 // This ensures any modifications to parsed structs are saved.
 func (p *Package) marshalCachedObjects() error {
+	// Update XMP metadata in META-INF/metadata.xml if it exists and has been modified
+	if err := p.updateXMPInMetadataFile(); err != nil {
+		return err
+	}
+
 	// If document was parsed, marshal it back to XML with preserved metadata
 	if p.documentMetadata != nil {
 		xmlData, err := document.MarshalDocumentWithMetadata(p.documentMetadata)
@@ -87,6 +94,45 @@ func (p *Package) marshalCachedObjects() error {
 		p.setFileData(filename, data)
 	}
 
+	return nil
+}
+
+// updateXMPInMetadataFile updates the XMP packet in META-INF/metadata.xml.
+// This ensures XMP modifications are persisted when writing the package.
+func (p *Package) updateXMPInMetadataFile() error {
+	// Check if metadata.xml exists
+	entry, err := p.getFileEntry("META-INF/metadata.xml")
+	if err != nil {
+		// If metadata.xml doesn't exist, nothing to update
+		return nil
+	}
+
+	// Get the current content
+	content := string(entry.data)
+
+	// Replace the XMP packet with the updated one
+	xmpPattern := regexp.MustCompile(`(?s)<\?xpacket begin.*?<\?xpacket end[^>]*\?>`)
+	
+	if p.XMPMetadata != "" {
+		// Replace existing XMP or add if not present
+		if xmpPattern.MatchString(content) {
+			content = xmpPattern.ReplaceAllString(content, p.XMPMetadata)
+		} else {
+			// If no XMP exists, add it before the closing tag
+			// Find a suitable insertion point (before </rdf:RDF> or at the end)
+			if idx := strings.Index(content, "</rdf:RDF>"); idx != -1 {
+				content = content[:idx] + p.XMPMetadata + "\n" + content[idx:]
+			} else {
+				content = content + "\n" + p.XMPMetadata
+			}
+		}
+	} else {
+		// Remove XMP if it's been cleared
+		content = xmpPattern.ReplaceAllString(content, "")
+	}
+
+	// Update the file data
+	p.setFileData("META-INF/metadata.xml", []byte(content))
 	return nil
 }
 

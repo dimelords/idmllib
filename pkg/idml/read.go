@@ -7,6 +7,7 @@ import (
 	"io"
 	"math"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/dimelords/idmllib/v2/pkg/common"
@@ -117,6 +118,11 @@ func extractPackage(files []*zip.File, opts *ReadOptions, source string) (*Packa
 		}
 
 		storeFileInPackage(pkg, f, data)
+	}
+
+	// Extract XMP metadata from META-INF/metadata.xml
+	if entry, exists := pkg.files["META-INF/metadata.xml"]; exists {
+		pkg.XMPMetadata = extractXMPMetadata(string(entry.data))
 	}
 
 	// Automatically parse designmap.xml for structured access
@@ -324,6 +330,14 @@ func validateDesignMap(pkg *Package) error {
 		return err
 	}
 	return nil
+}
+
+// extractXMPMetadata extracts the XMP packet from IDML XML.
+// Returns empty string if no XMP packet is found.
+func extractXMPMetadata(xmlContent string) string {
+	// Match from <?xpacket begin to <?xpacket end
+	xmpPattern := regexp.MustCompile(`(?s)<\?xpacket begin.*?<\?xpacket end[^>]*\?>`)
+	return xmpPattern.FindString(xmlContent)
 }
 
 // ReadBytes parses IDML from an in-memory byte slice with default safety limits.
