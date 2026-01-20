@@ -51,6 +51,7 @@ type Rectangle struct {
 	TextWrapPreference *TextWrapPreference `xml:"TextWrapPreference,omitempty"`
 	InCopyExportOption *InCopyExportOption `xml:"InCopyExportOption,omitempty"`
 	Image              *Image              `xml:"Image,omitempty"`
+	PDF                *PDF                `xml:"PDF,omitempty"`
 
 	// Catch-all for other elements
 	OtherElements []common.RawXMLElement `xml:",any"`
@@ -68,42 +69,50 @@ type FrameFittingOption struct {
 	FittingAlignment    string `xml:"FittingAlignment,attr,omitempty"`    // "TopLeftAnchor", "CenterAnchor", etc.
 }
 
-// Image represents an image placed in a frame (typically Rectangle).
-// Images are linked to external files.
-type Image struct {
+// FrameContentBase contains common attributes shared by Image and PDF content.
+// These represent content placed within a frame (Rectangle, Oval, Polygon).
+type FrameContentBase struct {
 	// Core identification
 	Self string `xml:"Self,attr"`
-
-	// Image properties
-	Space                string `xml:"Space,attr,omitempty"`
-	ActualPpi            string `xml:"ActualPpi,attr,omitempty"`            // "72 72" format
-	EffectivePpi         string `xml:"EffectivePpi,attr,omitempty"`         // "394 394" format
-	ImageRenderingIntent string `xml:"ImageRenderingIntent,attr,omitempty"` // "UseColorSettings", etc.
-	ImageTypeName        string `xml:"ImageTypeName,attr,omitempty"`
+	Name string `xml:"Name,attr,omitempty"`
 
 	// Display and style
 	OverriddenPageItemProps string `xml:"OverriddenPageItemProps,attr,omitempty"`
 	LocalDisplaySetting     string `xml:"LocalDisplaySetting,attr,omitempty"`
+	ImageTypeName           string `xml:"ImageTypeName,attr,omitempty"` // e.g., "$ID/Portable Network Graphics (PNG)" or "$ID/Adobe Portable Document Format (PDF)"
 	AppliedObjectStyle      string `xml:"AppliedObjectStyle,attr,omitempty"`
 	Visible                 string `xml:"Visible,attr,omitempty"`
-	Name                    string `xml:"Name,attr,omitempty"`
 
 	// Layout constraints
 	HorizontalLayoutConstraints string `xml:"HorizontalLayoutConstraints,attr,omitempty"`
 	VerticalLayoutConstraints   string `xml:"VerticalLayoutConstraints,attr,omitempty"`
 
-	// Transform and gradient
-	ItemTransform            string `xml:"ItemTransform,attr,omitempty"`
-	GradientFillStart        string `xml:"GradientFillStart,attr,omitempty"`
-	GradientFillLength       string `xml:"GradientFillLength,attr,omitempty"`
-	GradientFillAngle        string `xml:"GradientFillAngle,attr,omitempty"`
-	GradientFillHiliteLength string `xml:"GradientFillHiliteLength,attr,omitempty"`
-	GradientFillHiliteAngle  string `xml:"GradientFillHiliteAngle,attr,omitempty"`
+	// Transform (position, rotation, scale)
+	ItemTransform string `xml:"ItemTransform,attr,omitempty"`
 
 	// Version tracking
 	ParentInterfaceChangeCount      string `xml:"ParentInterfaceChangeCount,attr,omitempty"`
 	TargetInterfaceChangeCount      string `xml:"TargetInterfaceChangeCount,attr,omitempty"`
 	LastUpdatedInterfaceChangeCount string `xml:"LastUpdatedInterfaceChangeCount,attr,omitempty"`
+}
+
+// Image represents an image placed in a frame (typically Rectangle).
+// Images are linked to external files.
+type Image struct {
+	FrameContentBase
+
+	// Image-specific properties
+	Space                string `xml:"Space,attr,omitempty"`
+	ActualPpi            string `xml:"ActualPpi,attr,omitempty"`            // "72 72" format
+	EffectivePpi         string `xml:"EffectivePpi,attr,omitempty"`         // "394 394" format
+	ImageRenderingIntent string `xml:"ImageRenderingIntent,attr,omitempty"` // "UseColorSettings", etc.
+
+	// Gradient properties
+	GradientFillStart        string `xml:"GradientFillStart,attr,omitempty"`
+	GradientFillLength       string `xml:"GradientFillLength,attr,omitempty"`
+	GradientFillAngle        string `xml:"GradientFillAngle,attr,omitempty"`
+	GradientFillHiliteLength string `xml:"GradientFillHiliteLength,attr,omitempty"`
+	GradientFillHiliteAngle  string `xml:"GradientFillHiliteAngle,attr,omitempty"`
 
 	// Child elements
 	Properties           *common.Properties    `xml:"Properties,omitempty"`
@@ -191,4 +200,32 @@ type ObjectExportOption struct {
 	XMLName xml.Name `xml:"ObjectExportOption"`
 	// Placeholder for export options - full definition will come in Phase 5
 	OtherElements []common.RawXMLElement `xml:",any"`
+}
+
+// PDF represents a PDF file placed in a frame (typically Rectangle).
+// PDFs can be used for advertisements, imported documents, or graphics.
+// Similar to Image but specifically for PDF content.
+type PDF struct {
+	FrameContentBase
+
+	// PDF-specific color policy settings
+	GrayVectorPolicy string `xml:"GrayVectorPolicy,attr,omitempty"` // "IgnoreAll", "HonorAllProfiles"
+	RGBVectorPolicy  string `xml:"RGBVectorPolicy,attr,omitempty"`  // "IgnoreAll", "HonorAllProfiles"
+	CMYKVectorPolicy string `xml:"CMYKVectorPolicy,attr,omitempty"` // "IgnoreAll", "HonorAllProfiles"
+
+	// Child elements
+	Properties         *common.Properties  `xml:"Properties,omitempty"`
+	PDFAttribute       *PDFAttribute       `xml:"PDFAttribute,omitempty"`
+	Link               *Link               `xml:"Link,omitempty"`
+	TextWrapPreference *TextWrapPreference `xml:"TextWrapPreference,omitempty"`
+
+	// Catch-all for other elements
+	OtherElements []common.RawXMLElement `xml:",any"`
+}
+
+// PDFAttribute contains PDF-specific attributes like page number and crop settings.
+type PDFAttribute struct {
+	PageNumber            string `xml:"PageNumber,attr,omitempty"`            // "1" (which page of multi-page PDF to display)
+	PDFCrop               string `xml:"PDFCrop,attr,omitempty"`               // "CropPDF", "CropContentBox", "CropMediaBox", etc.
+	TransparentBackground string `xml:"TransparentBackground,attr,omitempty"` // "true" or "false"
 }
