@@ -16,10 +16,10 @@ import (
 // Default limits for ZIP bomb protection
 const (
 	// DefaultMaxTotalSize is the maximum total uncompressed size (500 MB)
-	DefaultMaxTotalSize int64 = 500 * 1024 * 1024
+	DefaultMaxTotalSize int64 = 1000 * 1024 * 1024
 
 	// DefaultMaxFileSize is the maximum size of a single file (100 MB)
-	DefaultMaxFileSize int64 = 100 * 1024 * 1024
+	DefaultMaxFileSize int64 = 200 * 1024 * 1024
 
 	// DefaultMaxFileCount is the maximum number of files in the archive
 	DefaultMaxFileCount int = 10000
