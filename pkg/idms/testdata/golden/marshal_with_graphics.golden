@@ -385,7 +385,7 @@
 				<ContourOption ContourPathName="$ID/" />
 			</TextWrapPreference>
 			<InCopyExportOption IncludeGraphicProxies="true" IncludeAllResources="false" />
-			<Image Self="u26a" Space="$ID/#Links_RGB" ActualPpi="72 72" EffectivePpi="394 394" ImageRenderingIntent="UseColorSettings" ImageTypeName="$ID/JPEG" LocalDisplaySetting="Default" AppliedObjectStyle="ObjectStyle/$ID/[None]" Visible="true" Name="$ID/" HorizontalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" VerticalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" ItemTransform="0.18286283583165663 0 0 0.18286283583165663 468.46705172413766 -43.09593951723039" GradientFillStart="0 0" GradientFillLength="0" GradientFillAngle="0" GradientFillHiliteLength="0" GradientFillHiliteAngle="0">
+			<Image Self="u26a" Name="$ID/" LocalDisplaySetting="Default" ImageTypeName="$ID/JPEG" AppliedObjectStyle="ObjectStyle/$ID/[None]" Visible="true" HorizontalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" VerticalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" ItemTransform="0.18286283583165663 0 0 0.18286283583165663 468.46705172413766 -43.09593951723039" Space="$ID/#Links_RGB" ActualPpi="72 72" EffectivePpi="394 394" ImageRenderingIntent="UseColorSettings" GradientFillStart="0 0" GradientFillLength="0" GradientFillAngle="0" GradientFillHiliteLength="0" GradientFillHiliteAngle="0">
 				<Properties>
 					<Profile type="string">$ID/None</Profile>
 					<GraphicBounds Left="0" Top="0" Right="4284" Bottom="5261" />

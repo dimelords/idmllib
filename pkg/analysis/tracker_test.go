@@ -341,7 +341,9 @@ func TestAnalyzeImage_ColorSpaceTracking(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			img := &spread.Image{
-				Self:  "test_image_" + tc.colorSpace,
+				FrameContentBase: spread.FrameContentBase{
+					Self: "test_image_" + tc.colorSpace,
+				},
 				Space: tc.colorSpace,
 			}
 
@@ -383,9 +385,11 @@ func TestAnalyzeRectangle_WithImage(t *testing.T) {
 		},
 		AppliedObjectStyle: "ObjectStyle/$ID/TestStyle",
 		Image: &spread.Image{
-			Self:               "test_image",
-			Space:              "CMYK",
-			AppliedObjectStyle: "ObjectStyle/$ID/ImageStyle",
+			FrameContentBase: spread.FrameContentBase{
+				Self:               "test_image",
+				AppliedObjectStyle: "ObjectStyle/$ID/ImageStyle",
+			},
+			Space: "CMYK",
 			Link: &spread.Link{
 				Self:            "test_link",
 				LinkResourceURI: "file://test.jpg",
@@ -651,8 +655,10 @@ func TestAnalyzeOval_WithImage(t *testing.T) {
 		},
 		AppliedObjectStyle: "ObjectStyle/$ID/ImageStyle",
 		Image: &spread.Image{
-			Self:               "image_1",
-			AppliedObjectStyle: "ObjectStyle/$ID/ImageObjStyle",
+			FrameContentBase: spread.FrameContentBase{
+				Self:               "image_1",
+				AppliedObjectStyle: "ObjectStyle/$ID/ImageObjStyle",
+			},
 		},
 	}
 
@@ -733,8 +739,10 @@ func TestAnalyzePolygon_WithImage(t *testing.T) {
 			ItemLayer: "PolygonLayer",
 		},
 		Image: &spread.Image{
-			Self:               "image_2",
-			AppliedObjectStyle: "ObjectStyle/$ID/PolyImageStyle",
+			FrameContentBase: spread.FrameContentBase{
+				Self:               "image_2",
+				AppliedObjectStyle: "ObjectStyle/$ID/PolyImageStyle",
+			},
 		},
 	}
 
