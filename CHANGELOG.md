@@ -19,6 +19,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [2.2.0] - 2026-01-20
+
+### Added
+- PDF support for Rectangle page items with `PDF` struct and `PDFAttribute`
+- `FrameContentBase` shared structure for Image and PDF content types
+- Support for extracting PDF links from `Rectangle/PDF/Link@LinkResourceURI`
+- PDF-specific color policy attributes: `GrayVectorPolicy`, `RGBVectorPolicy`, `CMYKVectorPolicy`
+- PDF page selection and cropping attributes via `PDFAttribute`
+
+### Changed
+- Refactored `Image` and `PDF` structs to use shared `FrameContentBase` (eliminates 13 duplicated attributes)
+- `Rectangle` now supports both `Image` and `PDF` child elements
+- Updated test fixtures to reflect new attribute ordering in marshaled XML
+
+### Fixed
+- Fixed test compilation errors after FrameContentBase refactoring
+- Updated golden test files for new XML attribute ordering
+
 ## [2.1.0] - 2025-01-15
 
 ### Added
