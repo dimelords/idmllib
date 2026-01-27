@@ -18,16 +18,16 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.23'
-          
+          go-version: '1.21'
+
       - name: Cache Go modules
         uses: actions/cache@v3
         with:
@@ -37,16 +37,16 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-            
+
       - name: Download dependencies
         run: go mod download
-        
+
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v7
         with:
           version: v2.8.0
           args: --timeout=5m --config=.golangci.yml
-          
+
       - name: Check linting results
         run: |
           if [ $? -ne 0 ]; then
@@ -61,20 +61,20 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
+
     strategy:
       matrix:
         go-version: ['1.22', '1.23']
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Set up Go ${{ matrix.go-version }}
         uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
-          
+
       - name: Cache Go modules
         uses: actions/cache@v3
         with:
@@ -85,14 +85,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-${{ matrix.go-version }}-
             ${{ runner.os }}-go-
-            
+
       - name: Download dependencies
         run: go mod download
-        
+
       - name: Run tests with coverage
         run: |
           go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
-          
+
       - name: Check test results
         run: |
           if [ $? -ne 0 ]; then
@@ -101,12 +101,12 @@ jobs:
           else
             echo "✅ All tests passed successfully."
           fi
-          
+
       - name: Generate coverage report
         run: |
           go tool cover -html=coverage.out -o coverage.html
           go tool cover -func=coverage.out | tail -1 | awk '{print "Coverage: " $3}'
-          
+
       - name: Upload coverage to Codecov
         if: matrix.go-version == '1.23'  # Only upload coverage for latest Go version
         uses: codecov/codecov-action@v4
@@ -116,7 +116,7 @@ jobs:
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false  # Don't fail CI if codecov upload fails
-          
+
       - name: Upload coverage artifacts
         if: matrix.go-version == '1.23'
         uses: actions/upload-artifact@v4
@@ -132,16 +132,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [lint, test]  # Only run if linting and tests pass
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: '1.23'
-          
+
       - name: Cache Go modules
         uses: actions/cache@v3
         with:
@@ -151,23 +151,23 @@ jobs:
           key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-build-
-            
+
       - name: Download dependencies
         run: go mod download
-        
+
       - name: Build CLI application
         run: |
           go build -v -o bin/idmlbuild ./cmd/cli
-          
+
       - name: Build debug export tool
         run: |
           go build -v -o bin/debug-export ./cmd/debug-export
-          
+
       - name: Verify binaries
         run: |
           ./bin/idmlbuild --help || echo "CLI help command executed"
           ls -la bin/
-          
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -180,16 +180,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5  # Set explicit timeout
     continue-on-error: true  # Don't fail the entire pipeline on security findings
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.23'
-          
+
       - name: Run Gosec Security Scanner
         uses: securego/gosec@master
         with:
@@ -201,7 +201,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, test, build, security]
     if: always()  # Run even if some jobs fail
-    
+
     steps:
       - name: Check overall status
         run: |
