@@ -82,6 +82,11 @@ func (rm *ResourceManager) analyzeDependencies() (*dependencySet, error) {
 		}
 	}
 
+	// Extract the fonts named by styles and by inline overrides.
+	if err := rm.extractFonts(deps); err != nil {
+		return nil, common.WrapError("idml", "analyze dependencies", fmt.Errorf("failed to extract fonts: %w", err))
+	}
+
 	// Extract colors from used paragraph styles
 	if err := rm.extractColorsFromParagraphStyles(deps); err != nil {
 		return nil, common.WrapError("idml", "analyze dependencies", fmt.Errorf("failed to extract paragraph style colors: %w", err))
