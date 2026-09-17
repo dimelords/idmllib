@@ -146,10 +146,6 @@ func TestNewImageRectangle(t *testing.T) {
 	if rect.Self != "urect" || rect.ContentType != "GraphicType" {
 		t.Errorf("Self=%q ContentType=%q", rect.Self, rect.ContentType)
 	}
-	// Scribus's IDML importer skips page items with no ItemTransform.
-	if rect.ItemTransform != "1 0 0 1 0 0" {
-		t.Errorf("ItemTransform = %q, want the identity transform", rect.ItemTransform)
-	}
 	if rect.Image == nil || rect.Image.Self != "uimage" {
 		t.Fatalf("image not set: %+v", rect.Image)
 	}
@@ -179,68 +175,6 @@ func TestNewImageRectangle(t *testing.T) {
 		}
 		if pts[i].LeftDirection != w || pts[i].RightDirection != w {
 			t.Errorf("point %d directions should match the anchor", i)
-		}
-	}
-}
-
-// TestAddedItemsGetAnItemTransform locks in the default. Every page item in
-// real IDML carries ItemTransform, and Scribus's importer silently skips any
-// item that lacks it, so an item added without one must still get it.
-func TestAddedItemsGetAnItemTransform(t *testing.T) {
-	pkg, err := NewFromTemplate(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	filename := SpreadPath("uspread3")
-	if err := pkg.AddSpread(filename, newTestSpread("uspread3")); err != nil {
-		t.Fatal(err)
-	}
-
-	rect := &spread.Rectangle{}
-	rect.Self = "urect_noxform"
-	if err := pkg.AddRectangle(filename, rect, ValidationOptions{}); err != nil {
-		t.Fatal(err)
-	}
-	tf := &spread.TextFrame{}
-	tf.Self = "utf_noxform"
-	if err := pkg.AddTextFrame(filename, tf, ValidationOptions{}); err != nil {
-		t.Fatal(err)
-	}
-	// An explicit transform must be left alone.
-	kept := &spread.Rectangle{}
-	kept.Self = "urect_keep"
-	kept.ItemTransform = "2 0 0 2 10 20"
-	if err := pkg.AddRectangle(filename, kept, ValidationOptions{}); err != nil {
-		t.Fatal(err)
-	}
-
-	out := filepath.Join(t.TempDir(), "out.idml")
-	if err := Write(pkg, out); err != nil {
-		t.Fatal(err)
-	}
-	pkg2, err := Read(out)
-	if err != nil {
-		t.Fatal(err)
-	}
-	sp, err := pkg2.Spread(filename)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	got := map[string]string{}
-	for _, r := range sp.Rectangles {
-		got[r.Self] = r.ItemTransform
-	}
-	for _, f := range sp.TextFrames {
-		got[f.Self] = f.ItemTransform
-	}
-	for self, want := range map[string]string{
-		"urect_noxform": "1 0 0 1 0 0",
-		"utf_noxform":   "1 0 0 1 0 0",
-		"urect_keep":    "2 0 0 2 10 20",
-	} {
-		if got[self] != want {
-			t.Errorf("%s ItemTransform = %q, want %q", self, got[self], want)
 		}
 	}
 }

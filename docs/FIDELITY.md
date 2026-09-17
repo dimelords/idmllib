@@ -89,3 +89,27 @@ cs.capitalization; cs.appliedLanguage.name;
 ```
 
 Run it with `osascript -e 'tell application "Adobe InDesign 2026" to do script (POSIX file "check.jsx") language javascript'`.
+
+## ItemTransform: absent is not identity
+
+Every page item InDesign writes carries an `ItemTransform` attribute. Across
+the test corpus that is 157 of 157 items, including `<Page>`, with no
+exceptions. The Go fields are `omitempty`, so an item constructed in code and
+never given one writes no attribute at all.
+
+That matters in two opposite directions, measured against a real InDesign
+open and a real Scribus import:
+
+- **Scribus's IDML importer silently skips any page item without
+  ItemTransform.** The item is neither drawn nor returned by the scripter's
+  `getAllObjects`, and nothing errors. A generated document imports as a
+  blank page.
+- **InDesign treats an absent transform differently from an identity one.**
+  Adding `ItemTransform="1 0 0 1 0 0"` to frames whose PathGeometry is in
+  absolute page coordinates moved them off the page: a frame requested at
+  (40, 120) to (540, 320) was placed at (635, 541) to (1135, 741).
+
+So the library does not fill this in. There is no default that is correct for
+both readers, and the right value depends on the coordinate convention of
+whoever built the geometry. A generator that wants its output to survive
+Scribus must emit the transform that matches its own convention.

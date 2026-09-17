@@ -27,6 +27,14 @@ import (
 // already, for example from crop metadata; this does not compute a
 // fit-to-frame scale.
 //
+// ItemTransform is deliberately left unset. It is not a free choice: an
+// absent ItemTransform and an explicit identity matrix mean different things
+// to InDesign. Setting "1 0 0 1 0 0" on a frame whose PathGeometry is in
+// absolute page coordinates moves it off the page, measured against a real
+// InDesign open. Note that Scribus's IDML importer silently skips any page
+// item that has no ItemTransform, so a document meant to be read by Scribus
+// has to supply the transform its own coordinate convention requires.
+//
 // resourcePath is a local filesystem path such as "/path/to/photo.jpg"; the
 // "file:" URI that real IDML Links use is built here, so callers do not
 // construct it themselves. resourceFormat is IDML's own format name, for
@@ -72,18 +80,9 @@ func NewImageRectangle(
 	}
 
 	return &Rectangle{
-		PageItemBase: PageItemBase{
-			Self: rectSelf,
-			// Identity transform, written explicitly rather than left
-			// implicit. Real InDesign always emits ItemTransform, and
-			// Scribus's IDML importer silently skips any page item that
-			// lacks it: the item is neither drawn nor reported by
-			// getAllObjects, with no error. Verified against Scribus
-			// built from source at the pinned commit.
-			ItemTransform: "1 0 0 1 0 0",
-		},
-		ContentType: "GraphicType",
-		Properties:  &common.Properties{PathGeometry: frameGeometry},
-		Image:       img,
+		PageItemBase: PageItemBase{Self: rectSelf},
+		ContentType:  "GraphicType",
+		Properties:   &common.Properties{PathGeometry: frameGeometry},
+		Image:        img,
 	}
 }
