@@ -144,12 +144,19 @@ func (p *Package) domVersion() string {
 // re-marshals it. sp is normally the pointer returned by Spread, in which case
 // the cached file already holds it.
 func (p *Package) marshalAndUpdateSpread(spreadFilename string, sp *spread.Spread) error {
-	f, err := p.SpreadFile(spreadFilename)
-	if err != nil {
-		return common.WrapErrorWithPath("idml", "marshal spread", spreadFilename, err)
-	}
-	if sp != &f.Spread {
-		f.Spread = *sp
+	var f *spread.File
+	if p.hasFile(spreadFilename) {
+		existing, err := p.SpreadFile(spreadFilename)
+		if err != nil {
+			return common.WrapErrorWithPath("idml", "marshal spread", spreadFilename, err)
+		}
+		f = existing
+		if sp != &f.Spread {
+			f.Spread = *sp
+		}
+	} else {
+		f = &spread.File{DOMVersion: p.domVersion(), Spread: *sp}
+		p.cacheSpread(spreadFilename, f)
 	}
 	data, err := spread.MarshalSpread(f)
 	if err != nil {

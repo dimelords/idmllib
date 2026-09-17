@@ -606,3 +606,38 @@ func (p *Package) UpdateRectangle(spreadFilename string, rectangleID string, rec
 	// Step 5: Marshal and save the spread
 	return p.marshalAndUpdateSpread(spreadFilename, sp)
 }
+
+// AddSpread adds a new spread to the package and registers it in
+// designmap.xml. A spread file that is present in the archive but not
+// referenced there is invisible to InDesign on import.
+//
+// This is the piece NewFromTemplate leaves out: it builds the designmap,
+// master spread and resources skeleton but no content spread. AddTextFrame
+// and AddRectangle cannot substitute for it either, since both load an
+// existing spread and modify it rather than creating one. Building a
+// document from scratch therefore goes AddSpread first, then
+// AddTextFrame/AddRectangle/AddStory to populate it.
+//
+// Example:
+//
+//	pkg, _ := idml.NewFromTemplate(nil)
+//	sp := &spread.Spread{
+//	    Self: "u1",
+//	    Pages: []spread.Page{{
+//	        Self: "up1",
+//	        // Bare Self id of the target MasterSpread, not "MasterSpread/ub4":
+//	        // real IDML never prefixes this reference.
+//	        AppliedMaster:   "ub4",
+//	        GeometricBounds: "0 0 792 612",
+//	    }},
+//	}
+//	err := pkg.AddSpread(idml.SpreadPath("u1"), sp)
+func (p *Package) AddSpread(filename string, sp *spread.Spread) error {
+	if p.hasFile(filename) {
+		return common.WrapErrorWithPath("idml", "add spread", filename, common.ErrAlreadyExists)
+	}
+	if err := p.marshalAndUpdateSpread(filename, sp); err != nil {
+		return err
+	}
+	return p.registerSpread(filename)
+}

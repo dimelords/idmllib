@@ -20,6 +20,16 @@ type Rectangle struct {
 	HorizontalLayoutConstraints string `xml:"HorizontalLayoutConstraints,attr,omitempty"` // e.g., "FlexibleDimension FixedDimension FlexibleDimension"
 	VerticalLayoutConstraints   string `xml:"VerticalLayoutConstraints,attr,omitempty"`
 
+	// Stroke properties
+	StrokeWeight string `xml:"StrokeWeight,attr,omitempty"` // Border width in points
+	StrokeType   string `xml:"StrokeType,attr,omitempty"`   // "Solid", "Dashed", etc.
+	StrokeColor  string `xml:"StrokeColor,attr,omitempty"`  // Color swatch reference
+	StrokeTint   string `xml:"StrokeTint,attr,omitempty"`   // Tint percentage
+
+	// Fill properties
+	FillColor string `xml:"FillColor,attr,omitempty"` // Color swatch reference
+	FillTint  string `xml:"FillTint,attr,omitempty"`  // Tint percentage
+
 	// Gradient properties
 	GradientFillStart          string `xml:"GradientFillStart,attr,omitempty"`
 	GradientFillLength         string `xml:"GradientFillLength,attr,omitempty"`

@@ -66,3 +66,24 @@ func storyIDFromPath(filename string) string {
 	base := strings.TrimSuffix(path.Base(filename), ExtXML)
 	return strings.TrimPrefix(base, "Story_")
 }
+
+// registerSpread makes a spread file visible to InDesign by adding its
+// <idPkg:Spread> reference to the Document. A spread present in the archive
+// but not referenced there is ignored on import, the same trap AddStory hit.
+func (p *Package) registerSpread(filename string) error {
+	if !p.hasFile(PathDesignmap) {
+		return nil // a bare package under construction; nothing to register in yet
+	}
+	doc, err := p.Document()
+	if err != nil {
+		return err
+	}
+	if !slices.ContainsFunc(doc.Spreads, func(r document.ResourceRef) bool { return r.Src == filename }) {
+		doc.Spreads = append(doc.Spreads, document.ResourceRef{
+			XMLName: xml.Name{Space: idPkgNamespace, Local: "Spread"},
+			Src:     filename,
+		})
+	}
+	p.markDirty(PathDesignmap)
+	return nil
+}
