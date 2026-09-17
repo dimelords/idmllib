@@ -54,6 +54,9 @@ var minimalStyles []byte
 //go:embed templates/minimal/Tags.xml
 var minimalTags []byte
 
+//go:embed templates/minimal/metadata.xml
+var minimalMetadata []byte
+
 // DocumentPreset defines standard page sizes and configurations.
 type DocumentPreset string
 
@@ -259,6 +262,22 @@ func NewFromTemplate(opts *TemplateOptions) (*Package, error) {
 	if err := pkg.addFileFromTemplate(PathTags, minimalTags); err != nil {
 		return nil, common.WrapErrorWithPath("idml", "create from template", PathTags, err)
 	}
+
+	// Add META-INF/metadata.xml. Every IDML InDesign writes has one, and
+	// without it SetXMP silently does nothing: Write updates the XMP
+	// packet inside this file and returns early when the file is absent,
+	// so a template-created document would accept metadata and drop it.
+	// The dates are fixed rather than taken from the clock, so a document
+	// built from the template twice is byte-identical both times.
+	if err := pkg.addFileFromTemplate(PathMetadata, minimalMetadata); err != nil {
+		return nil, common.WrapErrorWithPath("idml", "create from template", PathMetadata, err)
+	}
+	// Populate XMPMetadata from what was just added, exactly as Read does
+	// for a document off disk. Write treats an empty XMPMetadata as "the
+	// XMP was cleared" and strips the packet out of the file again, so
+	// adding the file without this produces a metadata.xml with its
+	// contents removed - which is how this was found.
+	pkg.XMPMetadata = extractXMPMetadata(string(minimalMetadata))
 
 	return pkg, nil
 }

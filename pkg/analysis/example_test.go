@@ -53,7 +53,7 @@ func ExampleDependencyTracker_ResolveStyleHierarchies() {
 
 	// Add a style that has a parent hierarchy
 	deps := tracker.Dependencies()
-	deps.CharacterStyles["CharacterStyle/Naviga%3aFreddans"] = true
+	deps.CharacterStyles["CharacterStyle/emphasis-02"] = true
 
 	// Resolve style hierarchies
 	if err := tracker.ResolveStyleHierarchies(); err != nil {

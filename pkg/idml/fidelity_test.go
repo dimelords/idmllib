@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 
@@ -148,10 +149,15 @@ func TestFidelityReMarshalIsLossless(t *testing.T) {
 					t.Errorf("%s missing from output", name)
 					continue
 				}
-				if bytes.Equal(in, outData) {
-					t.Errorf("%s was marked modified but written back byte-identical; re-marshal did not run", name)
-					continue
-				}
+				// Byte-identical output is the strongest lossless result
+				// there is, not a failure. This used to be treated as
+				// proof that the re-marshal never ran, which held only
+				// while every fixture came from InDesign and so differed
+				// from anything this library writes. The generated
+				// fixtures round-trip exactly, so that inference no
+				// longer holds; TestMarkModifiedCausesRemarshal tests the
+				// property directly instead of inferring it from
+				// formatting noise.
 				diffs, err := xmlutil.CompareXMLWithDetails(in, outData, xmlutil.StrictCompareOptions())
 				if err != nil {
 					t.Errorf("%s: compare failed: %v", name, err)
@@ -258,4 +264,49 @@ func requireBigFixture(t *testing.T) string {
 		t.Skipf("large fixture not present: %v", err)
 	}
 	return bigFixture
+}
+
+// TestMarkModifiedCausesRemarshal proves that marking a file modified
+// actually re-serializes it from the parsed tree, rather than copying
+// the original bytes through. Without this, a fidelity test that only
+// compares input to output would pass just as happily if the re-marshal
+// never ran at all.
+func TestMarkModifiedCausesRemarshal(t *testing.T) {
+	pkg, err := readFixture("../../testdata/example.idml")
+	if err != nil {
+		t.Fatalf("Read: %v", err)
+	}
+
+	stories, err := pkg.Stories()
+	if err != nil || len(stories) == 0 {
+		t.Fatalf("Stories: %v (%d stories)", err, len(stories))
+	}
+	names := make([]string, 0, len(stories))
+	for n := range stories {
+		names = append(names, n)
+	}
+	// Map order is random; sort so a failure names the same story twice
+	// running and is actually reproducible.
+	sort.Strings(names)
+	name := names[0]
+	st := stories[name]
+	const marker = "re-marshal ran"
+	if len(st.ParagraphStyleRanges) == 0 ||
+		len(st.ParagraphStyleRanges[0].CharacterStyleRanges) == 0 ||
+		len(st.ParagraphStyleRanges[0].CharacterStyleRanges[0].Children) == 0 ||
+		st.ParagraphStyleRanges[0].CharacterStyleRanges[0].Children[0].Content == nil {
+		t.Fatalf("%s has no text content to change", name)
+	}
+	st.ParagraphStyleRanges[0].CharacterStyleRanges[0].Children[0].Content.Text = marker
+	pkg.MarkModified(name)
+
+	out := filepath.Join(t.TempDir(), "out.idml")
+	if err := Write(pkg, out); err != nil {
+		t.Fatalf("Write: %v", err)
+	}
+
+	back := readZipFiles(t, out)
+	if !bytes.Contains(back[name], []byte(marker)) {
+		t.Errorf("%s was written without the change; the parsed tree was not re-marshaled", name)
+	}
 }

@@ -39,9 +39,9 @@ func TestResolveStyleHierarchies(t *testing.T) {
 
 	// Add some styles that we know have parents
 	// Based on the Styles.xml in example.idml:
-	// - CharacterStyle/Naviga%3aFreddans is based on CharacterStyle/Naviga%3aInitial Kepler REP
-	// - CharacterStyle/Naviga%3aInitial Kepler REP is based on $ID/[No character style]
-	tracker.deps.CharacterStyles["CharacterStyle/Naviga%3aFreddans"] = true
+	// - CharacterStyle/emphasis-02 is based on CharacterStyle/emphasis-01
+	// - CharacterStyle/emphasis-01 is based on $ID/[No character style]
+	tracker.deps.CharacterStyles["CharacterStyle/emphasis-02"] = true
 
 	// Resolve the hierarchies
 	if err := tracker.ResolveStyleHierarchies(); err != nil {
@@ -49,8 +49,8 @@ func TestResolveStyleHierarchies(t *testing.T) {
 	}
 
 	// Check that the parent style was added
-	if !tracker.deps.CharacterStyles["CharacterStyle/Naviga%3aInitial Kepler REP"] {
-		t.Errorf("Expected parent style 'CharacterStyle/Naviga%%3aInitial Kepler REP' to be in dependencies")
+	if !tracker.deps.CharacterStyles["CharacterStyle/emphasis-01"] {
+		t.Errorf("Expected parent style 'CharacterStyle/emphasis-01' to be in dependencies")
 	}
 
 	// Check that the built-in style was NOT added (it's a $ID/ style)
@@ -71,15 +71,15 @@ func TestResolveStyleHierarchies_MultiLevel(t *testing.T) {
 	tracker := NewDependencyTracker(pkg)
 
 	// Add a style that we know has a multi-level hierarchy
-	// CharacterStyle/Naviga%3aFreddans -> CharacterStyle/Naviga%3aInitial Kepler REP -> $ID/[No character style]
-	tracker.deps.CharacterStyles["CharacterStyle/Naviga%3aFreddans"] = true
+	// CharacterStyle/emphasis-02 -> CharacterStyle/emphasis-01 -> $ID/[No character style]
+	tracker.deps.CharacterStyles["CharacterStyle/emphasis-02"] = true
 
 	if err := tracker.ResolveStyleHierarchies(); err != nil {
 		t.Fatalf("ResolveStyleHierarchies failed: %v", err)
 	}
 
 	// Both the immediate parent and grandparent (before built-in) should be included
-	if !tracker.deps.CharacterStyles["CharacterStyle/Naviga%3aInitial Kepler REP"] {
+	if !tracker.deps.CharacterStyles["CharacterStyle/emphasis-01"] {
 		t.Errorf("Expected intermediate parent style to be in dependencies")
 	}
 
@@ -96,7 +96,7 @@ func TestResolveStyleHierarchies_NoParent(t *testing.T) {
 	tracker := NewDependencyTracker(pkg)
 
 	// Add a style that is based directly on the built-in style
-	tracker.deps.CharacterStyles["CharacterStyle/BIL fotokreditering"] = true
+	tracker.deps.CharacterStyles["CharacterStyle/emphasis-01"] = true
 
 	initialCount := len(tracker.deps.CharacterStyles)
 

@@ -15,17 +15,17 @@ func TestProperties_GetAppliedFont(t *testing.T) {
 		{
 			name: "AppliedFont with simple text",
 			xml: `<Properties>
-				<AppliedFont type="string">Polaris Condensed</AppliedFont>
+				<AppliedFont type="string">Minion Pro</AppliedFont>
 			</Properties>`,
-			expected: "Polaris Condensed",
+			expected: "Minion Pro",
 		},
 		{
 			name: "AppliedFont with different font",
 			xml: `<Properties>
 				<BasedOn type="string">$ID/[No character style]</BasedOn>
-				<AppliedFont type="string">Kepler Std</AppliedFont>
+				<AppliedFont type="string">Myriad Pro</AppliedFont>
 			</Properties>`,
-			expected: "Kepler Std",
+			expected: "Myriad Pro",
 		},
 		{
 			name: "No AppliedFont",
@@ -85,14 +85,14 @@ func TestProperties_GetBasedOn(t *testing.T) {
 			name: "BasedOn with custom style",
 			xml: `<Properties>
 				<BasedOn type="string">CharacterStyle/MyBaseStyle</BasedOn>
-				<AppliedFont type="string">Kepler Std</AppliedFont>
+				<AppliedFont type="string">Myriad Pro</AppliedFont>
 			</Properties>`,
 			expected: "CharacterStyle/MyBaseStyle",
 		},
 		{
 			name: "No BasedOn",
 			xml: `<Properties>
-				<AppliedFont type="string">Polaris Condensed</AppliedFont>
+				<AppliedFont type="string">Minion Pro</AppliedFont>
 			</Properties>`,
 			expected: "",
 		},
@@ -136,7 +136,7 @@ func TestProperties_GetAppliedFont_RealWorld(t *testing.T) {
 		<BasedOn type="string">$ID/[No character style]</BasedOn>
 		<PreviewColor type="enumeration">Nothing</PreviewColor>
 		<Leading type="unit">11</Leading>
-		<AppliedFont type="string">Polaris Condensed</AppliedFont>
+		<AppliedFont type="string">Minion Pro</AppliedFont>
 	</Properties>`
 
 	props := &Properties{}
@@ -146,8 +146,8 @@ func TestProperties_GetAppliedFont_RealWorld(t *testing.T) {
 
 	// Test GetAppliedFont
 	font := props.GetAppliedFont()
-	if font != "Polaris Condensed" {
-		t.Errorf("GetAppliedFont() = %q, want %q", font, "Polaris Condensed")
+	if font != "Minion Pro" {
+		t.Errorf("GetAppliedFont() = %q, want %q", font, "Minion Pro")
 	}
 
 	// Test GetBasedOn

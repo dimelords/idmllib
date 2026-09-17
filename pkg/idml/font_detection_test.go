@@ -29,19 +29,19 @@ func TestStoryUsesFont_DetectsFontUsage(t *testing.T) {
 	// aren't found (which is the expected behavior for this test data).
 	foundPolarisStory := false
 	for filename, story := range stories {
-		if rm.storyUsesFont(story, "Polaris Condensed") {
-			t.Logf("Found 'Polaris Condensed' font in story: %s", filename)
+		if rm.storyUsesFont(story, "Minion Pro") {
+			t.Logf("Found 'Minion Pro' font in story: %s", filename)
 			foundPolarisStory = true
 			break
 		}
 	}
 
-	// In this test data, Polaris Condensed is defined in character styles
+	// In this test data, Minion Pro is defined in character styles
 	// but those styles are not used in the stories, so we don't expect to find it
 	if foundPolarisStory {
-		t.Logf("Note: Found 'Polaris Condensed' in stories (unexpected but not an error)")
+		t.Logf("Note: Found 'Minion Pro' in stories (unexpected but not an error)")
 	} else {
-		t.Logf("'Polaris Condensed' not found in stories (expected for this test data)")
+		t.Logf("'Minion Pro' not found in stories (expected for this test data)")
 	}
 
 	// Test with a font that doesn't exist - should always return false
@@ -85,12 +85,12 @@ func TestFindFontUsage_ReportsUsageCorrectly(t *testing.T) {
 
 	// Create ResourceManager and find where a font is used
 	rm := NewResourceManager(pkg)
-	usedBy := rm.findFontUsage("Polaris Condensed")
+	usedBy := rm.findFontUsage("Minion Pro")
 
 	if len(usedBy) == 0 {
-		t.Logf("Warning: 'Polaris Condensed' not found in any stories (might be inherited or in paragraph styles)")
+		t.Logf("Warning: 'Minion Pro' not found in any stories (might be inherited or in paragraph styles)")
 	} else {
-		t.Logf("'Polaris Condensed' found in %d stories:", len(usedBy))
+		t.Logf("'Minion Pro' found in %d stories:", len(usedBy))
 		for _, filename := range usedBy {
 			t.Logf("  - %s", filename)
 		}

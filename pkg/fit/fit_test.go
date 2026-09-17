@@ -152,7 +152,7 @@ func TestStyleResolution(t *testing.T) {
 					ParagraphStyles: []resources.ParagraphStyle{{
 						Self:       "ParagraphStyle/headline",
 						FontStyle:  "Light Semicondensed",
-						Properties: props(leading(66), appliedFont("Kepler Std")),
+						Properties: props(leading(66), appliedFont("Myriad Pro")),
 						PointSize:  "72",
 					}, {
 						// No size of its own: it comes from the root.
@@ -175,7 +175,7 @@ func TestStyleResolution(t *testing.T) {
 		t.Errorf("headline leading = %v, want 66", got)
 	}
 	fam, style := StyleFont(styles, "ParagraphStyle/headline")
-	if fam != "Kepler Std" || style != "Light Semicondensed" {
+	if fam != "Myriad Pro" || style != "Light Semicondensed" {
 		t.Errorf("headline font = %q %q", fam, style)
 	}
 
