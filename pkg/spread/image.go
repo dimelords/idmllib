@@ -72,9 +72,18 @@ func NewImageRectangle(
 	}
 
 	return &Rectangle{
-		PageItemBase: PageItemBase{Self: rectSelf},
-		ContentType:  "GraphicType",
-		Properties:   &common.Properties{PathGeometry: frameGeometry},
-		Image:        img,
+		PageItemBase: PageItemBase{
+			Self: rectSelf,
+			// Identity transform, written explicitly rather than left
+			// implicit. Real InDesign always emits ItemTransform, and
+			// Scribus's IDML importer silently skips any page item that
+			// lacks it: the item is neither drawn nor reported by
+			// getAllObjects, with no error. Verified against Scribus
+			// built from source at the pinned commit.
+			ItemTransform: "1 0 0 1 0 0",
+		},
+		ContentType: "GraphicType",
+		Properties:  &common.Properties{PathGeometry: frameGeometry},
+		Image:       img,
 	}
 }

@@ -375,6 +375,8 @@ func (p *Package) removeTextFrameFromSpread(sp *spread.Spread, textFrameID, spre
 //	}
 //	err := pkg.AddTextFrame("Spreads/Spread_u210.xml", tf, opts)
 func (p *Package) AddTextFrame(spreadFilename string, tf *spread.TextFrame, opts ValidationOptions) error {
+	tf.ItemTransform = ensureItemTransform(tf.ItemTransform)
+
 	// Step 1: Load the spread
 	sp, err := p.loadSpreadForModification(spreadFilename, "add text frame")
 	if err != nil {
@@ -532,6 +534,8 @@ func (p *Package) RemoveRectangle(spreadFilename string, rectangleID string, cle
 //	}
 //	err := pkg.AddRectangle("Spreads/Spread_u210.xml", rect, opts)
 func (p *Package) AddRectangle(spreadFilename string, rect *spread.Rectangle, opts ValidationOptions) error {
+	rect.ItemTransform = ensureItemTransform(rect.ItemTransform)
+
 	// Step 1: Load the spread
 	sp, err := p.Spread(spreadFilename)
 	if err != nil {
@@ -640,4 +644,32 @@ func (p *Package) AddSpread(filename string, sp *spread.Spread) error {
 		return err
 	}
 	return p.registerSpread(filename)
+}
+
+// identityTransform is the no-op ItemTransform matrix, "scale 1, no rotation,
+// no translation".
+const identityTransform = "1 0 0 1 0 0"
+
+// ensureItemTransform fills in an identity ItemTransform when a newly added
+// page item has none.
+//
+// Every page item in real IDML carries this attribute: across the whole test
+// corpus, 157 of 157 items written by InDesign have it, including <Page>. An
+// item without it is something only a program can produce, because the Go
+// field is omitempty and an unset string writes no attribute at all.
+//
+// InDesign tolerates the omission, but Scribus's IDML importer silently skips
+// any page item that lacks ItemTransform: the item is neither drawn nor
+// reported by the scripter's getAllObjects, with no error anywhere. That cost
+// real debugging time, so the default is applied here rather than left to
+// every caller to remember.
+//
+// This only ever completes an item being added through the API. Parsing and
+// writing existing documents is untouched, so it cannot change a file that
+// was read in.
+func ensureItemTransform(current string) string {
+	if current == "" {
+		return identityTransform
+	}
+	return current
 }
