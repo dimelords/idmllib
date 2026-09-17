@@ -80,8 +80,8 @@ func TestMarshalStory_BasicStructure(t *testing.T) {
 		t.Errorf("DOMVersion mismatch: %s != %s", parsed.DOMVersion, story.DOMVersion)
 	}
 
-	if parsed.StoryElement.Self != story.StoryElement.Self {
-		t.Errorf("Story Self mismatch: %s != %s", parsed.StoryElement.Self, story.StoryElement.Self)
+	if parsed.Story.Self != story.Story.Self {
+		t.Errorf("Story Self mismatch: %s != %s", parsed.Story.Self, story.Story.Self)
 	}
 }
 
@@ -309,11 +309,11 @@ func TestCharacterStyleRange_MarshalWithOtherAttrs(t *testing.T) {
 }
 
 // Helper function to unmarshal XML into a type.
-func unmarshalXML(xmlData string, v interface{}) error {
+func unmarshalXML(xmlData string, v any) error {
 	return xml.Unmarshal([]byte(xmlData), v)
 }
 
 // Helper function to marshal a type to XML.
-func marshalXML(v interface{}) ([]byte, error) {
+func marshalXML(v any) ([]byte, error) {
 	return xml.Marshal(v)
 }

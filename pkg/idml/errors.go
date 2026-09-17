@@ -5,9 +5,9 @@ import (
 	"fmt"
 )
 
-// NewMissingResourcesError creates an error from a MissingResources struct.
+// newMissingResourcesError creates an error from a MissingResources struct.
 // This is used when validation detects missing dependencies.
-func NewMissingResourcesError(mr *MissingResources) error {
+func newMissingResourcesError(mr *MissingResources) error {
 	if !mr.HasMissing() {
 		return nil
 	}

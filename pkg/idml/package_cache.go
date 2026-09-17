@@ -10,38 +10,10 @@ import (
 // Cache management methods for Package struct.
 // These methods provide centralized cache operations and invalidation.
 
-// clearCache clears all cached parsed objects.
-// This forces re-parsing from raw file data on next access.
-// Useful when file data has been modified externally.
-func (p *Package) clearCache() {
-	// Clear document cache
-	p.document = nil
-	p.documentMetadata = nil
-
-	// Clear story cache
-	p.stories = make(map[string]*story.Story)
-
-	// Clear spread cache
-	p.spreads = make(map[string]*spread.Spread)
-
-	// Clear resource cache
-	p.resources = make(map[string]*ResourceFile)
-
-	// Clear typed resource cache
-	p.fonts = nil
-	p.graphics = nil
-	p.styles = nil
-
-	// Clear metadata cache
-	p.metadata = make(map[string]*MetadataFile)
-
-	// Clear index cache
-	p.indexState = itemIndexState{}
-}
-
 // invalidateCache invalidates cached objects for a specific file path.
 // This is more efficient than clearing all caches when only one file changes.
 func (p *Package) invalidateCache(path string) {
+	p.clearDirty(path)
 	switch path {
 	case PathDesignmap:
 		p.document = nil
@@ -50,17 +22,18 @@ func (p *Package) invalidateCache(path string) {
 	case PathFonts:
 		p.fonts = nil
 		// Also clear generic resource cache for this file
-		delete(p.resources, path)
 
 	case PathGraphic:
 		p.graphics = nil
 		// Also clear generic resource cache for this file
-		delete(p.resources, path)
 
 	case PathStyles:
 		p.styles = nil
+	case PathPreferences:
+		p.preferences = nil
+	case PathTags:
+		p.tags = nil
 		// Also clear generic resource cache for this file
-		delete(p.resources, path)
 
 	default:
 		// Handle story files
@@ -72,7 +45,7 @@ func (p *Package) invalidateCache(path string) {
 		}
 
 		// Handle spread files
-		if IsSpreadPath(path) {
+		if IsSpreadPath(path) || IsMasterSpreadPath(path) {
 			delete(p.spreads, path)
 			// Invalidate index since spreads changed
 			p.invalidateIndex()
@@ -81,7 +54,6 @@ func (p *Package) invalidateCache(path string) {
 
 		// Handle resource files
 		if IsResourcePath(path) {
-			delete(p.resources, path)
 			return
 		}
 
@@ -93,107 +65,20 @@ func (p *Package) invalidateCache(path string) {
 	}
 }
 
-// invalidateStoryCache clears all cached story objects.
-// Useful when multiple stories have been modified.
-func (p *Package) invalidateStoryCache() {
-	p.stories = make(map[string]*story.Story)
-	p.invalidateIndex() // Stories affect the index
-}
-
-// invalidateSpreadCache clears all cached spread objects.
-// Useful when multiple spreads have been modified.
-func (p *Package) invalidateSpreadCache() {
-	p.spreads = make(map[string]*spread.Spread)
-	p.invalidateIndex() // Spreads affect the index
-}
-
-// invalidateResourceCache clears all cached resource objects.
-// This includes both generic resources and typed resources.
-func (p *Package) invalidateResourceCache() {
-	p.resources = make(map[string]*ResourceFile)
-	p.fonts = nil
-	p.graphics = nil
-	p.styles = nil
-}
-
-// invalidateMetadataCache clears all cached metadata objects.
-func (p *Package) invalidateMetadataCache() {
-	p.metadata = make(map[string]*MetadataFile)
-}
-
 // invalidateIndex clears the page item index.
 // The index will be rebuilt on next access to selection methods.
 func (p *Package) invalidateIndex() {
 	p.indexState = itemIndexState{}
 }
 
-// getCacheStats returns statistics about cached objects.
-// Useful for debugging and monitoring cache usage.
-func (p *Package) getCacheStats() CacheStats {
-	stats := CacheStats{}
-
-	// Document cache
-	if p.document != nil {
-		stats.DocumentCached = true
-	}
-
-	// Story cache
-	stats.StoriesCached = len(p.stories)
-
-	// Spread cache
-	stats.SpreadsCached = len(p.spreads)
-
-	// Resource cache
-	stats.ResourcesCached = len(p.resources)
-
-	// Typed resource cache
-	if p.fonts != nil {
-		stats.FontsCached = true
-	}
-	if p.graphics != nil {
-		stats.GraphicsCached = true
-	}
-	if p.styles != nil {
-		stats.StylesCached = true
-	}
-
-	// Metadata cache
-	stats.MetadataCached = len(p.metadata)
-
-	// Index cache
-	if p.indexState.index != nil {
-		stats.IndexCached = true
-		stats.IndexedItems = p.ItemCount()
-	}
-
-	return stats
-}
-
-// CacheStats provides information about cached objects in a Package.
-type CacheStats struct {
-	DocumentCached  bool // Whether document is cached
-	StoriesCached   int  // Number of cached stories
-	SpreadsCached   int  // Number of cached spreads
-	ResourcesCached int  // Number of cached generic resources
-	FontsCached     bool // Whether typed fonts are cached
-	GraphicsCached  bool // Whether typed graphics are cached
-	StylesCached    bool // Whether typed styles are cached
-	MetadataCached  int  // Number of cached metadata files
-	IndexCached     bool // Whether page item index is cached
-	IndexedItems    int  // Number of items in the index
-}
-
 // ensureCacheInitialized ensures all cache maps are initialized.
 // This is called by methods that need to write to cache maps.
 func (p *Package) ensureCacheInitialized() {
 	if p.stories == nil {
-		p.stories = make(map[string]*story.Story)
+		p.stories = make(map[string]*story.File)
 	}
 	if p.spreads == nil {
-		p.spreads = make(map[string]*spread.Spread)
-	}
-	if p.resources == nil {
-		p.resources = make(map[string]*ResourceFile)
+		p.spreads = make(map[string]*spread.File)
 	}
 	if p.metadata == nil {
 		p.metadata = make(map[string]*MetadataFile)
@@ -201,21 +86,15 @@ func (p *Package) ensureCacheInitialized() {
 }
 
 // cacheStory stores a parsed story in the cache.
-func (p *Package) cacheStory(filename string, st *story.Story) {
+func (p *Package) cacheStory(filename string, st *story.File) {
 	p.ensureCacheInitialized()
 	p.stories[filename] = st
 }
 
 // cacheSpread stores a parsed spread in the cache.
-func (p *Package) cacheSpread(filename string, sp *spread.Spread) {
+func (p *Package) cacheSpread(filename string, sp *spread.File) {
 	p.ensureCacheInitialized()
 	p.spreads[filename] = sp
-}
-
-// cacheResource stores a parsed resource in the cache.
-func (p *Package) cacheResource(filename string, resource *ResourceFile) {
-	p.ensureCacheInitialized()
-	p.resources[filename] = resource
 }
 
 // cacheMetadata stores a parsed metadata file in the cache.
@@ -225,7 +104,7 @@ func (p *Package) cacheMetadata(path string, metadata *MetadataFile) {
 }
 
 // cacheDocument stores a parsed document in the cache.
-func (p *Package) cacheDocument(doc *document.Document, docMeta *document.DocumentWithMetadata) {
+func (p *Package) cacheDocument(doc *document.Document, docMeta *document.File) {
 	p.document = doc
 	p.documentMetadata = docMeta
 }
@@ -246,7 +125,7 @@ func (p *Package) cacheStyles(styles *resources.StylesFile) {
 }
 
 // getCachedStory retrieves a cached story if it exists.
-func (p *Package) getCachedStory(filename string) (*story.Story, bool) {
+func (p *Package) getCachedStory(filename string) (*story.File, bool) {
 	if p.stories == nil {
 		return nil, false
 	}
@@ -255,21 +134,12 @@ func (p *Package) getCachedStory(filename string) (*story.Story, bool) {
 }
 
 // getCachedSpread retrieves a cached spread if it exists.
-func (p *Package) getCachedSpread(filename string) (*spread.Spread, bool) {
+func (p *Package) getCachedSpread(filename string) (*spread.File, bool) {
 	if p.spreads == nil {
 		return nil, false
 	}
 	sp, exists := p.spreads[filename]
 	return sp, exists
-}
-
-// getCachedResource retrieves a cached resource if it exists.
-func (p *Package) getCachedResource(filename string) (*ResourceFile, bool) {
-	if p.resources == nil {
-		return nil, false
-	}
-	resource, exists := p.resources[filename]
-	return resource, exists
 }
 
 // getCachedMetadata retrieves a cached metadata file if it exists.

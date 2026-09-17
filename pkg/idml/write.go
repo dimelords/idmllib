@@ -2,7 +2,7 @@ package idml
 
 import (
 	"archive/zip"
-	"os"
+	"io"
 	"regexp"
 	"strings"
 	"time"
@@ -23,8 +23,8 @@ func (p *Package) marshalCachedObjects() error {
 	}
 
 	// If document was parsed, marshal it back to XML with preserved metadata
-	if p.documentMetadata != nil {
-		xmlData, err := document.MarshalDocumentWithMetadata(p.documentMetadata)
+	if p.documentMetadata != nil && p.isDirty(PathDesignmap) {
+		xmlData, err := document.MarshalFile(p.documentMetadata)
 		if err != nil {
 			return common.WrapErrorWithPath("idml", "marshal document", PathDesignmap, err)
 		}
@@ -33,6 +33,9 @@ func (p *Package) marshalCachedObjects() error {
 
 	// If stories were parsed, marshal them back to XML
 	for filename, st := range p.stories {
+		if !p.isDirty(filename) {
+			continue
+		}
 		xmlData, err := story.MarshalStory(st)
 		if err != nil {
 			return common.WrapErrorWithPath("idml", "marshal story", filename, err)
@@ -42,24 +45,18 @@ func (p *Package) marshalCachedObjects() error {
 
 	// If spreads were parsed, marshal them back to XML
 	for filename, sp := range p.spreads {
+		if !p.isDirty(filename) {
+			continue
+		}
 		xmlData, err := spread.MarshalSpread(sp)
 		if err != nil {
 			return common.WrapErrorWithPath("idml", "marshal spread", filename, err)
 		}
-		p.setFileData(filename, xmlData)
-	}
-
-	// If resources were parsed, marshal them back to XML
-	for filename, resource := range p.resources {
-		xmlData, err := MarshalResourceFile(resource)
-		if err != nil {
-			return common.WrapErrorWithPath("idml", "marshal resource", filename, err)
-		}
-		p.setFileData(filename, xmlData)
+		p.setFileData(filename, p.restoreSpreadData(filename, xmlData))
 	}
 
 	// If typed fonts were parsed, marshal them back to XML
-	if p.fonts != nil {
+	if p.fonts != nil && p.isDirty(PathFonts) {
 		xmlData, err := resources.MarshalFontsFile(p.fonts)
 		if err != nil {
 			return common.WrapErrorWithPath("idml", "marshal fonts", PathFonts, err)
@@ -68,7 +65,7 @@ func (p *Package) marshalCachedObjects() error {
 	}
 
 	// If typed graphics were parsed, marshal them back to XML
-	if p.graphics != nil {
+	if p.graphics != nil && p.isDirty(PathGraphic) {
 		xmlData, err := resources.MarshalGraphicFile(p.graphics)
 		if err != nil {
 			return common.WrapErrorWithPath("idml", "marshal graphics", PathGraphic, err)
@@ -77,7 +74,7 @@ func (p *Package) marshalCachedObjects() error {
 	}
 
 	// If typed styles were parsed, marshal them back to XML
-	if p.styles != nil {
+	if p.styles != nil && p.isDirty(PathStyles) {
 		xmlData, err := resources.MarshalStylesFile(p.styles)
 		if err != nil {
 			return common.WrapErrorWithPath("idml", "marshal styles", PathStyles, err)
@@ -85,9 +82,25 @@ func (p *Package) marshalCachedObjects() error {
 		p.setFileData(PathStyles, xmlData)
 	}
 
+	if p.preferences != nil && p.isDirty(PathPreferences) {
+		xmlData, err := resources.MarshalPreferencesFile(p.preferences)
+		if err != nil {
+			return common.WrapErrorWithPath("idml", "marshal preferences", PathPreferences, err)
+		}
+		p.setFileData(PathPreferences, xmlData)
+	}
+
+	if p.tags != nil && p.isDirty(PathTags) {
+		xmlData, err := resources.MarshalTagsFile(p.tags)
+		if err != nil {
+			return common.WrapErrorWithPath("idml", "marshal tags", PathTags, err)
+		}
+		p.setFileData(PathTags, xmlData)
+	}
+
 	// If metadata files were parsed, marshal them back
 	for filename, metadata := range p.metadata {
-		data, err := MarshalMetadataFile(metadata)
+		data, err := marshalMetadataFile(metadata)
 		if err != nil {
 			return common.WrapErrorWithPath("idml", "marshal metadata", filename, err)
 		}
@@ -104,7 +117,7 @@ func (p *Package) updateXMPInMetadataFile() error {
 	entry, err := p.getFileEntry("META-INF/metadata.xml")
 	if err != nil {
 		// If metadata.xml doesn't exist, nothing to update
-		return nil
+		return nil //nolint:nilerr // absent metadata.xml means there is nothing to update
 	}
 
 	// Get the current content
@@ -112,7 +125,7 @@ func (p *Package) updateXMPInMetadataFile() error {
 
 	// Replace the XMP packet with the updated one
 	xmpPattern := regexp.MustCompile(`(?s)<\?xpacket begin.*?<\?xpacket end[^>]*\?>`)
-	
+
 	if p.XMPMetadata != "" {
 		// Replace existing XMP or add if not present
 		if xmpPattern.MatchString(content) {
@@ -176,28 +189,13 @@ func writeZipFiles(w *zip.Writer, pkg *Package) error {
 			continue // Already written
 		}
 
-		entry, err := pkg.getFileEntry(name)
-		if err != nil {
+		entry, ok := pkg.files[name]
+		if !ok || entry == nil {
 			continue // Skip missing files
 		}
 
-		// Create header if it doesn't exist (e.g., for newly added files)
-		if entry.header == nil {
-			entry.header = &zip.FileHeader{
-				Name:     name,
-				Method:   zip.Deflate, // Use compression for all files except mimetype
-				Modified: time.Now(),
-			}
-		}
-
-		// Use the original FileHeader to preserve compression and metadata
-		fileWriter, err := w.CreateHeader(entry.header)
-		if err != nil {
-			return common.WrapErrorWithPath("idml", "write", name, err)
-		}
-
-		if _, err := fileWriter.Write(entry.data); err != nil {
-			return common.WrapErrorWithPath("idml", "write", name, err)
+		if err := writeEntry(w, name, entry); err != nil {
+			return err
 		}
 	}
 
@@ -206,40 +204,34 @@ func writeZipFiles(w *zip.Writer, pkg *Package) error {
 
 // Write writes an IDML package to a file.
 //
-// The function:
-// 1. Marshals the Document struct back to designmap.xml (if modified)
-// 2. Writes mimetype first and uncompressed (CRITICAL IDML requirement)
-// 3. Writes all other files in original order
-//
-// CRITICAL: The mimetype file MUST be written first and MUST be uncompressed.
-// This is required by the IDML specification. InDesign will reject files
-// that don't follow this requirement.
+// The function marshals every object marked modified back to XML, then writes
+// the ZIP with the mimetype entry first and uncompressed, as the IDML
+// specification requires. The archive is written to a temporary file next to
+// path and renamed into place, so a failure never leaves a truncated document
+// behind. The file is created with mode 0600.
 func Write(pkg *Package, path string) error {
-	// Step 1: Marshal all cached objects back to XML
 	if err := pkg.marshalCachedObjects(); err != nil {
 		return err
 	}
-
-	// Step 2: Create the output file
-	// #nosec G304 - This is a library function; file path is intentionally provided by caller
-	f, err := os.Create(path)
+	err := common.WriteFileAtomic(path, 0o600, func(w io.Writer) error {
+		zw := zip.NewWriter(w)
+		if err := writeZipFiles(zw, pkg); err != nil {
+			return err
+		}
+		return zw.Close()
+	})
 	if err != nil {
 		return common.WrapErrorWithPath("idml", "write", path, err)
 	}
-	defer f.Close()
-
-	// Step 3: Create ZIP writer and write all files
-	w := zip.NewWriter(f)
-	defer w.Close()
-
-	if err := writeZipFiles(w, pkg); err != nil {
-		return err
-	}
-
-	// Step 4: Close the ZIP writer (important!)
-	if err := w.Close(); err != nil {
-		return common.WrapErrorWithPath("idml", "write", path, err)
-	}
-
 	return nil
+}
+
+// defaultHeader is used for files added through the API, which have no header
+// from a source archive.
+func defaultHeader(name string) *zip.FileHeader {
+	return &zip.FileHeader{
+		Name:     name,
+		Method:   zip.Deflate, // everything except mimetype is compressed
+		Modified: time.Now(),
+	}
 }

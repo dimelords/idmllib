@@ -21,15 +21,15 @@ func TestParseSpreadWithRectangles_ParsesRectangles(t *testing.T) {
 	}
 
 	// Verify we parsed rectangles
-	if len(sp.InnerSpread.Rectangles) == 0 {
+	if len(sp.Rectangles) == 0 {
 		t.Error("Expected rectangles but found none")
 	}
 
-	t.Logf("✅ Successfully parsed spread with %d rectangles", len(sp.InnerSpread.Rectangles))
+	t.Logf("✅ Successfully parsed spread with %d rectangles", len(sp.Rectangles))
 
 	// Check first rectangle details
-	if len(sp.InnerSpread.Rectangles) > 0 {
-		rect := sp.InnerSpread.Rectangles[0]
+	if len(sp.Rectangles) > 0 {
+		rect := sp.Rectangles[0]
 		t.Logf("   Rectangle[0].Self: %s", rect.Self)
 		t.Logf("   Rectangle[0].ContentType: %s", rect.ContentType)
 
@@ -67,13 +67,13 @@ func TestRectangleRoundtrip_PreservesData(t *testing.T) {
 		t.Fatalf("Failed to get spread: %v", err)
 	}
 
-	originalRectCount := len(sp.InnerSpread.Rectangles)
+	originalRectCount := len(sp.Rectangles)
 	if originalRectCount == 0 {
 		t.Skip("No rectangles in test spread")
 	}
 
 	// Marshal the spread
-	spreadXML, err := spread.MarshalSpread(sp)
+	spreadXML, err := spread.MarshalSpread(&spread.File{DOMVersion: "20.4", Spread: *sp})
 	if err != nil {
 		t.Fatalf("Failed to marshal spread: %v", err)
 	}
@@ -85,7 +85,7 @@ func TestRectangleRoundtrip_PreservesData(t *testing.T) {
 	}
 
 	// Verify rectangle count matches
-	roundtripRectCount := len(roundtripSpread.InnerSpread.Rectangles)
+	roundtripRectCount := len(roundtripSpread.Spread.Rectangles)
 	if roundtripRectCount != originalRectCount {
 		t.Errorf("Rectangle count mismatch: original=%d, roundtrip=%d",
 			originalRectCount, roundtripRectCount)
@@ -93,8 +93,8 @@ func TestRectangleRoundtrip_PreservesData(t *testing.T) {
 
 	// Verify first rectangle Self attribute matches
 	if originalRectCount > 0 && roundtripRectCount > 0 {
-		origSelf := sp.InnerSpread.Rectangles[0].Self
-		roundSelf := roundtripSpread.InnerSpread.Rectangles[0].Self
+		origSelf := sp.Rectangles[0].Self
+		roundSelf := roundtripSpread.Spread.Rectangles[0].Self
 		if origSelf != roundSelf {
 			t.Errorf("Rectangle[0].Self mismatch: original=%s, roundtrip=%s",
 				origSelf, roundSelf)
@@ -118,7 +118,7 @@ func TestRectangleWithImage_ParsesCorrectly(t *testing.T) {
 
 	// Find rectangles with images
 	var imageRects []spread.Rectangle
-	for _, rect := range sp.InnerSpread.Rectangles {
+	for _, rect := range sp.Rectangles {
 		if rect.Image != nil {
 			imageRects = append(imageRects, rect)
 		}

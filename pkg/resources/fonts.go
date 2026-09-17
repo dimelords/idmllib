@@ -24,6 +24,14 @@ type FontsFile struct {
 
 	// Catch-all for other elements we haven't explicitly modeled
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // FontFamily represents a font family group (e.g., "Minion Pro", "Myriad Pro").
@@ -32,6 +40,10 @@ type FontFamily struct {
 	Self  string `xml:"Self,attr"`
 	Name  string `xml:"Name,attr"`
 	Fonts []Font `xml:"Font,omitempty"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // Font represents an individual font definition within a font family.
@@ -51,6 +63,10 @@ type Font struct {
 	PlatformName        string `xml:"PlatformName,attr"`
 	Version             string `xml:"Version,attr"`
 	TypekitID           string `xml:"TypekitID,attr,omitempty"` // Adobe Typekit/Fonts ID
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // CompositeFont represents a composite font definition (primarily for CJK typography).
@@ -60,6 +76,14 @@ type CompositeFont struct {
 	Name                 string                 `xml:"Name,attr"`
 	CompositeFontEntries []CompositeFontEntry   `xml:"CompositeFontEntry,omitempty"`
 	OtherElements        []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // CompositeFontEntry represents a single entry in a composite font.
@@ -76,4 +100,8 @@ type CompositeFontEntry struct {
 	ScaleOption      string             `xml:"ScaleOption,attr,omitempty"`      // "true" or "false"
 	BaselineShift    string             `xml:"BaselineShift,attr,omitempty"`    // Baseline shift value
 	Properties       *common.Properties `xml:"Properties,omitempty"`            // Contains <AppliedFont>
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }

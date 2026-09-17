@@ -27,11 +27,11 @@ func Example() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Story Self: %s\n", st.StoryElement.Self)
-	fmt.Printf("Number of paragraph style ranges: %d\n", len(st.StoryElement.ParagraphStyleRanges))
+	fmt.Printf("Story Self: %s\n", st.Story.Self)
+	fmt.Printf("Number of paragraph style ranges: %d\n", len(st.Story.ParagraphStyleRanges))
 
-	if len(st.StoryElement.ParagraphStyleRanges) > 0 {
-		psr := st.StoryElement.ParagraphStyleRanges[0]
+	if len(st.Story.ParagraphStyleRanges) > 0 {
+		psr := st.Story.ParagraphStyleRanges[0]
 		fmt.Printf("Applied paragraph style: %s\n", psr.AppliedParagraphStyle)
 
 		if len(psr.CharacterStyleRanges) > 0 {
@@ -74,7 +74,7 @@ func ExampleStory_ExtractText() {
 
 	// Extract all text manually
 	var allText string
-	for _, psr := range st.StoryElement.ParagraphStyleRanges {
+	for _, psr := range st.Story.ParagraphStyleRanges {
 		for _, csr := range psr.CharacterStyleRanges {
 			for _, child := range csr.Children {
 				if child.Content != nil {

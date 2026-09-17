@@ -73,8 +73,8 @@ func ExampleExporter_ExportSelection() {
 	// Create selection with first text frame
 	selection := idml.NewSelection()
 	for _, sp := range spreads {
-		if len(sp.InnerSpread.TextFrames) > 0 {
-			selection.AddTextFrame(&sp.InnerSpread.TextFrames[0])
+		if len(sp.TextFrames) > 0 {
+			selection.AddTextFrame(&sp.TextFrames[0])
 			break
 		}
 	}

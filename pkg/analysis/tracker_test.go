@@ -82,10 +82,10 @@ func TestAnalyzeTextFrame(t *testing.T) {
 	}
 
 	// Find a text frame
-	var tf *spread.SpreadTextFrame
+	var tf *spread.TextFrame
 	for _, sp := range spreads {
-		if len(sp.InnerSpread.TextFrames) > 0 {
-			tf = &sp.InnerSpread.TextFrames[0]
+		if len(sp.TextFrames) > 0 {
+			tf = &sp.TextFrames[0]
 			break
 		}
 	}
@@ -160,7 +160,7 @@ func TestAnalyzeStory(t *testing.T) {
 	deps := tracker.Dependencies()
 
 	// Verify that we tracked styles
-	if len(st.StoryElement.ParagraphStyleRanges) > 0 {
+	if len(st.ParagraphStyleRanges) > 0 {
 		if len(deps.ParagraphStyles) == 0 {
 			t.Error("Expected to track paragraph styles")
 		}
@@ -205,8 +205,8 @@ func TestAnalyzeRectangle(t *testing.T) {
 	// Find a rectangle
 	var rect *spread.Rectangle
 	for _, sp := range spreads {
-		if len(sp.InnerSpread.Rectangles) > 0 {
-			rect = &sp.InnerSpread.Rectangles[0]
+		if len(sp.Rectangles) > 0 {
+			rect = &sp.Rectangles[0]
 			break
 		}
 	}
@@ -268,9 +268,9 @@ func TestAnalyzeImage(t *testing.T) {
 	// Find a rectangle with an image
 	var img *spread.Image
 	for _, sp := range spreads {
-		for i := range sp.InnerSpread.Rectangles {
-			if sp.InnerSpread.Rectangles[i].Image != nil {
-				img = sp.InnerSpread.Rectangles[i].Image
+		for i := range sp.Rectangles {
+			if sp.Rectangles[i].Image != nil {
+				img = sp.Rectangles[i].Image
 				break
 			}
 		}
@@ -458,13 +458,13 @@ func TestAnalyzeSelection(t *testing.T) {
 
 	for _, sp := range spreads {
 		// Add up to 2 text frames
-		for i := 0; i < len(sp.InnerSpread.TextFrames) && i < 2; i++ {
-			selection.AddTextFrame(&sp.InnerSpread.TextFrames[i])
+		for i := 0; i < len(sp.TextFrames) && i < 2; i++ {
+			selection.AddTextFrame(&sp.TextFrames[i])
 		}
 
 		// Add up to 2 rectangles
-		for i := 0; i < len(sp.InnerSpread.Rectangles) && i < 2; i++ {
-			selection.AddRectangle(&sp.InnerSpread.Rectangles[i])
+		for i := 0; i < len(sp.Rectangles) && i < 2; i++ {
+			selection.AddRectangle(&sp.Rectangles[i])
 		}
 
 		if selection.Count() >= 4 {

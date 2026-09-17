@@ -3,7 +3,11 @@ package idml
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
+	"io"
 	"strings"
+
+	"github.com/dimelords/idmllib/v2/pkg/common"
 )
 
 // StyleInfo represents basic information about a style and its parent.
@@ -22,8 +26,11 @@ func ParseStylesForHierarchy(data []byte) ([]StyleInfo, error) {
 
 	for {
 		tok, err := decoder.Token()
-		if err != nil {
+		if errors.Is(err, io.EOF) {
 			break
+		}
+		if err != nil {
+			return nil, common.WrapError("idml", "parse styles for hierarchy", err)
 		}
 
 		switch t := tok.(type) {

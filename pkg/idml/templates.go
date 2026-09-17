@@ -5,40 +5,24 @@ import (
 	"bytes"
 	_ "embed"
 	"fmt"
+	"regexp"
 	"sync"
 	"text/template"
 
 	"github.com/dimelords/idmllib/v2/pkg/common"
 )
 
-// Template initialization with sync.Once for thread-safe lazy loading
+// The embedded templates are parsed once, on first use. sync.OnceValues
+// caches both the template and any parse error and is safe to call from
+// multiple goroutines.
 var (
-	designmapTmpl     *template.Template
-	designmapTmplErr  error
-	designmapTmplOnce sync.Once
-
-	masterspreadTmpl     *template.Template
-	masterspreadTmplErr  error
-	masterspreadTmplOnce sync.Once
+	getDesignmapTemplate = sync.OnceValues(func() (*template.Template, error) {
+		return template.New("designmap").Parse(string(minimalDesignMap))
+	})
+	getMasterspreadTemplate = sync.OnceValues(func() (*template.Template, error) {
+		return template.New("masterspread").Parse(string(minimalMasterSpread))
+	})
 )
-
-// getDesignmapTemplate returns the parsed designmap template.
-// The template is parsed once and cached for subsequent calls.
-func getDesignmapTemplate() (*template.Template, error) {
-	designmapTmplOnce.Do(func() {
-		designmapTmpl, designmapTmplErr = template.New("designmap").Parse(string(minimalDesignMap))
-	})
-	return designmapTmpl, designmapTmplErr
-}
-
-// getMasterspreadTemplate returns the parsed masterspread template.
-// The template is parsed once and cached for subsequent calls.
-func getMasterspreadTemplate() (*template.Template, error) {
-	masterspreadTmplOnce.Do(func() {
-		masterspreadTmpl, masterspreadTmplErr = template.New("masterspread").Parse(string(minimalMasterSpread))
-	})
-	return masterspreadTmpl, masterspreadTmplErr
-}
 
 // Template files embedded at compile time.
 // These provide minimal valid structures for creating IDML documents from scratch.
@@ -213,6 +197,9 @@ func NewFromTemplate(opts *TemplateOptions) (*Package, error) {
 	if opts.ColumnCount <= 0 {
 		opts.ColumnCount = 1
 	}
+	if err := validateTemplateOptions(opts); err != nil {
+		return nil, err
+	}
 	if opts.ColumnGutter <= 0 {
 		opts.ColumnGutter = 12
 	}
@@ -363,5 +350,26 @@ func (p *Package) addFileFromTemplate(path string, data []byte) error {
 	// Preserve file order
 	p.fileOrder = append(p.fileOrder, path)
 
+	return nil
+}
+
+// domVersionPattern matches InDesign DOM versions such as "20.4".
+var domVersionPattern = regexp.MustCompile(`^[0-9]+(\.[0-9]+)*$`)
+
+// validateTemplateOptions rejects option values that would produce malformed
+// or invalid XML when substituted into the templates.
+func validateTemplateOptions(opts *TemplateOptions) error {
+	if opts.Orientation != "Portrait" && opts.Orientation != "Landscape" {
+		return common.Errorf("idml", "create from template", "", "invalid orientation %q: want Portrait or Landscape", opts.Orientation)
+	}
+	if !domVersionPattern.MatchString(opts.DOMVersion) {
+		return common.Errorf("idml", "create from template", "", "invalid DOMVersion %q", opts.DOMVersion)
+	}
+	if opts.ColumnGutter < 0 || opts.Margins.Top < 0 || opts.Margins.Bottom < 0 || opts.Margins.Left < 0 || opts.Margins.Right < 0 {
+		return common.Errorf("idml", "create from template", "", "margins and column gutter must not be negative")
+	}
+	if opts.CustomDimensions != nil && (opts.CustomDimensions.Width <= 0 || opts.CustomDimensions.Height <= 0) {
+		return common.Errorf("idml", "create from template", "", "custom page dimensions must be positive")
+	}
 	return nil
 }

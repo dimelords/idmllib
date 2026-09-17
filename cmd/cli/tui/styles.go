@@ -1,6 +1,8 @@
 // Package tui provides shared styles and utilities for the TUI
 package tui
 
+import "strings"
+
 import "github.com/charmbracelet/lipgloss"
 
 // Adaptive colors that work on both light and dark backgrounds
@@ -116,12 +118,12 @@ const (
 
 // Format help text in the huh style: "j/k, up/down: select • enter: choose • q, esc: quit"
 func FormatHelp(items ...string) string {
-	result := ""
+	var result strings.Builder
 	for i, item := range items {
 		if i > 0 {
-			result += HelpSepStyle.Render(" • ")
+			result.WriteString(HelpSepStyle.Render(" • "))
 		}
-		result += HelpKeyStyle.Render(item)
+		result.WriteString(HelpKeyStyle.Render(item))
 	}
-	return HelpStyle.Render(result)
+	return HelpStyle.Render(result.String())
 }

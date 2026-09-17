@@ -47,10 +47,11 @@ func Parse(data []byte) (*Package, error) {
 		switch t := token.(type) {
 		case xml.ProcInst:
 			// Handle processing instructions
-			if t.Target == "xml" {
+			switch t.Target {
+			case "xml":
 				// XML declaration
 				pkg.XMLDeclaration = fmt.Sprintf("<?xml %s?>", string(t.Inst))
-			} else if t.Target == "aid" {
+			case "aid":
 				// AID processing instruction
 				// Trim trailing whitespace (original file may have varying spacing before ?>)
 				inst := strings.TrimRight(string(t.Inst), " \t")
@@ -88,7 +89,7 @@ func Parse(data []byte) (*Package, error) {
 						depth--
 					}
 				}
-				encoder.Flush()
+				_ = encoder.Flush() // buffer-backed encoder cannot fail
 
 				// Remove XMP metadata from Document XML before parsing
 				docXML := docBuf.Bytes()

@@ -15,8 +15,11 @@ const (
 	PathPreferences = "Resources/Preferences.xml"
 
 	// Metadata files
-	PathContainer    = "META-INF/container.xml"
-	PathTags         = "XML/Tags.xml"
+	PathContainer = "META-INF/container.xml"
+	PathTags      = "XML/Tags.xml"
+
+	// PathMetadata is the XMP metadata file.
+	PathMetadata     = "META-INF/metadata.xml"
 	PathBackingStory = "XML/BackingStory.xml"
 
 	// Master spread template

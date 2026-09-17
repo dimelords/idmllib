@@ -177,7 +177,7 @@ func (p *Polygon) Perimeter() float64 {
 	perimeter := 0.0
 
 	// Sum distances between consecutive vertices
-	for i := 0; i < len(vertices); i++ {
+	for i := range vertices {
 		next := (i + 1) % len(vertices) // Wrap around to first vertex
 		dx := vertices[next][0] - vertices[i][0]
 		dy := vertices[next][1] - vertices[i][1]
@@ -196,7 +196,7 @@ func (p *Polygon) Area() float64 {
 
 	// Shoelace formula
 	area := 0.0
-	for i := 0; i < len(vertices); i++ {
+	for i := range vertices {
 		next := (i + 1) % len(vertices)
 		area += vertices[i][0] * vertices[next][1]
 		area -= vertices[next][0] * vertices[i][1]
@@ -272,7 +272,7 @@ func (p *Polygon) IsRegular() bool {
 
 	// Calculate all side lengths
 	sides := make([]float64, len(vertices))
-	for i := 0; i < len(vertices); i++ {
+	for i := range vertices {
 		next := (i + 1) % len(vertices)
 		dx := vertices[next][0] - vertices[i][0]
 		dy := vertices[next][1] - vertices[i][1]

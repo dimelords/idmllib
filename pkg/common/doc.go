@@ -32,3 +32,11 @@
 // pkg/idml into domain-specific packages. See docs/EPIC-5-REFACTORING-ANALYSIS.md
 // for detailed design decisions.
 package common
+
+// # XML fidelity helpers
+//
+// ChildOrder, EncodeChildren, ForEachChild, MarshalAttrs, UnmarshalAttrs,
+// MarshalOrdered and UnmarshalOrdered exist so the domain packages can
+// preserve attribute sets and child order when writing IDML back (see
+// docs/FIDELITY.md). They are exported only because the domain packages live
+// outside this one; application code should not need them.

@@ -68,7 +68,7 @@ func TestExportSelection_BasicTextFrame(t *testing.T) {
 	}
 
 	// Get a text frame to export
-	tf, err := pkg.SelectTextFrameByID("u116")
+	tf, err := idml.PageItemOfType[spread.TextFrame](pkg, "u116")
 	if err != nil {
 		t.Skipf("Could not find test text frame: %v", err)
 	}
@@ -110,10 +110,10 @@ func TestResourceExtraction(t *testing.T) {
 	}
 
 	// Find a text frame
-	var testFrame *spread.SpreadTextFrame
+	var testFrame *spread.TextFrame
 	for _, spread := range spreads {
-		if len(spread.InnerSpread.TextFrames) > 0 {
-			testFrame = &spread.InnerSpread.TextFrames[0]
+		if len(spread.TextFrames) > 0 {
+			testFrame = &spread.TextFrames[0]
 			break
 		}
 	}
@@ -170,10 +170,10 @@ func TestExportTextFrame_Single(t *testing.T) {
 	}
 
 	// Find first text frame
-	var testFrame *spread.SpreadTextFrame
+	var testFrame *spread.TextFrame
 	for _, spread := range spreads {
-		if len(spread.InnerSpread.TextFrames) > 0 {
-			testFrame = &spread.InnerSpread.TextFrames[0]
+		if len(spread.TextFrames) > 0 {
+			testFrame = &spread.TextFrames[0]
 			break
 		}
 	}
@@ -242,11 +242,11 @@ func TestExportTextFrame_WithStory(t *testing.T) {
 		t.Fatalf("Failed to get spreads: %v", err)
 	}
 
-	var testFrame *spread.SpreadTextFrame
+	var testFrame *spread.TextFrame
 	for _, spread := range spreads {
-		for i := range spread.InnerSpread.TextFrames {
-			if spread.InnerSpread.TextFrames[i].ParentStory != "" {
-				testFrame = &spread.InnerSpread.TextFrames[i]
+		for i := range spread.TextFrames {
+			if spread.TextFrames[i].ParentStory != "" {
+				testFrame = &spread.TextFrames[i]
 				break
 			}
 		}
@@ -303,10 +303,10 @@ func TestExportTextFrame_WithStyles(t *testing.T) {
 		t.Fatalf("Failed to get spreads: %v", err)
 	}
 
-	var testFrame *spread.SpreadTextFrame
+	var testFrame *spread.TextFrame
 	for _, spread := range spreads {
-		if len(spread.InnerSpread.TextFrames) > 0 {
-			testFrame = &spread.InnerSpread.TextFrames[0]
+		if len(spread.TextFrames) > 0 {
+			testFrame = &spread.TextFrames[0]
 			break
 		}
 	}
@@ -360,10 +360,10 @@ func TestExportTextFrame_WithColors(t *testing.T) {
 		t.Fatalf("Failed to get spreads: %v", err)
 	}
 
-	var testFrame *spread.SpreadTextFrame
+	var testFrame *spread.TextFrame
 	for _, spread := range spreads {
-		if len(spread.InnerSpread.TextFrames) > 0 {
-			testFrame = &spread.InnerSpread.TextFrames[0]
+		if len(spread.TextFrames) > 0 {
+			testFrame = &spread.TextFrames[0]
 			break
 		}
 	}
@@ -436,10 +436,10 @@ func TestExportTextFrame_MultipleFrames(t *testing.T) {
 		t.Fatalf("Failed to get spreads: %v", err)
 	}
 
-	var testFrames []*spread.SpreadTextFrame
+	var testFrames []*spread.TextFrame
 	for _, spread := range spreads {
-		for i := range spread.InnerSpread.TextFrames {
-			testFrames = append(testFrames, &spread.InnerSpread.TextFrames[i])
+		for i := range spread.TextFrames {
+			testFrames = append(testFrames, &spread.TextFrames[i])
 			if len(testFrames) >= 3 {
 				break
 			}
@@ -506,8 +506,8 @@ func TestExportRectangle_Single(t *testing.T) {
 	// Find first rectangle
 	var testRect *spread.Rectangle
 	for _, spread := range spreads {
-		if len(spread.InnerSpread.Rectangles) > 0 {
-			testRect = &spread.InnerSpread.Rectangles[0]
+		if len(spread.Rectangles) > 0 {
+			testRect = &spread.Rectangles[0]
 			break
 		}
 	}
@@ -578,9 +578,9 @@ func TestExportRectangle_WithImage(t *testing.T) {
 
 	var testRect *spread.Rectangle
 	for _, spread := range spreads {
-		for i := range spread.InnerSpread.Rectangles {
+		for i := range spread.Rectangles {
 			// Look for rectangle with image
-			rect := &spread.InnerSpread.Rectangles[i]
+			rect := &spread.Rectangles[i]
 			if rect.Image != nil {
 				testRect = rect
 				break
@@ -644,8 +644,8 @@ func TestExportRectangle_WithLinks(t *testing.T) {
 
 	var testRect *spread.Rectangle
 	for _, spread := range spreads {
-		for i := range spread.InnerSpread.Rectangles {
-			rect := &spread.InnerSpread.Rectangles[i]
+		for i := range spread.Rectangles {
+			rect := &spread.Rectangles[i]
 			if rect.Image != nil && rect.Image.Link != nil {
 				testRect = rect
 				break
@@ -709,8 +709,8 @@ func TestExportRectangle_MultipleRectangles(t *testing.T) {
 
 	var testRects []*spread.Rectangle
 	for _, spread := range spreads {
-		for i := range spread.InnerSpread.Rectangles {
-			testRects = append(testRects, &spread.InnerSpread.Rectangles[i])
+		for i := range spread.Rectangles {
+			testRects = append(testRects, &spread.Rectangles[i])
 			if len(testRects) >= 3 {
 				break
 			}
@@ -768,8 +768,8 @@ func TestExportRectangle_WithObjectStyle(t *testing.T) {
 
 	var testRect *spread.Rectangle
 	for _, spread := range spreads {
-		if len(spread.InnerSpread.Rectangles) > 0 {
-			testRect = &spread.InnerSpread.Rectangles[0]
+		if len(spread.Rectangles) > 0 {
+			testRect = &spread.Rectangles[0]
 			break
 		}
 	}
@@ -822,15 +822,15 @@ func TestExportMixed_TextFrameAndRectangle(t *testing.T) {
 	}
 
 	// Find a text frame and a rectangle
-	var testFrame *spread.SpreadTextFrame
+	var testFrame *spread.TextFrame
 	var testRect *spread.Rectangle
 
 	for _, spread := range spreads {
-		if testFrame == nil && len(spread.InnerSpread.TextFrames) > 0 {
-			testFrame = &spread.InnerSpread.TextFrames[0]
+		if testFrame == nil && len(spread.TextFrames) > 0 {
+			testFrame = &spread.TextFrames[0]
 		}
-		if testRect == nil && len(spread.InnerSpread.Rectangles) > 0 {
-			testRect = &spread.InnerSpread.Rectangles[0]
+		if testRect == nil && len(spread.Rectangles) > 0 {
+			testRect = &spread.Rectangles[0]
 		}
 		if testFrame != nil && testRect != nil {
 			break
@@ -889,18 +889,18 @@ func TestExportMixed_MultipleOfEachType(t *testing.T) {
 	}
 
 	// Collect multiple of each type
-	var textFrames []*spread.SpreadTextFrame
+	var textFrames []*spread.TextFrame
 	var rectangles []*spread.Rectangle
 
 	for _, spread := range spreads {
-		for i := range spread.InnerSpread.TextFrames {
-			textFrames = append(textFrames, &spread.InnerSpread.TextFrames[i])
+		for i := range spread.TextFrames {
+			textFrames = append(textFrames, &spread.TextFrames[i])
 			if len(textFrames) >= 2 {
 				break
 			}
 		}
-		for i := range spread.InnerSpread.Rectangles {
-			rectangles = append(rectangles, &spread.InnerSpread.Rectangles[i])
+		for i := range spread.Rectangles {
+			rectangles = append(rectangles, &spread.Rectangles[i])
 			if len(rectangles) >= 2 {
 				break
 			}
@@ -963,15 +963,15 @@ func TestExportMixed_WithSharedDependencies(t *testing.T) {
 	}
 
 	// Find text frame and rectangle
-	var testFrame *spread.SpreadTextFrame
+	var testFrame *spread.TextFrame
 	var testRect *spread.Rectangle
 
 	for _, spread := range spreads {
-		if len(spread.InnerSpread.TextFrames) > 0 {
-			testFrame = &spread.InnerSpread.TextFrames[0]
+		if len(spread.TextFrames) > 0 {
+			testFrame = &spread.TextFrames[0]
 		}
-		if len(spread.InnerSpread.Rectangles) > 0 {
-			testRect = &spread.InnerSpread.Rectangles[0]
+		if len(spread.Rectangles) > 0 {
+			testRect = &spread.Rectangles[0]
 		}
 		if testFrame != nil && testRect != nil {
 			break
@@ -1043,15 +1043,15 @@ func TestExportMixed_CompleteDocument(t *testing.T) {
 	// Create selection with ALL elements from the spread
 	sel := idml.NewSelection()
 
-	for i := range sp.InnerSpread.TextFrames {
-		sel.AddTextFrame(&sp.InnerSpread.TextFrames[i])
+	for i := range sp.TextFrames {
+		sel.AddTextFrame(&sp.TextFrames[i])
 	}
 
-	for i := range sp.InnerSpread.Rectangles {
-		sel.AddRectangle(&sp.InnerSpread.Rectangles[i])
+	for i := range sp.Rectangles {
+		sel.AddRectangle(&sp.Rectangles[i])
 	}
 
-	totalElements := len(sp.InnerSpread.TextFrames) + len(sp.InnerSpread.Rectangles)
+	totalElements := len(sp.TextFrames) + len(sp.Rectangles)
 
 	if totalElements == 0 {
 		t.Skip("No elements in spread")

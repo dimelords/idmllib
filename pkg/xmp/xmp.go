@@ -108,7 +108,7 @@ func (x *Metadata) AddThumbnail(thumbnailData string, width, height int) error {
 	// Find the position to insert the thumbnail (after xmp:ModifyDate or xmp:MetadataDate)
 	insertPattern := regexp.MustCompile(`(</xmp:ModifyDate>|</xmp:MetadataDate>)`)
 	matches := insertPattern.FindStringIndex(x.raw)
-	
+
 	if matches == nil {
 		return errors.New("could not find insertion point for thumbnail")
 	}
@@ -130,9 +130,9 @@ func (x *Metadata) GetField(fieldName string) (string, error) {
 
 	// Build regex pattern to extract field value
 	// Use regexp.QuoteMeta to escape special characters in field name
-	pattern := regexp.MustCompile(fmt.Sprintf(`<%s>([^<]+)</%s>`, 
+	pattern := regexp.MustCompile(fmt.Sprintf(`<%s>([^<]+)</%s>`,
 		regexp.QuoteMeta(fieldName), regexp.QuoteMeta(fieldName)))
-	
+
 	matches := pattern.FindStringSubmatch(x.raw)
 	if matches == nil {
 		return "", fmt.Errorf("field %s not found", fieldName)
@@ -152,9 +152,9 @@ func (x *Metadata) SetField(fieldName, value string) error {
 
 	// Build regex pattern to find and replace field value
 	// Use regexp.QuoteMeta to escape special characters in field name
-	pattern := regexp.MustCompile(fmt.Sprintf(`<%s>[^<]+</%s>`, 
+	pattern := regexp.MustCompile(fmt.Sprintf(`<%s>[^<]+</%s>`,
 		regexp.QuoteMeta(fieldName), regexp.QuoteMeta(fieldName)))
-	
+
 	// Check if field exists
 	if !pattern.MatchString(x.raw) {
 		return fmt.Errorf("field %s not found", fieldName)

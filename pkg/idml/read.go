@@ -8,6 +8,7 @@ import (
 	"math"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/dimelords/idmllib/v2/pkg/common"
@@ -16,10 +17,10 @@ import (
 // Default limits for ZIP bomb protection
 const (
 	// DefaultMaxTotalSize is the maximum total uncompressed size (500 MB)
-	DefaultMaxTotalSize int64 = 1000 * 1024 * 1024
+	DefaultMaxTotalSize int64 = 500 * 1024 * 1024
 
 	// DefaultMaxFileSize is the maximum size of a single file (100 MB)
-	DefaultMaxFileSize int64 = 200 * 1024 * 1024
+	DefaultMaxFileSize int64 = 100 * 1024 * 1024
 
 	// DefaultMaxFileCount is the maximum number of files in the archive
 	DefaultMaxFileCount int = 10000
@@ -46,6 +47,18 @@ type ReadOptions struct {
 	// MaxCompressionRatio limits the compression ratio (uncompressed/compressed).
 	// Set to 0 to use DefaultMaxCompressionRatio, -1 for no limit.
 	MaxCompressionRatio int64
+
+	// StreamingMode keeps embedded image payloads only in the raw file bytes
+	// instead of also materializing them into parsed spreads, roughly halving
+	// memory for image-heavy documents. Writing still reproduces them exactly.
+	// See streaming.go for the trade-offs.
+	StreamingMode bool
+
+	// Lazy reads each archive entry the first time it is used instead of all of
+	// them up front, and copies untouched entries straight across on write.
+	// The source must stay readable and unchanged; call Package.Close when done.
+	// See lazy.go for the trade-offs.
+	Lazy bool
 }
 
 // applyDefaults fills in default values for zero-value options.
@@ -86,13 +99,7 @@ func isValidZipPath(name string) bool {
 	}
 
 	// Reject if path contains ".." components (even in middle)
-	for _, part := range strings.Split(cleaned, string(filepath.Separator)) {
-		if part == ".." {
-			return false
-		}
-	}
-
-	return true
+	return !slices.Contains(strings.Split(cleaned, string(filepath.Separator)), "..")
 }
 
 // extractPackage is the shared logic for all Read* functions.
@@ -104,12 +111,23 @@ func extractPackage(files []*zip.File, opts *ReadOptions, source string) (*Packa
 	}
 
 	pkg := New()
+	pkg.streamingMode = opts.StreamingMode
+	pkg.lazy = opts.Lazy
+	pkg.source = source
+	pkg.readOpts = opts
 	var totalSize int64
 
-	// Read each file in the archive
+	// Validate every entry from the archive directory, then read the bytes now
+	// or record where to read them from later. The limits are enforced the same
+	// way either way, since they are checked against the declared sizes.
 	for _, f := range files {
 		if err := validateZipFile(f, opts, &totalSize, source); err != nil {
 			return nil, err
+		}
+
+		if opts.Lazy {
+			storeLazyFileInPackage(pkg, f)
+			continue
 		}
 
 		data, err := extractZipFileData(f, opts, source)
@@ -121,7 +139,10 @@ func extractPackage(files []*zip.File, opts *ReadOptions, source string) (*Packa
 	}
 
 	// Extract XMP metadata from META-INF/metadata.xml
-	if entry, exists := pkg.files["META-INF/metadata.xml"]; exists {
+	if entry, exists := pkg.files[PathMetadata]; exists {
+		if err := pkg.load(PathMetadata, entry); err != nil {
+			return nil, err
+		}
 		pkg.XMPMetadata = extractXMPMetadata(string(entry.data))
 	}
 
@@ -222,21 +243,22 @@ func extractZipFileData(f *zip.File, opts *ReadOptions, source string) ([]byte, 
 	if err != nil {
 		return nil, common.WrapErrorWithPath("idml", "read", source+"/"+f.Name, err)
 	}
-	defer func() {
-		if closeErr := rc.Close(); closeErr != nil {
-			// Log close error but don't override the main error
-		}
-	}()
+	defer func() { _ = rc.Close() }()
 
 	// Use LimitReader to prevent reading more than declared size + small buffer
 	maxRead := calculateMaxReadSize(f, opts)
 	limitedReader := io.LimitReader(rc, maxRead)
 
-	// Read the entire file content
-	data, err := io.ReadAll(limitedReader)
-	if err != nil {
+	// Read the entire file content. The ZIP directory declares the uncompressed
+	// size, so the buffer is allocated once instead of being grown by repeated
+	// doubling, which for a large entry costs about twice the file size in
+	// allocation churn. The hint is clamped and the LimitReader still bounds the
+	// read, so a lying header cannot cause a large allocation.
+	buf := bytes.NewBuffer(make([]byte, 0, readBufferHint(f, opts)))
+	if _, err := buf.ReadFrom(limitedReader); err != nil {
 		return nil, common.WrapErrorWithPath("idml", "read", source+"/"+f.Name, err)
 	}
+	data := buf.Bytes()
 
 	// Verify actual size doesn't significantly exceed declared size
 	if err := validateActualFileSize(f, data); err != nil {
@@ -454,8 +476,51 @@ func ReadWithOptions(path string, opts *ReadOptions) (*Package, error) {
 	if err != nil {
 		return nil, common.WrapErrorWithPath("idml", "read", path, err)
 	}
-	defer r.Close()
 
-	// Use shared extraction logic
-	return extractPackage(r.File, opts, path)
+	pkg, err := extractPackage(r.File, opts, path)
+	if err != nil {
+		_ = r.Close()
+		return nil, err
+	}
+	if opts.Lazy {
+		// The archive stays open so entries can be read on demand; Close
+		// releases it.
+		pkg.closer = r
+	} else if err := r.Close(); err != nil {
+		return nil, common.WrapErrorWithPath("idml", "read", path, err)
+	}
+	return pkg, nil
+}
+
+// defaultReadBufferHintCap bounds the pre-allocation when the caller set no
+// file size limit, so a corrupt or hostile header cannot cause a large
+// allocation on its own. Larger entries still read correctly, the buffer just
+// grows as it fills.
+const defaultReadBufferHintCap = 256 << 20
+
+// readBufferHint returns a safe initial capacity for reading f, from the
+// uncompressed size declared in the ZIP directory.
+//
+// The declared size has already been checked against opts.MaxFileSize by
+// validateFileSize, so trusting it up to that limit only ever allocates what
+// the caller said it was willing to hold. The read itself stays bounded by the
+// LimitReader, so a header that understates the real size cannot overrun.
+func readBufferHint(f *zip.File, opts *ReadOptions) int {
+	if f == nil {
+		return 0
+	}
+	limit := uint64(defaultReadBufferHintCap)
+	if opts != nil && opts.MaxFileSize > 0 {
+		limit = uint64(opts.MaxFileSize)
+	}
+	// math.MaxInt32 keeps the result well inside int on 32-bit platforms.
+	size := min(f.UncompressedSize64, limit, math.MaxInt32)
+	return int(size)
+}
+
+// storeLazyFileInPackage records an archive entry without reading its bytes.
+func storeLazyFileInPackage(pkg *Package, f *zip.File) {
+	header := f.FileHeader
+	pkg.files[f.Name] = &fileEntry{header: &header, src: f}
+	pkg.fileOrder = append(pkg.fileOrder, f.Name)
 }

@@ -61,6 +61,10 @@ type DesignmapMinimal struct {
 type GraphicRef struct {
 	XMLName xml.Name `xml:"http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging Graphic"`
 	Src     string   `xml:"src,attr"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // ParseDesignmap parses a designmap.xml file into a Designmap struct.

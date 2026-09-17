@@ -1,22 +1,32 @@
-# golangci-lint v2 configuration for idmlbuild project
-# This configuration balances code quality with existing codebase compatibility
+# golangci-lint v2 configuration for idmlbuild.
+#
+# The linter set is strict for library code. Test files are exempt from gosec
+# and errcheck, where the noise outweighs the value.
 
 version: "2"
 
 run:
   timeout: 10m
   tests: true
-  go: "1.23"
+  go: "1.26"
 
-# Enable essential linters while being permissive for existing code
 linters:
   enable:
-    - govet         # Go vet (built-in static analyzer)
-    - misspell      # Check for misspelled words in comments and strings
-  
-  disable:
-    - errcheck      # Too many unchecked errors in existing code
-    - gosec         # Too many security warnings in test code
-    - ineffassign   # Can be enabled after cleanup
-    - unused        # Can be enabled after cleanup
-    - staticcheck   # Too many style suggestions for existing code
+    - govet           # built-in static analyzer
+    - staticcheck     # bugs, simplifications and deprecations
+    - errcheck        # unchecked errors
+    - ineffassign     # assignments that are never used
+    - unused          # dead code
+    - misspell        # misspelled words in comments and strings
+    - gosec           # security-relevant patterns
+    - forcetypeassert # unchecked type assertions panic on mismatch
+    - nilerr          # returning nil while an error is in hand
+    - modernize       # code that can use newer Go features
+  exclusions:
+    rules:
+      # Tests may ignore errors and use fixed permissions freely.
+      - path: _test\.go
+        linters:
+          - gosec
+          - errcheck
+          - forcetypeassert

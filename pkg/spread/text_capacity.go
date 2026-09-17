@@ -45,7 +45,7 @@ type TextCapacityInfo struct {
 //	    fmt.Printf("Usable text width: %.2fpt across %d column(s)\n",
 //	        capacity.EffectiveWidth, capacity.ColumnCount)
 //	}
-func (f *SpreadTextFrame) TextCapacity() *TextCapacityInfo {
+func (f *TextFrame) TextCapacity() *TextCapacityInfo {
 	info := &TextCapacityInfo{
 		ColumnCount: 1, // Default to single column
 	}
@@ -149,11 +149,9 @@ func parseInsetSpacingFromContent(content []byte) [4]float64 {
 
 	// Extract values from ListItems
 	if props.InsetSpacing != nil {
-		for i, item := range props.InsetSpacing.Items {
-			if i >= 4 {
-				break
-			}
-			if val, err := strconv.ParseFloat(strings.TrimSpace(item.Value), 64); err == nil {
+		items := props.InsetSpacing.Items
+		for i := range min(len(items), len(insets)) {
+			if val, err := strconv.ParseFloat(strings.TrimSpace(items[i].Value), 64); err == nil {
 				insets[i] = val
 			}
 		}

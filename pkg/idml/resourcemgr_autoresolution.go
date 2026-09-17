@@ -404,7 +404,7 @@ func (rm *ResourceManager) updateFileEntry(path string, data []byte) error {
 }
 
 // addMissingLayers adds default layer definitions to spreads.
-// NOTE: Layer creation is currently disabled as layers are not stored in SpreadElement.
+// NOTE: Layer creation is currently disabled as layers are not stored in the Spread element.
 // This will be re-enabled once we understand where layers are stored in IDML.
 func (rm *ResourceManager) addMissingLayers(layerIDs map[string][]string) error {
 	// Layer creation not yet implemented.

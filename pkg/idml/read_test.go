@@ -140,7 +140,7 @@ func TestReadWithOptions_FileCountLimit(t *testing.T) {
 	files := map[string][]byte{
 		"designmap.xml": designmap,
 	}
-	for i := 0; i < 15; i++ {
+	for i := range 15 {
 		files[filepath.Join("Stories", "file"+string(rune('a'+i))+".xml")] = []byte("<test/>")
 	}
 
@@ -209,7 +209,7 @@ func TestReadWithOptions_DisableLimits(t *testing.T) {
 	files := map[string][]byte{
 		"designmap.xml": designmap,
 	}
-	for i := 0; i < 50; i++ {
+	for i := range 50 {
 		files[filepath.Join("Stories", "file"+string(rune('a'+i))+".xml")] = []byte("<test/>")
 	}
 

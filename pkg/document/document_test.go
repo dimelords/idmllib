@@ -3,6 +3,7 @@ package document_test
 import (
 	"bytes"
 	"encoding/xml"
+	"reflect"
 	"testing"
 
 	"github.com/dimelords/idmllib/v2/internal/testutil"
@@ -185,7 +186,7 @@ func TestDocumentRoundtrip(t *testing.T) {
 					return true
 				}),
 			}
-			if diff := cmp.Diff(doc, doc2, opts); diff != "" {
+			if diff := cmp.Diff(doc, doc2, opts, cmp.Exporter(func(reflect.Type) bool { return true })); diff != "" {
 				t.Errorf("Document differs after roundtrip (-want +got):\n%s", diff)
 			}
 		})

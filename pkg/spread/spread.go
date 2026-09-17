@@ -53,18 +53,18 @@ func (p *PageItemBase) GetName() string {
 	return p.Name
 }
 
-// Spread represents a spread (page layout) in an IDML document.
+// File represents a spread (page layout) in an IDML document.
 // Spreads contain pages, guides, and page items like text frames and images.
 //
-// The root element is <idPkg:Spread> with the idPkg namespace.
+// The root element is <idPkg:File> with the idPkg namespace.
 //
 // DESIGN DECISION: Dual Structure Approach
 // This type uses a dual structure to handle IDML's namespace wrapper pattern:
-// - Outer Spread: Handles the <idPkg:Spread> wrapper with namespace and DOMVersion
-// - Inner SpreadElement: Contains the actual <Spread> content with page items
+// - Outer File: Handles the <idPkg:File> wrapper with namespace and DOMVersion
+// - Inner Spread: the <Spread> element with pages and page items
 // This separation allows clean XML marshaling while providing convenient access methods.
 // The alternative would be complex custom marshaling for every access method.
-type Spread struct {
+type File struct {
 	// XMLName is not set directly - we handle it manually in MarshalXML/UnmarshalXML
 	XMLName xml.Name `xml:"-"`
 
@@ -74,55 +74,55 @@ type Spread struct {
 	// Inner spread element (the actual Spread, not the wrapper)
 	// DESIGN DECISION: Embedded struct provides direct access to content
 	// while maintaining the namespace wrapper structure for XML compatibility.
-	InnerSpread SpreadElement `xml:"-"`
+	Spread Spread
 
 	// rawXML field removed as it was unused
 }
 
 // TextFrames returns all text frames in this spread.
-// This is a convenience method to access text frames without navigating through InnerSpread.
-func (s *Spread) TextFrames() []SpreadTextFrame {
-	return s.InnerSpread.TextFrames
+// This is a convenience method to access text frames without navigating through the Spread field.
+func (s *File) TextFrames() []TextFrame {
+	return s.Spread.TextFrames
 }
 
 // Pages returns all pages in this spread.
-// This is a convenience method to access pages without navigating through InnerSpread.
-func (s *Spread) Pages() []Page {
-	return s.InnerSpread.Pages
+// This is a convenience method to access pages without navigating through the Spread field.
+func (s *File) Pages() []Page {
+	return s.Spread.Pages
 }
 
 // Rectangles returns all rectangles in this spread.
-// This is a convenience method to access rectangles without navigating through InnerSpread.
-func (s *Spread) Rectangles() []Rectangle {
-	return s.InnerSpread.Rectangles
+// This is a convenience method to access rectangles without navigating through the Spread field.
+func (s *File) Rectangles() []Rectangle {
+	return s.Spread.Rectangles
 }
 
 // Images returns all images in this spread.
-// This is a convenience method to access images without navigating through InnerSpread.
-func (s *Spread) Images() []Image {
-	return s.InnerSpread.Images
+// This is a convenience method to access images without navigating through the Spread field.
+func (s *File) Images() []Image {
+	return s.Spread.Images
 }
 
 // Ovals returns all ovals in this spread.
-// This is a convenience method to access ovals without navigating through InnerSpread.
-func (s *Spread) Ovals() []Oval {
-	return s.InnerSpread.Ovals
+// This is a convenience method to access ovals without navigating through the Spread field.
+func (s *File) Ovals() []Oval {
+	return s.Spread.Ovals
 }
 
 // Polygons returns all polygons in this spread.
-// This is a convenience method to access polygons without navigating through InnerSpread.
-func (s *Spread) Polygons() []Polygon {
-	return s.InnerSpread.Polygons
+// This is a convenience method to access polygons without navigating through the Spread field.
+func (s *File) Polygons() []Polygon {
+	return s.Spread.Polygons
 }
 
 // GraphicLines returns all graphic lines in this spread.
-// This is a convenience method to access graphic lines without navigating through InnerSpread.
-func (s *Spread) GraphicLines() []GraphicLine {
-	return s.InnerSpread.GraphicLines
+// This is a convenience method to access graphic lines without navigating through the Spread field.
+func (s *File) GraphicLines() []GraphicLine {
+	return s.Spread.GraphicLines
 }
 
-// SpreadElement represents the actual <Spread> element with all attributes and children.
-type SpreadElement struct {
+// Spread represents the actual <Spread> element with all attributes and children.
+type Spread struct {
 	XMLName xml.Name `xml:"Spread"`
 
 	// Core attributes
@@ -141,16 +141,25 @@ type SpreadElement struct {
 	// Child elements
 	FlattenerPreference *FlattenerPreference `xml:"FlattenerPreference,omitempty"`
 	Pages               []Page               `xml:"Page,omitempty"`
-	TextFrames          []SpreadTextFrame    `xml:"TextFrame,omitempty"`
+	TextFrames          []TextFrame          `xml:"TextFrame,omitempty"`
 	Rectangles          []Rectangle          `xml:"Rectangle,omitempty"`
 	Images              []Image              `xml:"Image,omitempty"`
 	Ovals               []Oval               `xml:"Oval,omitempty"`
 	Polygons            []Polygon            `xml:"Polygon,omitempty"`
 	GraphicLines        []GraphicLine        `xml:"GraphicLine,omitempty"`
 	Groups              []Group              `xml:"Group,omitempty"`
+	Buttons             []Button             `xml:"Button,omitempty"`
+
+	// childOrder records the document order of children (stacking order for
+	// page items) so MarshalXML can replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 
 	// Catch-all for other elements we haven't explicitly modeled
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // FlattenerPreference contains settings for transparency flattening.
@@ -161,6 +170,10 @@ type FlattenerPreference struct {
 	ConvertAllStrokesToOutlines string             `xml:"ConvertAllStrokesToOutlines,attr,omitempty"`
 	ConvertAllTextToOutlines    string             `xml:"ConvertAllTextToOutlines,attr,omitempty"`
 	Properties                  *common.Properties `xml:"Properties,omitempty"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // Page represents a page within a spread.
@@ -190,6 +203,14 @@ type Page struct {
 
 	// Catch-all for other elements
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // Guide represents a ruler guide on a page.
@@ -206,6 +227,10 @@ type Guide struct {
 	GuideType               string             `xml:"GuideType,attr,omitempty"`
 	GuideZone               string             `xml:"GuideZone,attr,omitempty"`
 	Properties              *common.Properties `xml:"Properties,omitempty"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // MarginPreference contains page margin settings.
@@ -218,14 +243,22 @@ type MarginPreference struct {
 	Right            string `xml:"Right,attr,omitempty"`
 	ColumnDirection  string `xml:"ColumnDirection,attr,omitempty"`
 	ColumnsPositions string `xml:"ColumnsPositions,attr,omitempty"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 type BasicFrame struct {
 	Self string `xml:"Self,attr"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
-// SpreadTextFrame represents a text frame on a spread.
-type SpreadTextFrame struct {
+// TextFrame represents a text frame on a spread.
+type TextFrame struct {
 	PageItemBase
 
 	// Core attributes
@@ -268,6 +301,14 @@ type SpreadTextFrame struct {
 
 	// Catch-all for all other attributes and elements
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // Oval represents an elliptical or circular frame on a spread.
@@ -306,6 +347,14 @@ type Oval struct {
 
 	// Catch-all for other elements
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // Polygon represents a multi-sided shape on a spread.
@@ -344,6 +393,14 @@ type Polygon struct {
 
 	// Catch-all for other elements
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // GraphicLine represents a line or path on a spread.
@@ -413,11 +470,12 @@ type GraphicLine struct {
 
 	// Catch-all for other elements
 	OtherElements []common.RawXMLElement `xml:",any"`
-}
 
-// Group represents a collection of page items grouped together.
-type Group struct {
-	PageItemBase
-	AppliedObjectStyle string                 `xml:"AppliedObjectStyle,attr,omitempty"`
-	OtherElements      []common.RawXMLElement `xml:",any"`
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }

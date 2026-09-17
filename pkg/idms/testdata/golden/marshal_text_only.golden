@@ -2,15 +2,6 @@
 <?aid style="50" type="snippet" readerVersion="6.0" featureSet="257" product="20.5(66)" ?>
 <?aid SnippetType="PageItem" ?>
 <Document DOMVersion="20.4" Self="d">
-	<Layer Self="uba" Name="Layer 1" Visible="true" Locked="false" IgnoreWrap="false" ShowGuides="true" LockGuides="false" UI="true" Expendable="true" Printable="true">
-		<Properties>
-			<LayerColor type="enumeration">LightBlue</LayerColor>
-		</Properties>
-	</Layer>
-	<ColorGroup Self="ColorGroup/[Root Color Group]" Name="[Root Color Group]" IsRootColorGroup="true">
-		<ColorGroupSwatch Self="u12ColorGroupSwatch0" SwatchItemRef="Swatch/None" />
-		<ColorGroupSwatch Self="u12ColorGroupSwatch3" SwatchItemRef="Color/Black" />
-	</ColorGroup>
 	<Color Self="Color/Black" Model="Process" Space="CMYK" ColorValue="0 0 0 100" ColorOverride="Specialblack" ConvertToHsb="false" AlternateSpace="NoAlternateColor" Name="Black" ColorEditable="false" ColorRemovable="false" Visible="true" SwatchCreatorID="7937" SwatchColorGroupReference="u12ColorGroupSwatch3" />
 	<Swatch Self="Swatch/None" Name="None" ColorEditable="false" ColorRemovable="false" Visible="true" SwatchCreatorID="7937" SwatchColorGroupReference="u12ColorGroupSwatch0" />
 	<StrokeStyle Self="StrokeStyle/$ID/Solid" Name="$ID/Solid" />
@@ -18,7 +9,7 @@
 		<CharacterStyle Self="CharacterStyle/$ID/[No character style]" Name="$ID/[No character style]" Imported="false" SplitDocument="false" EmitCss="true" StyleUniqueId="f96eb477-2e33-4f16-b0ac-d851343725ed" IncludeClass="true" ExtendedKeyboardShortcut="0 0 0" />
 	</RootCharacterStyleGroup>
 	<RootParagraphStyleGroup Self="u79">
-		<ParagraphStyle Self="ParagraphStyle/$ID/NormalParagraphStyle" Name="$ID/NormalParagraphStyle" Imported="false" NextStyle="ParagraphStyle/$ID/NormalParagraphStyle" SplitDocument="false" EmitCss="true" StyleUniqueId="729344b0-c4a9-4b8b-839c-234442034bd3" IncludeClass="true" ExtendedKeyboardShortcut="0 0 0" KeyboardShortcut="0 0">
+		<ParagraphStyle Self="ParagraphStyle/$ID/NormalParagraphStyle" Name="$ID/NormalParagraphStyle" Imported="false" NextStyle="ParagraphStyle/$ID/NormalParagraphStyle" SplitDocument="false" EmitCss="true" StyleUniqueId="729344b0-c4a9-4b8b-839c-234442034bd3" IncludeClass="true" ExtendedKeyboardShortcut="0 0 0" KeyboardShortcut="0 0" EmptyNestedStyles="true" EmptyLineStyles="true" EmptyGrepStyles="true">
 			<Properties>
 				<BasedOn type="string">$ID/[No paragraph style]</BasedOn>
 				<PreviewColor type="enumeration">Nothing</PreviewColor>
@@ -26,15 +17,18 @@
 		</ParagraphStyle>
 	</RootParagraphStyleGroup>
 	<RootObjectStyleGroup Self="u8a">
-		<ObjectStyle Self="ObjectStyle/$ID/[Normal Text Frame]" Name="$ID/[Normal Text Frame]" ExtendedKeyboardShortcut="0 0 0" KeyboardShortcut="0 0" AppliedParagraphStyle="ParagraphStyle/$ID/NormalParagraphStyle" EmitCss="true" IncludeClass="true" FillColor="Swatch/None" FillTint="-1" StrokeColor="Swatch/None" StrokeTint="-1" StrokeWeight="0" TopLeftCornerOption="None" TopLeftCornerRadius="12" CornerRadius="12">
+		<ObjectStyle Self="ObjectStyle/$ID/[Normal Text Frame]" Name="$ID/[Normal Text Frame]" ExtendedKeyboardShortcut="0 0 0" KeyboardShortcut="0 0" AppliedParagraphStyle="ParagraphStyle/$ID/NormalParagraphStyle" EmitCss="true" IncludeClass="true" FillColor="Swatch/None" FillTint="-1" StrokeColor="Swatch/None" StrokeTint="-1" StrokeWeight="0" TopLeftCornerOption="None" TopLeftCornerRadius="12" CornerRadius="12" EnableTransformAttributes="false" TopRightCornerOption="None" BottomLeftCornerOption="None" BottomRightCornerOption="None" TopRightCornerRadius="12" BottomLeftCornerRadius="12" BottomRightCornerRadius="12" EnableTextFrameAutoSizingOptions="true" EnableTextFrameColumnRuleOptions="true" EnableExportTagging="false" EnableObjectExportAltTextOptions="false" EnableObjectExportTaggedPdfOptions="false" EnableObjectExportEpubOptions="false" ApplyNextParagraphStyle="false" EnableFill="true" EnableStroke="true" EnableParagraphStyle="false" EnableTextFrameGeneralOptions="true" EnableTextFrameBaselineOptions="true" EnableStoryOptions="false" EnableTextWrapAndOthers="false" EnableAnchoredObjectOptions="false" MiterLimit="4" EndCap="ButtEndCap" EndJoin="MiterEndJoin" StrokeType="StrokeStyle/$ID/Solid" LeftLineEnd="None" RightLineEnd="None" GapColor="Swatch/None" GapTint="-1" StrokeAlignment="CenterAlignment" Nonprinting="false" GradientFillAngle="0" GradientStrokeAngle="0" AppliedNamedGrid="n" EnableFrameFittingOptions="false" CornerOption="None" EnableStrokeAndCornerOptions="true" ArrowHeadAlignment="InsidePath" LeftArrowHeadScale="100" RightArrowHeadScale="100" EnableTextFrameFootnoteOptions="true">
+			<Properties>
+				<BasedOn type="string">$ID/[None]</BasedOn>
+			</Properties>
 			<TransformAttributeOption TransformAttrLeftReference="PageEdgeReference" TransformAttrTopReference="PageEdgeReference" TransformAttrRefAnchorPoint="TopLeftAnchor" />
-			<ObjectExportOption AltTextSourceType="SourceXMLStructure" ActualTextSourceType="SourceXMLStructure" CustomAltText="$ID/" CustomActualText="$ID/" ApplyTagType="TagFromStructure" ImageConversionType="JPEG" ImageExportResolution="Ppi300">
+			<ObjectExportOption AltTextSourceType="SourceXMLStructure" ActualTextSourceType="SourceXMLStructure" CustomAltText="$ID/" CustomActualText="$ID/" ApplyTagType="TagFromStructure" ImageConversionType="JPEG" ImageExportResolution="Ppi300" GIFOptionsPalette="AdaptivePalette" GIFOptionsInterlaced="true" JPEGOptionsQuality="High" JPEGOptionsFormat="BaselineEncoding" ImageAlignment="AlignLeft" ImageSpaceBefore="0" ImageSpaceAfter="0" UseImagePageBreak="false" ImagePageBreak="PageBreakBefore" CustomImageAlignment="false" SpaceUnit="CssPixel" CustomLayout="false" CustomLayoutType="AlignmentAndSpacing" EpubType="$ID/" SizeType="DefaultSize" CustomSize="$ID/" PreserveAppearanceFromLayout="PreserveAppearanceDefault">
 				<Properties>
 					<AltMetadataProperty NamespacePrefix="$ID/" PropertyPath="$ID/" />
 					<ActualMetadataProperty NamespacePrefix="$ID/" PropertyPath="$ID/" />
 				</Properties>
 			</ObjectExportOption>
-			<TextFramePreference TextColumnCount="1" TextColumnGutter="12" FirstBaselineOffset="AscentOffset" VerticalJustification="TopAlign" AutoSizingType="Off">
+			<TextFramePreference TextColumnCount="1" TextColumnGutter="12" FirstBaselineOffset="AscentOffset" VerticalJustification="TopAlign" AutoSizingType="Off" FootnotesEnableOverrides="false" FootnotesSpanAcrossColumns="false" FootnotesMinimumSpacing="12" FootnotesSpaceBetween="6" TextColumnFixedWidth="144" UseFixedColumnWidth="false" MinimumFirstBaselineOffset="0" VerticalThreshold="0" IgnoreWrap="false" VerticalBalanceColumns="false" UseFlexibleColumnWidth="false" TextColumnMaxWidth="0" AutoSizingReferencePoint="CenterPoint" UseMinimumHeightForAutoSizing="false" MinimumHeightForAutoSizing="0" UseMinimumWidthForAutoSizing="false" MinimumWidthForAutoSizing="0" UseNoLineBreaksForAutoSizing="false" ColumnRuleOverride="false" ColumnRuleOffset="0" ColumnRuleTopInset="0" ColumnRuleInsetChainOverride="true" ColumnRuleBottomInset="0" ColumnRuleStrokeWidth="1" ColumnRuleStrokeColor="Color/Black" ColumnRuleStrokeType="StrokeStyle/$ID/Solid" ColumnRuleStrokeTint="100" ColumnRuleOverprintOverride="false">
 				<Properties>
 &#x9;&#x9;&#x9;&#x9;&#x9;<InsetSpacing type="list">
 &#x9;&#x9;&#x9;&#x9;&#x9;&#x9;<ListItem type="unit">0</ListItem>
@@ -44,9 +38,6 @@
 &#x9;&#x9;&#x9;&#x9;&#x9;</InsetSpacing>
 &#x9;&#x9;&#x9;&#x9;</Properties>
 			</TextFramePreference>
-			<Properties>
-				<BasedOn type="string">$ID/[None]</BasedOn>
-			</Properties>
 			<BaselineFrameGridOption UseCustomBaselineFrameGrid="false" StartingOffsetForBaselineFrameGrid="0" BaselineFrameGridRelativeOption="TopOfInset" BaselineFrameGridIncrement="12">
 &#x9;&#x9;&#x9;&#x9;<Properties>
 &#x9;&#x9;&#x9;&#x9;&#x9;<BaselineFrameGridColor type="enumeration">LightBlue</BaselineFrameGridColor>
@@ -123,6 +114,11 @@
 &#x9;&#x9;&#x9;<GradientFeatherSetting Applied="false" Type="Linear" Angle="0" Length="0" GradientStart="0 0" HiliteAngle="0" HiliteLength="0" />
 &#x9;&#x9;</ContentTransparencySetting>
 	</TransparencyDefaultContainerObject>
+	<Layer Self="uba" Name="Layer 1" Visible="true" Locked="false" IgnoreWrap="false" ShowGuides="true" LockGuides="false" UI="true" Expendable="true" Printable="true">
+		<Properties>
+			<LayerColor type="enumeration">LightBlue</LayerColor>
+		</Properties>
+	</Layer>
 	<Spread Self="uc2">
 		<TextFrame Self="ue3" Name="$ID/" ItemLayer="uba" Visible="true" ItemTransform="1 0 0 1 131 -375" ParentStory="ud1" PreviousTextFrame="n" NextTextFrame="n" ContentType="TextType" HorizontalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" VerticalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" GradientFillStart="0 0" GradientFillLength="0" GradientFillAngle="0" GradientFillHiliteLength="0" GradientFillHiliteAngle="0" GradientStrokeStart="0 0" GradientStrokeLength="0" GradientStrokeAngle="0" GradientStrokeHiliteLength="0" GradientStrokeHiliteAngle="0" Locked="false" LocalDisplaySetting="Default" AppliedObjectStyle="ObjectStyle/$ID/[Normal Text Frame]">
 			<Properties>
@@ -172,6 +168,10 @@
 			</CharacterStyleRange>
 		</ParagraphStyleRange>
 	</Story>
+	<ColorGroup Self="ColorGroup/[Root Color Group]" Name="[Root Color Group]" IsRootColorGroup="true">
+		<ColorGroupSwatch Self="u12ColorGroupSwatch0" SwatchItemRef="Swatch/None" />
+		<ColorGroupSwatch Self="u12ColorGroupSwatch3" SwatchItemRef="Color/Black" />
+	</ColorGroup>
 
 <?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
 <x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 9.1-c003 79.9690a87, 2025/03/06-19:12:03        ">

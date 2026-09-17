@@ -3,9 +3,9 @@
 // The document package contains all types related to the designmap.xml file, which is
 // the main manifest in an IDML package. This includes:
 //   - Document: The root element containing document-level metadata and resource references
-//   - DocumentWithMetadata: Document wrapper that preserves processing instructions
-//   - Parsing functions: ParseDocument, ParseDocumentWithMetadata
-//   - Marshaling functions: MarshalDocument, MarshalDocumentWithMetadata
+//   - File: Document wrapper that preserves the XML declaration and processing instructions
+//   - Parsing functions: ParseDocument, ParseFile
+//   - Marshaling functions: MarshalDocument, MarshalFile
 //   - Legacy types: Designmap, DesignmapMinimal (deprecated, for backward compatibility)
 //
 // # Architecture
@@ -31,7 +31,7 @@
 //
 // Parse with metadata preservation:
 //
-//	docMeta, err := document.ParseDocumentWithMetadata(data)
+//	docMeta, err := document.ParseFile(data)
 //	if err != nil {
 //	    log.Fatal(err)
 //	}
@@ -42,7 +42,7 @@
 //
 // Marshal back to XML:
 //
-//	xmlData, err := document.MarshalDocumentWithMetadata(docMeta)
+//	xmlData, err := document.MarshalFile(docMeta)
 //	if err != nil {
 //	    log.Fatal(err)
 //	}

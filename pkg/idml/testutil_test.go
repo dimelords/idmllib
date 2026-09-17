@@ -46,16 +46,3 @@ func writeTestIDML(t *testing.T, pkg *Package, name string) string {
 
 	return outputPath
 }
-
-// writeTestIDMLWithDebug writes an IDML package to a file with optional debug preservation.
-// If the -preserve-test-output flag is set, the file will be preserved in a debug directory.
-func writeTestIDMLWithDebug(t *testing.T, pkg *Package, name string) string {
-	t.Helper()
-
-	outputPath := testutil.TempIDMLWithDebug(t, name)
-	if err := Write(pkg, outputPath); err != nil {
-		t.Fatalf("Failed to write test IDML %s: %v", name, err)
-	}
-
-	return outputPath
-}

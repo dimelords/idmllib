@@ -10,16 +10,16 @@ type ProcessingInstruction struct {
 	Inst   string // e.g., 'style="50" type="document" ...'
 }
 
-// DocumentWithMetadata wraps Document with additional metadata that doesn't
+// File wraps Document with additional metadata that doesn't
 // fit into the standard xml.Unmarshal/Marshal flow.
-type DocumentWithMetadata struct {
+type File struct {
 	*Document
 	XMLDeclaration         string // e.g., '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
 	ProcessingInstructions []ProcessingInstruction
 }
 
-// ParseDocumentWithMetadata parses designmap.xml and preserves processing instructions.
-func ParseDocumentWithMetadata(data []byte) (*DocumentWithMetadata, error) {
+// ParseFile parses designmap.xml and preserves processing instructions.
+func ParseFile(data []byte) (*File, error) {
 	// First, parse the document normally
 	doc, err := ParseDocument(data)
 	if err != nil {
@@ -32,7 +32,7 @@ func ParseDocumentWithMetadata(data []byte) (*DocumentWithMetadata, error) {
 		return nil, err
 	}
 
-	result := &DocumentWithMetadata{
+	result := &File{
 		Document:               doc,
 		XMLDeclaration:         metadata.XMLDeclaration,
 		ProcessingInstructions: make([]ProcessingInstruction, len(metadata.ProcessingInstructions)),
@@ -49,8 +49,8 @@ func ParseDocumentWithMetadata(data []byte) (*DocumentWithMetadata, error) {
 	return result, nil
 }
 
-// MarshalDocumentWithMetadata marshals a Document back to XML with preserved metadata.
-func MarshalDocumentWithMetadata(docMeta *DocumentWithMetadata) ([]byte, error) {
+// MarshalFile marshals a Document back to XML with preserved metadata.
+func MarshalFile(docMeta *File) ([]byte, error) {
 	// Convert document.ProcessingInstruction to xmlutil.ProcessingInstruction
 	metadata := &xmlutil.Metadata{
 		XMLDeclaration:         docMeta.XMLDeclaration,

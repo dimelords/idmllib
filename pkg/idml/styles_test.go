@@ -12,14 +12,11 @@ func TestParseStylesForHierarchy_ParsesHierarchy(t *testing.T) {
 		t.Fatalf("Failed to read IDML: %v", err)
 	}
 
-	// Get the Styles resource
-	stylesResource, err := pkg.Resource("Resources/Styles.xml")
+	// Get the raw Styles.xml bytes
+	stylesData, err := pkg.FileData(PathStyles)
 	if err != nil {
 		t.Fatalf("Failed to get Styles.xml: %v", err)
 	}
-
-	// Get the raw bytes
-	stylesData := stylesResource.RawContent
 
 	// Parse style hierarchy
 	styleInfos, err := ParseStylesForHierarchy(stylesData)

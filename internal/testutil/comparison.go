@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 	"testing"
 
@@ -24,13 +25,13 @@ func CompareZIPContents(t *testing.T, path1, path2 string) (*ZIPComparison, erro
 	if err != nil {
 		return nil, fmt.Errorf("failed to open %s: %w", path1, err)
 	}
-	defer zip1.Close()
+	defer func() { _ = zip1.Close() }()
 
 	zip2, err := zip.OpenReader(path2)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open %s: %w", path2, err)
 	}
-	defer zip2.Close()
+	defer func() { _ = zip2.Close() }()
 
 	comp := &ZIPComparison{
 		Path1: path1,
@@ -85,14 +86,14 @@ func CompareZIPContents(t *testing.T, path1, path2 string) (*ZIPComparison, erro
 			return nil, fmt.Errorf("failed to open %s in first ZIP: %w", name, err)
 		}
 		data1, _ := io.ReadAll(rc1)
-		rc1.Close()
+		_ = rc1.Close()
 
 		rc2, err := file2.Open()
 		if err != nil {
 			return nil, fmt.Errorf("failed to open %s in second ZIP: %w", name, err)
 		}
 		data2, _ := io.ReadAll(rc2)
-		rc2.Close()
+		_ = rc2.Close()
 
 		if !bytes.Equal(data1, data2) {
 			comp.Differences = append(comp.Differences,
@@ -125,16 +126,16 @@ func (c *ZIPComparison) Report() string {
 	buf.WriteString("ZIP Comparison Report\n")
 	buf.WriteString(strings.Repeat("=", 50))
 	buf.WriteString("\n")
-	buf.WriteString(fmt.Sprintf("File 1: %s (%d files)\n", c.Path1, c.FileCount1))
-	buf.WriteString(fmt.Sprintf("File 2: %s (%d files)\n", c.Path2, c.FileCount2))
-	buf.WriteString(fmt.Sprintf("Identical files: %d\n", c.IdenticalFiles))
+	fmt.Fprintf(&buf, "File 1: %s (%d files)\n", c.Path1, c.FileCount1)
+	fmt.Fprintf(&buf, "File 2: %s (%d files)\n", c.Path2, c.FileCount2)
+	fmt.Fprintf(&buf, "Identical files: %d\n", c.IdenticalFiles)
 
 	if c.IsIdentical {
 		buf.WriteString("\n✅ Files are identical!\n")
 	} else {
-		buf.WriteString(fmt.Sprintf("\n❌ Found %d difference(s):\n", len(c.Differences)))
+		fmt.Fprintf(&buf, "\n❌ Found %d difference(s):\n", len(c.Differences))
 		for i, diff := range c.Differences {
-			buf.WriteString(fmt.Sprintf("  %d. %s\n", i+1, diff))
+			fmt.Fprintf(&buf, "  %d. %s\n", i+1, diff)
 		}
 	}
 
@@ -184,8 +185,8 @@ func normalizeElement(elem *etree.Element) {
 	}
 
 	// Remove whitespace-only text nodes
-	for i := len(elem.Child) - 1; i >= 0; i-- {
-		if charData, ok := elem.Child[i].(*etree.CharData); ok {
+	for i, v := range slices.Backward(elem.Child) {
+		if charData, ok := v.(*etree.CharData); ok {
 			if strings.TrimSpace(charData.Data) == "" {
 				elem.RemoveChildAt(i)
 			}

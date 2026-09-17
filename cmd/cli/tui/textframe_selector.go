@@ -50,13 +50,13 @@ func NewTextFrameSelector(pkg *idml.Package) (*TextFrameSelector, error) {
 	storyMap := make(map[string]*story.Story)
 	for _, st := range stories {
 		// Key by the story's Self attribute (e.g., "u1d8")
-		storyMap[st.StoryElement.Self] = st
+		storyMap[st.Self] = st
 	}
 
 	// Collect all textframes
 	var items []TextFrameItem
 	for spreadName, spread := range spreads {
-		for frameIdx, tf := range spread.InnerSpread.TextFrames {
+		for frameIdx, tf := range spread.TextFrames {
 			preview := getStoryPreview(tf.ParentStory, storyMap)
 			items = append(items, TextFrameItem{
 				ID:         tf.Self,
@@ -87,8 +87,8 @@ func getStoryPreview(storyID string, stories map[string]*story.Story) string {
 
 	// Get first paragraph content
 	var preview string
-	for _, para := range st.StoryElement.ParagraphStyleRanges {
-		for _, charRange := range para.CharacterStyleRanges {
+	for _, para := range st.Paragraphs() {
+		for _, charRange := range para.Ranges() {
 			for _, child := range charRange.Children {
 				if child.Content != nil {
 					preview += child.Content.Text

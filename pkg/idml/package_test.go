@@ -50,12 +50,12 @@ func TestXMP_ReturnsNonNilMetadata(t *testing.T) {
 func TestXMP_EmptyMetadataForPackageWithoutXMP(t *testing.T) {
 	// Create a minimal package without XMP
 	pkg := New()
-	
+
 	// Add minimal required files for a valid IDML package
 	designmap := []byte(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Document xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="20.4">
 </Document>`)
-	
+
 	pkg.files["designmap.xml"] = &fileEntry{data: designmap}
 	pkg.fileOrder = append(pkg.fileOrder, "designmap.xml")
 
@@ -207,7 +207,7 @@ func TestXMP_ChainedOperations(t *testing.T) {
 
 	// Verify all changes were applied
 	finalXMP := pkg.XMP()
-	
+
 	creatorTool, err := finalXMP.GetField("xmp:CreatorTool")
 	if err != nil {
 		t.Fatalf("Failed to get xmp:CreatorTool: %v", err)
@@ -272,7 +272,7 @@ func TestXMP_Integration_RoundTrip(t *testing.T) {
 
 	// Modify XMP with multiple operations
 	testCreatorTool := "idmllib Round-Trip Test v1.0"
-	
+
 	err = xmpMeta.UpdateTimestamps()
 	if err != nil {
 		t.Fatalf("Failed to update timestamps: %v", err)

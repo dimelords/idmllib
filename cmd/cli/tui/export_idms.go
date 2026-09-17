@@ -55,7 +55,9 @@ func (m *ExportIDMSWizard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Handle next action menu after success
 	if m.step == expStepNextAction && m.nextMenu != nil {
 		updatedMenu, cmd := m.nextMenu.Update(msg)
-		m.nextMenu = updatedMenu.(*ActionMenu)
+		if menu, ok := updatedMenu.(*ActionMenu); ok {
+			m.nextMenu = menu
+		}
 
 		if m.nextMenu.selected != -1 {
 			return m.handleNextAction(m.nextMenu.selected)
@@ -70,7 +72,9 @@ func (m *ExportIDMSWizard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Handle frame action menu
 	if m.step == expStepFrameActions && m.actionMenu != nil {
 		updatedMenu, cmd := m.actionMenu.Update(msg)
-		m.actionMenu = updatedMenu.(*ActionMenu)
+		if menu, ok := updatedMenu.(*ActionMenu); ok {
+			m.actionMenu = menu
+		}
 
 		if m.actionMenu.selected != -1 {
 			return m.handleFrameAction(m.actionMenu.selected)
@@ -110,7 +114,9 @@ func (m *ExportIDMSWizard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Otherwise delegate to frame selector
 		updatedSelector, cmd := m.frameSelector.Update(msg)
-		m.frameSelector = updatedSelector.(*TextFrameSelector)
+		if sel, ok := updatedSelector.(*TextFrameSelector); ok {
+			m.frameSelector = sel
+		}
 		return m, cmd
 	}
 
@@ -126,12 +132,13 @@ func (m *ExportIDMSWizard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "esc":
-			if m.step == expStepOutputFile {
+			switch m.step {
+			case expStepOutputFile:
 				// Go back to frame actions
 				m.step = expStepFrameActions
 				m.inputText = ""
 				return m, nil
-			} else if m.step == expStepInputFile {
+			case expStepInputFile:
 				// Cancel entire export
 				return m, tea.Quit
 			}
@@ -285,13 +292,13 @@ func (m *ExportIDMSWizard) performExport() (tea.Model, tea.Cmd) {
 	}
 
 	// Get the textframe
-	if m.selectedFrame.FrameIndex >= len(spread.InnerSpread.TextFrames) {
+	if m.selectedFrame.FrameIndex >= len(spread.TextFrames) {
 		m.error = fmt.Sprintf("Invalid frame index %d", m.selectedFrame.FrameIndex)
 		m.step = expStepFrameActions
 		return m, nil
 	}
 
-	textFrame := &spread.InnerSpread.TextFrames[m.selectedFrame.FrameIndex]
+	textFrame := &spread.TextFrames[m.selectedFrame.FrameIndex]
 
 	// Create selection
 	selection := idml.NewSelection()

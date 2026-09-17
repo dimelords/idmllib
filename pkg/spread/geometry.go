@@ -41,7 +41,7 @@ type Transform struct {
 // PathGeometry in Properties (commonly used in InDesign for frames with custom shapes).
 //
 // Returns an error if both GeometricBounds and PathGeometry are unavailable or malformed.
-func (tf *SpreadTextFrame) Bounds() (Bounds, error) {
+func (tf *TextFrame) Bounds() (Bounds, error) {
 	// Try GeometricBounds first (most common case)
 	bounds, err := parseGeometricBounds(tf.GeometricBounds)
 	if err == nil && (bounds.Width > 0 && bounds.Height > 0) {
@@ -56,7 +56,7 @@ func (tf *SpreadTextFrame) Bounds() (Bounds, error) {
 // ItemTransform format: "a b c d x y" (6-value transformation matrix)
 //
 // Returns an error if ItemTransform is empty or malformed.
-func (tf *SpreadTextFrame) Position() (Position, error) {
+func (tf *TextFrame) Position() (Position, error) {
 	return parseItemTransformPosition(tf.ItemTransform)
 }
 
@@ -64,7 +64,7 @@ func (tf *SpreadTextFrame) Position() (Position, error) {
 // ItemTransform format: "a b c d x y" (6-value transformation matrix)
 //
 // Returns an error if ItemTransform is empty or malformed.
-func (tf *SpreadTextFrame) Transform() (Transform, error) {
+func (tf *TextFrame) Transform() (Transform, error) {
 	return parseItemTransform(tf.ItemTransform)
 }
 
@@ -126,11 +126,8 @@ func parseGeometricBounds(bounds string) (Bounds, error) {
 	}
 
 	// Add recovery for potential panics during parsing
-	defer func() {
-		if r := recover(); r != nil {
-			// This shouldn't happen with proper validation above, but provides safety
-		}
-	}()
+	// Last-resort guard: validation above should make this unreachable.
+	defer func() { _ = recover() }()
 
 	y1, err := strconv.ParseFloat(parts[0], 64)
 	if err != nil {
@@ -236,7 +233,7 @@ func parseItemTransform(transform string) (Transform, error) {
 // PathGeometry contains PathPointArray with anchor points that define the frame shape.
 //
 // Returns an error if Properties, PathGeometry, or PathPointArray is nil/empty.
-func (tf *SpreadTextFrame) BoundsFromPathGeometry() (Bounds, error) {
+func (tf *TextFrame) BoundsFromPathGeometry() (Bounds, error) {
 	if tf.Properties == nil {
 		return Bounds{}, common.Errorf("spread", "get bounds from path geometry", "", "Properties is nil")
 	}

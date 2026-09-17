@@ -300,12 +300,12 @@ func TestRoundtripWithParsing_FunctionalValidation(t *testing.T) {
 			}
 			t.Logf("Parsed %d spreads from %s", len(spreads1), tt.name)
 
-			// Parse all Resources to trigger caching
-			resources1, err := pkg1.Resources()
+			// Parse Preferences to trigger caching
+			prefs1, err := pkg1.Preferences()
 			if err != nil {
-				t.Fatalf("Resources() failed: %v", err)
+				t.Fatalf("Preferences() failed: %v", err)
 			}
-			t.Logf("Parsed %d resources from %s", len(resources1), tt.name)
+			t.Logf("Parsed Preferences.xml: %d preference elements from %s", len(prefs1.Elements), tt.name)
 
 			// Parse all Metadata files to trigger caching
 			metadata1, err := pkg1.MetadataFiles()
@@ -383,23 +383,17 @@ func TestRoundtripWithParsing_FunctionalValidation(t *testing.T) {
 					continue
 				}
 
-				// Basic structure checks
-				if story1.DOMVersion != story2.DOMVersion {
-					t.Errorf("Story %q: DOMVersion mismatch: %q vs %q",
-						filename, story1.DOMVersion, story2.DOMVersion)
-				}
-
-				if story1.StoryElement.Self != story2.StoryElement.Self {
+				if story1.Self != story2.Self {
 					t.Errorf("Story %q: Self mismatch: %q vs %q",
-						filename, story1.StoryElement.Self, story2.StoryElement.Self)
+						filename, story1.Self, story2.Self)
 				}
 
 				// Check ParagraphStyleRanges count
-				if len(story1.StoryElement.ParagraphStyleRanges) != len(story2.StoryElement.ParagraphStyleRanges) {
+				if len(story1.ParagraphStyleRanges) != len(story2.ParagraphStyleRanges) {
 					t.Errorf("Story %q: ParagraphStyleRanges count mismatch: %d vs %d",
 						filename,
-						len(story1.StoryElement.ParagraphStyleRanges),
-						len(story2.StoryElement.ParagraphStyleRanges))
+						len(story1.ParagraphStyleRanges),
+						len(story2.ParagraphStyleRanges))
 				}
 			}
 
@@ -433,8 +427,8 @@ func TestRoundtripWithParsing_FunctionalValidation(t *testing.T) {
 				}
 			}
 
-			t.Logf("✅ Roundtrip with parsing successful: Document, %d Stories, %d Spreads, %d Resources, and %d Metadata files validated",
-				len(stories1), len(spreads1), len(resources1), len(metadata1))
+			t.Logf("✅ Roundtrip with parsing successful: Document, %d Stories, %d Spreads, %d preference elements, and %d Metadata files validated",
+				len(stories1), len(spreads1), len(prefs1.Elements), len(metadata1))
 
 			// Parse all Spreads again
 			spreads2, err := pkg2.Spreads()
@@ -455,60 +449,28 @@ func TestRoundtripWithParsing_FunctionalValidation(t *testing.T) {
 					continue
 				}
 
-				// Basic structure checks
-				if spread1.DOMVersion != spread2.DOMVersion {
-					t.Errorf("Spread %q: DOMVersion mismatch: %q vs %q",
-						filename, spread1.DOMVersion, spread2.DOMVersion)
-				}
-
-				if spread1.InnerSpread.Self != spread2.InnerSpread.Self {
+				if spread1.Self != spread2.Self {
 					t.Errorf("Spread %q: Self mismatch: %q vs %q",
-						filename, spread1.InnerSpread.Self, spread2.InnerSpread.Self)
+						filename, spread1.Self, spread2.Self)
 				}
 
 				// Check Pages count
-				if len(spread1.InnerSpread.Pages) != len(spread2.InnerSpread.Pages) {
+				if len(spread1.Pages) != len(spread2.Pages) {
 					t.Errorf("Spread %q: Pages count mismatch: %d vs %d",
 						filename,
-						len(spread1.InnerSpread.Pages),
-						len(spread2.InnerSpread.Pages))
+						len(spread1.Pages),
+						len(spread2.Pages))
 				}
 			}
 
-			// Parse all Resources again
-			resources2, err := pkg2.Resources()
+			// Parse Preferences again and compare
+			prefs2, err := pkg2.Preferences()
 			if err != nil {
-				t.Fatalf("Resources() from output failed: %v", err)
+				t.Fatalf("Preferences() from output failed: %v", err)
 			}
-
-			// Compare Resources count
-			if len(resources1) != len(resources2) {
-				t.Errorf("Resource count mismatch: %d vs %d", len(resources1), len(resources2))
-			}
-
-			// Compare each Resource
-			for filename, resource1 := range resources1 {
-				resource2, exists := resources2[filename]
-				if !exists {
-					t.Errorf("Resource %q missing in output", filename)
-					continue
-				}
-
-				// Basic structure checks
-				if resource1.ResourceType != resource2.ResourceType {
-					t.Errorf("Resource %q: ResourceType mismatch: %q vs %q",
-						filename, resource1.ResourceType, resource2.ResourceType)
-				}
-
-				if resource1.DOMVersion != resource2.DOMVersion {
-					t.Errorf("Resource %q: DOMVersion mismatch: %q vs %q",
-						filename, resource1.DOMVersion, resource2.DOMVersion)
-				}
-
-				// Check RawContent is not empty
-				if len(resource2.RawContent) == 0 {
-					t.Errorf("Resource %q: RawContent is empty in output", filename)
-				}
+			if prefs1.DOMVersion != prefs2.DOMVersion || len(prefs1.Elements) != len(prefs2.Elements) {
+				t.Errorf("Preferences mismatch: DOMVersion %q vs %q, elements %d vs %d",
+					prefs1.DOMVersion, prefs2.DOMVersion, len(prefs1.Elements), len(prefs2.Elements))
 			}
 
 			// Parse typed resources again and compare
@@ -553,7 +515,7 @@ func TestRoundtripWithParsing_FunctionalValidation(t *testing.T) {
 			t.Logf("   Document: 1")
 			t.Logf("   Stories: %d", len(stories1))
 			t.Logf("   Spreads: %d", len(spreads1))
-			t.Logf("   Resources (generic): %d", len(resources1))
+			t.Logf("   Preference elements: %d", len(prefs1.Elements))
 			t.Logf("   Fonts (typed): %d families", len(fonts1.FontFamilies))
 			t.Logf("   Graphics (typed): %d colors", len(graphics1.Colors))
 			t.Logf("   Styles (typed): %d paragraph styles", paragraphStyles)

@@ -21,7 +21,11 @@ func main() {
 			os.Exit(1)
 		}
 
-		finalMenu := m.(*tui.MainMenu)
+		finalMenu, ok := m.(*tui.MainMenu)
+		if !ok {
+			fmt.Fprintln(os.Stderr, "Error: unexpected model returned by the menu")
+			os.Exit(1)
+		}
 		selected := finalMenu.GetSelected()
 
 		// Handle selection
@@ -64,7 +68,12 @@ func runCreateDocument() {
 	}
 
 	// Check if successful
-	wizard = finalWizard.(*tui.CreateDocumentWizard)
+	if w, ok := finalWizard.(*tui.CreateDocumentWizard); ok {
+		wizard = w
+	} else {
+		fmt.Fprintln(os.Stderr, "Error: unexpected model returned by the wizard")
+		os.Exit(1)
+	}
 	if wizard.IsSuccess() {
 		fmt.Printf("\n✓ Document created: %s\n", wizard.GetFilename())
 	}
@@ -80,7 +89,12 @@ func runRoundtrip() {
 	}
 
 	// Check if successful
-	wizard = finalWizard.(*tui.RoundtripWizard)
+	if w, ok := finalWizard.(*tui.RoundtripWizard); ok {
+		wizard = w
+	} else {
+		fmt.Fprintln(os.Stderr, "Error: unexpected model returned by the wizard")
+		os.Exit(1)
+	}
 	if wizard.IsSuccess() {
 		fmt.Println("\n✓ Roundtrip test completed")
 	}
@@ -96,7 +110,12 @@ func runExportIDMS() {
 	}
 
 	// Check if successful
-	wizard = finalWizard.(*tui.ExportIDMSWizard)
+	if w, ok := finalWizard.(*tui.ExportIDMSWizard); ok {
+		wizard = w
+	} else {
+		fmt.Fprintln(os.Stderr, "Error: unexpected model returned by the wizard")
+		os.Exit(1)
+	}
 	exportCount := wizard.GetExportCount()
 
 	if exportCount > 0 {

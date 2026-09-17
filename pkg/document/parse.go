@@ -93,6 +93,10 @@ func (d *Document) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement) er
 			d.PreferMathMLInEpubExport = attr.Value
 		case "TintValue":
 			d.TintValue = attr.Value
+		default:
+			if attr.Name.Space != "xmlns" {
+				d.OtherAttrs = append(d.OtherAttrs, attr)
+			}
 		}
 	}
 
@@ -128,6 +132,7 @@ func (d *Document) unmarshalChildElement(decoder *xml.Decoder, start xml.StartEl
 	}
 
 	// Handle idPkg namespace elements (resource references)
+	d.recordChild(start)
 	if start.Name.Space == "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" {
 		return d.unmarshalResourceRef(decoder, start)
 	}
@@ -270,14 +275,14 @@ func (d *Document) unmarshalChildElement(decoder *xml.Decoder, start xml.StartEl
 
 	// IDMS inline content (spreads and stories)
 	case "Spread":
-		var spreadElem spread.SpreadElement
+		var spreadElem spread.Spread
 		if err := decoder.DecodeElement(&spreadElem, &start); err != nil {
 			return common.WrapError("document", "parse document", err)
 		}
 		d.InlineSpreads = append(d.InlineSpreads, spreadElem)
 
 	case "Story":
-		var storyElem story.StoryElement
+		var storyElem story.Story
 		if err := decoder.DecodeElement(&storyElem, &start); err != nil {
 			return common.WrapError("document", "parse document", err)
 		}
@@ -416,7 +421,7 @@ func (d Document) MarshalXML(encoder *xml.Encoder, start xml.StartElement) error
 		attrs = append(attrs, xml.Attr{Name: xml.Name{Local: "TintValue"}, Value: d.TintValue})
 	}
 
-	start.Attr = attrs
+	start.Attr = append(attrs, d.OtherAttrs...)
 
 	// Write the start element
 	if err := encoder.EncodeToken(start); err != nil {
@@ -434,209 +439,4 @@ func (d Document) MarshalXML(encoder *xml.Encoder, start xml.StartElement) error
 	}
 
 	return encoder.Flush()
-}
-
-// marshalChildren marshals all child elements in the correct order.
-func (d Document) marshalChildren(encoder *xml.Encoder) error {
-	// 1. Properties
-	if d.Properties != nil {
-		if err := encoder.Encode(d.Properties); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	// 2. Languages
-	for _, lang := range d.Languages {
-		if err := encoder.Encode(lang); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	// 3. Resource references (idPkg namespace)
-	if err := d.marshalResourceRefs(encoder); err != nil {
-		return err
-	}
-
-	// 4. Layers
-	for _, layer := range d.Layers {
-		if err := encoder.Encode(layer); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	// 5. NumberingLists
-	for _, nl := range d.NumberingLists {
-		if err := encoder.Encode(nl); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	// 6. NamedGrids
-	for _, ng := range d.NamedGrids {
-		if err := encoder.Encode(ng); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	// 7. Sections
-	for _, section := range d.Sections {
-		if err := encoder.Encode(section); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	// 8. DocumentUsers
-	for _, user := range d.DocumentUsers {
-		if err := encoder.Encode(user); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	// 9. ColorGroups
-	for _, cg := range d.ColorGroups {
-		if err := encoder.Encode(cg); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	// 10. ABullets
-	for _, bullet := range d.ABullets {
-		if err := encoder.Encode(bullet); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	// 11. Assignments
-	for _, assignment := range d.Assignments {
-		if err := encoder.Encode(assignment); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	// 12. TextVariables
-	for _, tv := range d.TextVariables {
-		if err := encoder.Encode(tv); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	// 13. IDMS inline content (colors, swatches, styles, spreads, stories)
-	// These are used in IDMS (snippet) files instead of resource references
-	for _, color := range d.Colors {
-		if err := encoder.Encode(color); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-	for _, swatch := range d.Swatches {
-		if err := encoder.Encode(swatch); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-	for _, strokeStyle := range d.StrokeStyles {
-		if err := encoder.Encode(strokeStyle); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	// Encode Root style groups (XML tags are defined in struct tags)
-	if d.RootCharacterStyleGroup != nil {
-		if err := encoder.Encode(d.RootCharacterStyleGroup); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-	if d.RootParagraphStyleGroup != nil {
-		if err := encoder.Encode(d.RootParagraphStyleGroup); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-	if d.RootObjectStyleGroup != nil {
-		if err := encoder.Encode(d.RootObjectStyleGroup); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	if d.TinDocumentDataObject != nil {
-		if err := encoder.Encode(d.TinDocumentDataObject); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-	if d.TransparencyDefaultContainerObject != nil {
-		if err := encoder.Encode(d.TransparencyDefaultContainerObject); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	for _, spread := range d.InlineSpreads {
-		if err := encoder.Encode(spread); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-	for _, story := range d.InlineStories {
-		if err := encoder.Encode(story); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	// 14. Other unknown elements
-	for _, elem := range d.OtherElements {
-		if err := encoder.Encode(elem); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	return nil
-}
-
-// marshalResourceRefs marshals all resource reference elements.
-func (d Document) marshalResourceRefs(encoder *xml.Encoder) error {
-	// Single resource references
-	if d.GraphicResource != nil {
-		if err := encoder.Encode(d.GraphicResource); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-	if d.FontsResource != nil {
-		if err := encoder.Encode(d.FontsResource); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-	if d.StylesResource != nil {
-		if err := encoder.Encode(d.StylesResource); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-	if d.PreferencesResource != nil {
-		if err := encoder.Encode(d.PreferencesResource); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-	if d.TagsResource != nil {
-		if err := encoder.Encode(d.TagsResource); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	// Multiple resource references
-	for _, ms := range d.MasterSpreads {
-		if err := encoder.Encode(ms); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-	for _, spread := range d.Spreads {
-		if err := encoder.Encode(spread); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-	for _, story := range d.Stories {
-		if err := encoder.Encode(story); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-	if d.BackingStory != nil {
-		if err := encoder.Encode(d.BackingStory); err != nil {
-			return common.WrapError("document", "marshal document", err)
-		}
-	}
-
-	return nil
 }

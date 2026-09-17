@@ -3,6 +3,8 @@ package idml
 import (
 	"sync"
 	"testing"
+
+	"github.com/dimelords/idmllib/v2/pkg/spread"
 )
 
 func TestItemIndex_LazyBuild(t *testing.T) {
@@ -45,10 +47,10 @@ func TestItemIndex_LazyBuild(t *testing.T) {
 		t.Error("index should be nil before first access")
 	}
 
-	// Trigger index build via SelectTextFrameByID
-	tf, err := pkg2.SelectTextFrameByID(validID)
+	// Trigger the index build through a lookup on the fresh package
+	tf, err := PageItemOfType[spread.TextFrame](pkg2, validID)
 	if err != nil {
-		t.Fatalf("SelectTextFrameByID failed: %v", err)
+		t.Fatalf("PageItemOfType failed: %v", err)
 	}
 
 	// Verify we got the right item
@@ -58,42 +60,40 @@ func TestItemIndex_LazyBuild(t *testing.T) {
 
 	// Now index should be built
 	if pkg2.indexState.index == nil {
-		t.Error("index should be built after SelectTextFrameByID")
+		t.Error("index should be built after a lookup")
 	}
 
 	// Verify index contains expected items
-	if pkg2.ItemCount() == 0 {
+	if func() int { n, _, _ := countItems(t, pkg2); return n }() == 0 {
 		t.Error("index should contain items")
 	}
 }
 
-func TestItemIndex_ItemCounts(t *testing.T) {
+func TestItemIndex_MatchesParsedSpreads(t *testing.T) {
 	pkg, err := Read("../../testdata/example.idml")
 	if err != nil {
 		t.Fatalf("failed to load IDML: %v", err)
 	}
-
-	// Before index is built, counts should be 0
-	if pkg.ItemCount() != 0 {
-		t.Error("ItemCount should be 0 before index is built")
-	}
-	if pkg.TextFrameCount() != 0 {
-		t.Error("TextFrameCount should be 0 before index is built")
-	}
-	if pkg.RectangleCount() != 0 {
-		t.Error("RectangleCount should be 0 before index is built")
+	if err := pkg.ensureItemIndex(); err != nil {
+		t.Fatalf("ensureItemIndex: %v", err)
 	}
 
-	// Trigger index build
-	_ = pkg.ensureItemIndex()
-
-	// Now counts should be positive
-	if pkg.ItemCount() == 0 {
-		t.Error("ItemCount should be positive after index build")
+	total, frames, rects := countItems(t, pkg)
+	idx := pkg.indexState.index
+	if len(idx.textFrames) != frames {
+		t.Errorf("index holds %d text frames, spreads hold %d", len(idx.textFrames), frames)
 	}
-	t.Logf("Total items indexed: %d", pkg.ItemCount())
-	t.Logf("  TextFrames: %d", pkg.TextFrameCount())
-	t.Logf("  Rectangles: %d", pkg.RectangleCount())
+	if len(idx.rectangles) != rects {
+		t.Errorf("index holds %d rectangles, spreads hold %d", len(idx.rectangles), rects)
+	}
+	indexed := len(idx.textFrames) + len(idx.rectangles) + len(idx.ovals) +
+		len(idx.polygons) + len(idx.graphicLines) + len(idx.groups)
+	if indexed != total {
+		t.Errorf("index holds %d items, spreads hold %d", indexed, total)
+	}
+	if total == 0 {
+		t.Error("fixture has no page items")
+	}
 }
 
 func TestItemIndex_ConcurrentAccess(t *testing.T) {
@@ -126,15 +126,13 @@ func TestItemIndex_ConcurrentAccess(t *testing.T) {
 	var wg sync.WaitGroup
 	errors := make(chan error, 100)
 
-	for i := 0; i < 10; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			_, err := pkg2.SelectTextFrameByID(validID)
+	for range 10 {
+		wg.Go(func() {
+			_, err := PageItemOfType[spread.TextFrame](pkg2, validID)
 			if err != nil {
 				errors <- err
 			}
-		}()
+		})
 	}
 
 	wg.Wait()
@@ -192,12 +190,12 @@ func TestItemIndex_NotFoundErrors(t *testing.T) {
 		name   string
 		lookup func() error
 	}{
-		{"TextFrame", func() error { _, err := pkg.SelectTextFrameByID("nonexistent"); return err }},
-		{"Rectangle", func() error { _, err := pkg.SelectRectangleByID("nonexistent"); return err }},
-		{"Oval", func() error { _, err := pkg.SelectOvalByID("nonexistent"); return err }},
-		{"Polygon", func() error { _, err := pkg.SelectPolygonByID("nonexistent"); return err }},
-		{"GraphicLine", func() error { _, err := pkg.SelectGraphicLineByID("nonexistent"); return err }},
-		{"Group", func() error { _, err := pkg.SelectGroupByID("nonexistent"); return err }},
+		{"TextFrame", func() error { _, err := PageItemOfType[spread.TextFrame](pkg, "nonexistent"); return err }},
+		{"Rectangle", func() error { _, err := PageItemOfType[spread.Rectangle](pkg, "nonexistent"); return err }},
+		{"Oval", func() error { _, err := PageItemOfType[spread.Oval](pkg, "nonexistent"); return err }},
+		{"Polygon", func() error { _, err := PageItemOfType[spread.Polygon](pkg, "nonexistent"); return err }},
+		{"GraphicLine", func() error { _, err := PageItemOfType[spread.GraphicLine](pkg, "nonexistent"); return err }},
+		{"Group", func() error { _, err := PageItemOfType[spread.Group](pkg, "nonexistent"); return err }},
 	}
 
 	for _, tc := range testCases {
@@ -226,7 +224,7 @@ func BenchmarkSelectTextFrameByID_WithIndex(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = pkg.SelectTextFrameByID(validID)
+		_, _ = PageItemOfType[spread.TextFrame](pkg, validID)
 	}
 }
 
@@ -259,4 +257,21 @@ func BenchmarkSelectByIDs_WithIndex(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, _ = pkg.SelectByIDs(ids...)
 	}
+}
+
+// countItems counts indexed page items through the public API, replacing the
+// ItemCount/TextFrameCount/RectangleCount helpers that were removed.
+func countItems(t *testing.T, pkg *Package) (total, frames, rects int) {
+	t.Helper()
+	spreads, err := pkg.Spreads()
+	if err != nil {
+		t.Fatalf("Spreads(): %v", err)
+	}
+	for _, sp := range spreads {
+		frames += len(sp.TextFrames)
+		rects += len(sp.Rectangles)
+		total += len(sp.TextFrames) + len(sp.Rectangles) + len(sp.Ovals) +
+			len(sp.Polygons) + len(sp.GraphicLines) + len(sp.Groups)
+	}
+	return total, frames, rects
 }

@@ -121,14 +121,21 @@ type Document struct {
 	RootObjectStyleGroup    *resources.ObjectStyleGroup    `xml:"RootObjectStyleGroup,omitempty"`
 
 	// Inline Content (instead of Spreads/Stories ResourceRefs)
-	// Note: InlineSpreads uses spread.SpreadElement (Phase 3 complete)
-	// Note: InlineStories uses story.StoryElement (Phase 4 complete)
-	InlineSpreads []spread.SpreadElement `xml:"Spread,omitempty"`
-	InlineStories []story.StoryElement   `xml:"Story,omitempty"`
+	// InlineSpreads and InlineStories hold the element types used by IDMS snippets.
+	InlineSpreads []spread.Spread `xml:"Spread,omitempty"`
+	InlineStories []story.Story   `xml:"Story,omitempty"`
 
 	// Required InDesign compatibility elements
 	TinDocumentDataObject              *TinDocumentDataObject              `xml:"TinDocumentDataObject,omitempty"`
 	TransparencyDefaultContainerObject *TransparencyDefaultContainerObject `xml:"TransparencyDefaultContainerObject,omitempty"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 
 	// Catch-all for all other child elements not yet explicitly modeled.
 	// This includes: KinsokuTable, MojikumiTable, CrossReferenceFormat,
@@ -160,6 +167,10 @@ type Language struct {
 	// Processing Vendors
 	HyphenationVendor string `xml:"HyphenationVendor,attr,omitempty"` // Hyphenation provider (e.g., "Proximity", "Hunspell")
 	SpellingVendor    string `xml:"SpellingVendor,attr,omitempty"`    // Spell checker provider
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // ResourceRef represents an idPkg:* resource reference element.
@@ -173,6 +184,10 @@ type Language struct {
 type ResourceRef struct {
 	XMLName xml.Name // Will be set to the namespaced element name
 	Src     string   `xml:"src,attr"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // Layer represents a document layer for organizing content.
@@ -203,6 +218,14 @@ type Layer struct {
 
 	// Catch-all for other Layer children
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // NumberingList represents a numbering list definition.
@@ -220,6 +243,10 @@ type NumberingList struct {
 
 	// Catch-all for future attributes or child elements
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // NamedGrid represents a named grid layout definition.
@@ -236,6 +263,14 @@ type NamedGrid struct {
 
 	// Catch-all for other NamedGrid children
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // Section represents a document section with its own page numbering.
@@ -267,6 +302,14 @@ type Section struct {
 
 	// Catch-all for other Section children
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // DocumentUser represents a user who has worked on the document.
@@ -283,6 +326,14 @@ type DocumentUser struct {
 
 	// Catch-all for other DocumentUser children
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // ColorGroup represents a group of color swatches for organization.
@@ -302,6 +353,14 @@ type ColorGroup struct {
 
 	// Catch-all for other ColorGroup children
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // ColorGroupSwatch represents a reference to a color swatch within a color group.
@@ -314,6 +373,10 @@ type ColorGroupSwatch struct {
 
 	// Catch-all for other ColorGroupSwatch children
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // ABullet represents a bullet character definition.
@@ -333,6 +396,14 @@ type ABullet struct {
 
 	// Catch-all for other ABullet children
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // Assignment represents an InCopy assignment for collaborative editing.
@@ -355,6 +426,14 @@ type Assignment struct {
 
 	// Catch-all for other Assignment children
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // TextVariable represents a dynamic text variable in the document.
@@ -381,6 +460,14 @@ type TextVariable struct {
 
 	// Catch-all for other TextVariable children or unknown preference types
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // ChapterNumberVariablePreference contains settings for chapter number variables.
@@ -389,6 +476,10 @@ type ChapterNumberVariablePreference struct {
 	TextBefore string   `xml:"TextBefore,attr,omitempty"` // Text before the number
 	Format     string   `xml:"Format,attr,omitempty"`     // Number format (e.g., "Current")
 	TextAfter  string   `xml:"TextAfter,attr,omitempty"`  // Text after the number
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // DateVariablePreference contains settings for date variables.
@@ -397,6 +488,10 @@ type DateVariablePreference struct {
 	TextBefore string   `xml:"TextBefore,attr,omitempty"` // Text before the date
 	Format     string   `xml:"Format,attr,omitempty"`     // Date format (e.g., "dd/MM/yy", "d MMMM yyyy h:mm aa")
 	TextAfter  string   `xml:"TextAfter,attr,omitempty"`  // Text after the date
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // FileNameVariablePreference contains settings for file name variables.
@@ -406,6 +501,10 @@ type FileNameVariablePreference struct {
 	IncludePath      string   `xml:"IncludePath,attr,omitempty"`      // Include file path ("true"/"false")
 	IncludeExtension string   `xml:"IncludeExtension,attr,omitempty"` // Include file extension ("true"/"false")
 	TextAfter        string   `xml:"TextAfter,attr,omitempty"`        // Text after the file name
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // CaptionMetadataVariablePreference contains settings for caption metadata variables.
@@ -414,6 +513,10 @@ type CaptionMetadataVariablePreference struct {
 	TextBefore           string   `xml:"TextBefore,attr,omitempty"`           // Text before the metadata
 	MetadataProviderName string   `xml:"MetadataProviderName,attr,omitempty"` // Metadata source (e.g., "$ID/#LinkInfoNameStr")
 	TextAfter            string   `xml:"TextAfter,attr,omitempty"`            // Text after the metadata
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // PageNumberVariablePreference contains settings for page number variables.
@@ -423,6 +526,10 @@ type PageNumberVariablePreference struct {
 	Format     string   `xml:"Format,attr,omitempty"`     // Number format (e.g., "Current")
 	TextAfter  string   `xml:"TextAfter,attr,omitempty"`  // Text after the page number
 	Scope      string   `xml:"Scope,attr,omitempty"`      // Scope (e.g., "SectionScope")
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // MatchParagraphStylePreference contains settings for running header variables.
@@ -434,6 +541,10 @@ type MatchParagraphStylePreference struct {
 	SearchStrategy        string   `xml:"SearchStrategy,attr,omitempty"`        // Search strategy (e.g., "FirstOnPage")
 	ChangeCase            string   `xml:"ChangeCase,attr,omitempty"`            // Case transformation (e.g., "None")
 	DeleteEndPunctuation  string   `xml:"DeleteEndPunctuation,attr,omitempty"`  // Delete punctuation ("true"/"false")
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // ============================================================================
@@ -447,6 +558,10 @@ type TinDocumentDataObject struct {
 	XMLName xml.Name `xml:"TinDocumentDataObject,omitempty"`
 	// Contains internal InDesign data - preserved as-is for compatibility
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // TransparencyDefaultContainerObject contains default transparency settings.
@@ -456,4 +571,8 @@ type TransparencyDefaultContainerObject struct {
 	XMLName xml.Name `xml:"TransparencyDefaultContainerObject,omitempty"`
 	// Contains transparency defaults - preserved as-is for compatibility
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }

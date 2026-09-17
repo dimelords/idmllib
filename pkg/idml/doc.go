@@ -1,4 +1,12 @@
 // Package idml provides functionality for reading, writing, and manipulating
+//
+// # Concurrency
+//
+// A Package is not safe for concurrent use: getters populate caches on first
+// access and the modification API changes shared state without locking. Use a
+// Package from one goroutine, or guard it with your own mutex. Independent
+// packages can be processed in parallel, and the library itself starts no
+// goroutines.
 // Adobe InDesign IDML (InDesign Markup Language) files.
 //
 // IDML is Adobe InDesign's XML-based file format, structured as a ZIP archive

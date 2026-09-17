@@ -2,9 +2,9 @@
 //
 // The spread package contains all types related to spread layout in IDML files, including:
 //   - Spread: The root spread container with page layout information
-//   - SpreadElement: The actual spread content with pages and page items
+//   - Spread: the <Spread> element with pages and page items; File is the idPkg wrapper around it
 //   - Page: Individual pages within a spread
-//   - SpreadTextFrame: Text frames on spreads
+//   - TextFrame: Text frames on spreads
 //   - Rectangle: Rectangular frames (can contain text, images, or be empty)
 //   - Image: Linked images in frames
 //   - GraphicLine: Vector line elements
@@ -28,9 +28,9 @@
 //	if err != nil {
 //	    log.Fatal(err)
 //	}
-//	fmt.Println("Pages:", len(spread.InnerSpread.Pages))
-//	fmt.Println("Text frames:", len(spread.InnerSpread.TextFrames))
-//	fmt.Println("Rectangles:", len(spread.InnerSpread.Rectangles))
+//	fmt.Println("Pages:", len(spread.Spread.Pages))
+//	fmt.Println("Text frames:", len(spread.Spread.TextFrames))
+//	fmt.Println("Rectangles:", len(spread.Spread.Rectangles))
 //
 // Marshal back to XML:
 //

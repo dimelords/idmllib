@@ -8,7 +8,7 @@ import (
 
 // ParseStory parses a Story XML file into a Story struct.
 // It handles the IDML namespace and preserves unknown elements.
-func ParseStory(data []byte) (*Story, error) {
+func ParseStory(data []byte) (*File, error) {
 	// Add nil check for input data
 	if data == nil {
 		return nil, common.Errorf("story", "parse story", "", "input data is nil")
@@ -19,7 +19,7 @@ func ParseStory(data []byte) (*Story, error) {
 		return nil, common.Errorf("story", "parse story", "", "input data is empty")
 	}
 
-	var story Story
+	var story File
 	if err := xml.Unmarshal(data, &story); err != nil {
 		return nil, common.WrapError("story", "parse story", err)
 	}
@@ -28,7 +28,7 @@ func ParseStory(data []byte) (*Story, error) {
 
 // MarshalStory marshals a Story struct back to XML with proper formatting.
 // It includes the XML declaration and proper namespace with idPkg prefix.
-func MarshalStory(story *Story) ([]byte, error) {
+func MarshalStory(story *File) ([]byte, error) {
 	// Marshal the story with proper indentation
 	data, err := xml.MarshalIndent(story, "", "\t")
 	if err != nil {
@@ -44,7 +44,7 @@ func MarshalStory(story *Story) ([]byte, error) {
 }
 
 // UnmarshalXML implements custom unmarshaling for Story to handle idPkg namespace prefix.
-func (s *Story) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (s *File) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	// Add nil check for decoder
 	if d == nil {
 		return common.Errorf("story", "unmarshal story", "", "decoder is nil")
@@ -70,7 +70,7 @@ func (s *Story) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		switch t := token.(type) {
 		case xml.StartElement:
 			if t.Name.Local == "Story" {
-				if err := d.DecodeElement(&s.StoryElement, &t); err != nil {
+				if err := d.DecodeElement(&s.Story, &t); err != nil {
 					return err
 				}
 			}
@@ -81,7 +81,7 @@ func (s *Story) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 }
 
 // MarshalXML implements custom marshaling for Story to use idPkg namespace prefix.
-func (s Story) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (s File) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	// Set the element name with idPkg prefix
 	start.Name = xml.Name{Local: "idPkg:Story"}
 
@@ -103,7 +103,7 @@ func (s Story) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	}
 
 	// Encode the story element
-	if err := e.Encode(s.StoryElement); err != nil {
+	if err := e.Encode(s.Story); err != nil {
 		return err
 	}
 
@@ -164,6 +164,42 @@ func (c *CharacterStyleRange) UnmarshalXML(d *xml.Decoder, start xml.StartElemen
 				}
 				c.Children = append(c.Children, CharacterChild{Br: &Br{XMLName: t.Name}})
 
+			case "XMLElement":
+				var v XMLElement
+				if err := d.DecodeElement(&v, &t); err != nil {
+					return err
+				}
+				c.Children = append(c.Children, CharacterChild{XMLElement: &v})
+			case "Change":
+				var v Change
+				if err := d.DecodeElement(&v, &t); err != nil {
+					return err
+				}
+				c.Children = append(c.Children, CharacterChild{Change: &v})
+			case "Note":
+				var v Note
+				if err := d.DecodeElement(&v, &t); err != nil {
+					return err
+				}
+				c.Children = append(c.Children, CharacterChild{Note: &v})
+			case "HyperlinkTextSource":
+				var v HyperlinkTextSource
+				if err := d.DecodeElement(&v, &t); err != nil {
+					return err
+				}
+				c.Children = append(c.Children, CharacterChild{HyperlinkTextSource: &v})
+			case "Footnote":
+				var v Footnote
+				if err := d.DecodeElement(&v, &t); err != nil {
+					return err
+				}
+				c.Children = append(c.Children, CharacterChild{Footnote: &v})
+			case "Table":
+				var v Table
+				if err := d.DecodeElement(&v, &t); err != nil {
+					return err
+				}
+				c.Children = append(c.Children, CharacterChild{Table: &v})
 			default:
 				// Unknown element - store as RawXMLElement
 				var raw common.RawXMLElement
@@ -229,6 +265,30 @@ func (c CharacterStyleRange) MarshalXML(e *xml.Encoder, start xml.StartElement) 
 				return err
 			}
 			if err := e.EncodeToken(xml.EndElement{Name: brStart.Name}); err != nil {
+				return err
+			}
+		} else if child.XMLElement != nil {
+			if err := e.Encode(child.XMLElement); err != nil {
+				return err
+			}
+		} else if child.Change != nil {
+			if err := e.Encode(child.Change); err != nil {
+				return err
+			}
+		} else if child.Note != nil {
+			if err := e.Encode(child.Note); err != nil {
+				return err
+			}
+		} else if child.HyperlinkTextSource != nil {
+			if err := e.Encode(child.HyperlinkTextSource); err != nil {
+				return err
+			}
+		} else if child.Footnote != nil {
+			if err := e.Encode(child.Footnote); err != nil {
+				return err
+			}
+		} else if child.Table != nil {
+			if err := e.Encode(child.Table); err != nil {
 				return err
 			}
 		} else if child.Other != nil {

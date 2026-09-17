@@ -96,7 +96,7 @@ func (dt *DependencyTracker) Dependencies() *DependencySet {
 // - The parent story
 // - Object style applied to the frame
 // - Layer the frame is on
-func (dt *DependencyTracker) AnalyzeTextFrame(tf *spread.SpreadTextFrame) error {
+func (dt *DependencyTracker) AnalyzeTextFrame(tf *spread.TextFrame) error {
 	// Track the parent story
 	if tf.ParentStory != "" {
 		// Story references are typically in the format "u1d8"
@@ -107,10 +107,9 @@ func (dt *DependencyTracker) AnalyzeTextFrame(tf *spread.SpreadTextFrame) error 
 		// Analyze the story content to find style dependencies
 		story, err := dt.pkg.Story(storyFilename)
 		if err == nil {
-			if err := dt.AnalyzeStory(story); err != nil {
-				// Don't fail - just skip this story
-				// The story might not exist in the package
-			}
+			// Best effort: a story that cannot be analyzed is skipped rather
+			// than failing the whole dependency scan.
+			_ = dt.AnalyzeStory(story)
 		}
 	}
 
@@ -135,14 +134,14 @@ func (dt *DependencyTracker) AnalyzeTextFrame(tf *spread.SpreadTextFrame) error 
 // - Colors used in the styles (future enhancement)
 func (dt *DependencyTracker) AnalyzeStory(story *story.Story) error {
 	// Analyze each paragraph style range
-	for _, psr := range story.StoryElement.ParagraphStyleRanges {
+	for _, psr := range story.Paragraphs() {
 		// Track the paragraph style
 		if psr.AppliedParagraphStyle != "" {
 			dt.deps.ParagraphStyles[psr.AppliedParagraphStyle] = true
 		}
 
 		// Analyze each character style range within the paragraph
-		for _, csr := range psr.CharacterStyleRanges {
+		for _, csr := range psr.Ranges() {
 			// Track the character style
 			if csr.AppliedCharacterStyle != "" {
 				dt.deps.CharacterStyles[csr.AppliedCharacterStyle] = true
@@ -390,14 +389,14 @@ func (dt *DependencyTracker) AnalyzeSelection(sel *idml.Selection) error {
 // - Multi-level inheritance (grandparent styles, etc.)
 func (dt *DependencyTracker) ResolveStyleHierarchies() error {
 	// Get the Styles resource file
-	stylesResource, err := dt.pkg.Resource("Resources/Styles.xml")
+	stylesData, err := dt.pkg.FileData(idml.PathStyles)
 	if err != nil {
 		// If no Styles file, nothing to resolve
-		return nil
+		return nil //nolint:nilerr // a package without Styles.xml has no hierarchies; nothing to report
 	}
 
 	// Parse style hierarchy information
-	styleInfos, err := idml.ParseStylesForHierarchy(stylesResource.RawContent)
+	styleInfos, err := idml.ParseStylesForHierarchy(stylesData)
 	if err != nil {
 		return err
 	}
@@ -453,12 +452,8 @@ func (dt *DependencyTracker) resolveStyleChain(styleID string, styleParents map[
 	visited := make(map[string]bool)
 	current := styleID
 
-	for {
-		// Check if we've seen this style before (circular reference)
-		if visited[current] {
-			// Circular reference detected - stop here
-			break
-		}
+	// Stop when a style repeats (circular BasedOn reference).
+	for !visited[current] {
 		visited[current] = true
 
 		// Get the parent style

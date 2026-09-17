@@ -8,14 +8,14 @@ import (
 )
 
 // UnmarshalXML implements custom XML unmarshaling for Spread.
-func (s *Spread) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (s *File) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	// Add nil check for decoder
 	if d == nil {
 		return common.Errorf("spread", "unmarshal spread", "", "decoder is nil")
 	}
 
 	// Verify we're parsing an idPkg:Spread element
-	if start.Name.Local != "Spread" {
+	if start.Name.Local != "Spread" && start.Name.Local != "MasterSpread" {
 		return common.WrapError("spread", "parse", common.ErrInvalidFormat)
 	}
 
@@ -36,15 +36,15 @@ func (s *Spread) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 
 		switch t := tok.(type) {
 		case xml.StartElement:
-			if t.Name.Local == "Spread" {
+			if t.Name.Local == "Spread" || t.Name.Local == "MasterSpread" {
 				// Found the inner Spread element - unmarshal it
-				if err := d.DecodeElement(&s.InnerSpread, &t); err != nil {
+				if err := d.DecodeElement(&s.Spread, &t); err != nil {
 					return err
 				}
 			}
 
 		case xml.EndElement:
-			if t.Name.Local == "Spread" && t.Name.Space == start.Name.Space {
+			if t.Name == start.Name {
 				// End of idPkg:Spread element
 				return nil
 			}
@@ -53,10 +53,10 @@ func (s *Spread) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 }
 
 // MarshalXML implements custom XML marshaling for Spread.
-func (s *Spread) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (s *File) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	// Create the idPkg:Spread wrapper element
 	wrapper := xml.StartElement{
-		Name: xml.Name{Local: "idPkg:Spread"},
+		Name: xml.Name{Local: "idPkg:" + s.Spread.elementName()},
 		Attr: []xml.Attr{
 			{Name: xml.Name{Local: "xmlns:idPkg"}, Value: "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"},
 			{Name: xml.Name{Local: "DOMVersion"}, Value: s.DOMVersion},
@@ -69,8 +69,8 @@ func (s *Spread) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	}
 
 	// Marshal the inner Spread element
-	innerStart := xml.StartElement{Name: xml.Name{Local: "Spread"}}
-	if err := e.EncodeElement(&s.InnerSpread, innerStart); err != nil {
+	innerStart := xml.StartElement{Name: xml.Name{Local: s.Spread.elementName()}}
+	if err := e.EncodeElement(&s.Spread, innerStart); err != nil {
 		return common.WrapError("spread", "marshal spread", err)
 	}
 
@@ -83,7 +83,7 @@ func (s *Spread) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 }
 
 // ParseSpread parses a Spread XML file into a Spread struct.
-func ParseSpread(data []byte) (*Spread, error) {
+func ParseSpread(data []byte) (*File, error) {
 	// Add nil check for input data
 	if data == nil {
 		return nil, common.Errorf("spread", "parse spread", "", "input data is nil")
@@ -94,7 +94,7 @@ func ParseSpread(data []byte) (*Spread, error) {
 		return nil, common.Errorf("spread", "parse spread", "", "input data is empty")
 	}
 
-	var spread Spread
+	var spread File
 	if err := xml.Unmarshal(data, &spread); err != nil {
 		return nil, common.WrapError("spread", "parse spread", err)
 	}
@@ -102,7 +102,7 @@ func ParseSpread(data []byte) (*Spread, error) {
 }
 
 // MarshalSpread marshals a Spread struct back to XML with proper formatting.
-func MarshalSpread(spread *Spread) ([]byte, error) {
+func MarshalSpread(spread *File) ([]byte, error) {
 	// Add XML declaration and marshal with indentation
 	data, err := xmlutil.MarshalIndentWithHeader(spread, "", "\t")
 	if err != nil {

@@ -35,20 +35,33 @@ type StylesFile struct {
 	// TOCStyles contain table of contents style definitions
 	TOCStyles []TOCStyle `xml:"TOCStyle,omitempty"`
 
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
+
 	// Catch-all for other elements
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // CharacterStyleGroup represents a group of character styles.
 // Supports nested groups for hierarchical organization (e.g., "Naviga:Standard").
 // XMLName will be "RootCharacterStyleGroup" for root or "CharacterStyleGroup" for nested.
 type CharacterStyleGroup struct {
-	XMLName         xml.Name               // Will be set during unmarshal
-	Self            string                 `xml:"Self,attr"`
-	Name            string                 `xml:"Name,attr,omitempty"`
-	CharacterStyles []CharacterStyle       `xml:"CharacterStyle,omitempty"`
-	NestedGroups    []CharacterStyleGroup  `xml:"CharacterStyleGroup,omitempty"` // Nested groups
+	XMLName         xml.Name              // Will be set during unmarshal
+	Self            string                `xml:"Self,attr"`
+	Name            string                `xml:"Name,attr,omitempty"`
+	CharacterStyles []CharacterStyle      `xml:"CharacterStyle,omitempty"`
+	NestedGroups    []CharacterStyleGroup `xml:"CharacterStyleGroup,omitempty"` // Nested groups
+	childOrder      common.ChildOrder
 	OtherElements   []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // CharacterStyle represents a character style definition.
@@ -76,6 +89,14 @@ type CharacterStyle struct {
 
 	// Catch-all for all other attributes and elements
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // GetAppliedFont returns the applied font from Properties, or empty string if not set.
@@ -101,12 +122,17 @@ func (cs *CharacterStyle) GetPointSize() float64 {
 // Supports nested groups for hierarchical organization (e.g., "Naviga:Standard").
 // XMLName will be "RootParagraphStyleGroup" for root or "ParagraphStyleGroup" for nested.
 type ParagraphStyleGroup struct {
-	XMLName         xml.Name               // Will be set during unmarshal
-	Self            string                 `xml:"Self,attr"`
-	Name            string                 `xml:"Name,attr,omitempty"`
-	ParagraphStyles []ParagraphStyle       `xml:"ParagraphStyle,omitempty"`
-	NestedGroups    []ParagraphStyleGroup  `xml:"ParagraphStyleGroup,omitempty"` // Nested groups
+	XMLName         xml.Name              // Will be set during unmarshal
+	Self            string                `xml:"Self,attr"`
+	Name            string                `xml:"Name,attr,omitempty"`
+	ParagraphStyles []ParagraphStyle      `xml:"ParagraphStyle,omitempty"`
+	NestedGroups    []ParagraphStyleGroup `xml:"ParagraphStyleGroup,omitempty"` // Nested groups
+	childOrder      common.ChildOrder
 	OtherElements   []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // ParagraphStyle represents a paragraph style definition.
@@ -149,6 +175,14 @@ type ParagraphStyle struct {
 
 	// Catch-all for the many other attributes (100+ attributes total)
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // CellStyleGroup represents a group of table cell styles.
@@ -157,6 +191,14 @@ type CellStyleGroup struct {
 	Self          string                 `xml:"Self,attr"`
 	CellStyles    []CellStyle            `xml:"CellStyle,omitempty"`
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // CellStyle represents a table cell style definition.
@@ -166,6 +208,14 @@ type CellStyle struct {
 	AppliedParagraphStyle string                 `xml:"AppliedParagraphStyle,attr,omitempty"` // Reference to paragraph style
 	Properties            *common.Properties     `xml:"Properties,omitempty"`
 	OtherElements         []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // TableStyleGroup represents a group of table styles.
@@ -174,6 +224,14 @@ type TableStyleGroup struct {
 	Self          string                 `xml:"Self,attr"`
 	TableStyles   []TableStyle           `xml:"TableStyle,omitempty"`
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // TableStyle represents a table style definition.
@@ -197,18 +255,31 @@ type TableStyle struct {
 
 	Properties    *common.Properties     `xml:"Properties,omitempty"`
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // ObjectStyleGroup represents a group of object styles.
 // Supports nested groups for hierarchical organization.
 // XMLName will be "RootObjectStyleGroup" for root or "ObjectStyleGroup" for nested.
 type ObjectStyleGroup struct {
-	XMLName       xml.Name               // Will be set during unmarshal
-	Self          string                 `xml:"Self,attr"`
-	Name          string                 `xml:"Name,attr,omitempty"`
-	ObjectStyles  []ObjectStyle          `xml:"ObjectStyle,omitempty"`
-	NestedGroups  []ObjectStyleGroup     `xml:"ObjectStyleGroup,omitempty"` // Nested groups
+	XMLName       xml.Name           // Will be set during unmarshal
+	Self          string             `xml:"Self,attr"`
+	Name          string             `xml:"Name,attr,omitempty"`
+	ObjectStyles  []ObjectStyle      `xml:"ObjectStyle,omitempty"`
+	NestedGroups  []ObjectStyleGroup `xml:"ObjectStyleGroup,omitempty"` // Nested groups
+	childOrder    common.ChildOrder
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // ObjectStyle represents an object style definition.
@@ -241,6 +312,14 @@ type ObjectStyle struct {
 
 	Properties    *common.Properties     `xml:"Properties,omitempty"`
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // TransformAttributeOption defines transform reference points for objects.
@@ -248,19 +327,10 @@ type TransformAttributeOption struct {
 	TransformAttrLeftReference  string `xml:"TransformAttrLeftReference,attr,omitempty"`
 	TransformAttrTopReference   string `xml:"TransformAttrTopReference,attr,omitempty"`
 	TransformAttrRefAnchorPoint string `xml:"TransformAttrRefAnchorPoint,attr,omitempty"`
-}
 
-// ObjectExportOption defines object export settings.
-type ObjectExportOption struct {
-	AltTextSourceType     string                 `xml:"AltTextSourceType,attr,omitempty"`
-	ActualTextSourceType  string                 `xml:"ActualTextSourceType,attr,omitempty"`
-	CustomAltText         string                 `xml:"CustomAltText,attr,omitempty"`
-	CustomActualText      string                 `xml:"CustomActualText,attr,omitempty"`
-	ApplyTagType          string                 `xml:"ApplyTagType,attr,omitempty"`
-	ImageConversionType   string                 `xml:"ImageConversionType,attr,omitempty"`
-	ImageExportResolution string                 `xml:"ImageExportResolution,attr,omitempty"`
-	Properties            *common.Properties     `xml:"Properties,omitempty"`
-	OtherElements         []common.RawXMLElement `xml:",any"`
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // TextFramePreference defines text frame preferences.
@@ -271,6 +341,10 @@ type TextFramePreference struct {
 	VerticalJustification string                 `xml:"VerticalJustification,attr,omitempty"`
 	AutoSizingType        string                 `xml:"AutoSizingType,attr,omitempty"`
 	OtherElements         []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // TOCStyle represents a table of contents style definition.
@@ -284,6 +358,10 @@ type TOCStyle struct {
 	IncludeBookDocuments string                 `xml:"IncludeBookDocuments,attr,omitempty"` // "true" or "false"
 	CreateBookmarks      string                 `xml:"CreateBookmarks,attr,omitempty"`      // "true" or "false"
 	OtherElements        []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // FindParagraphStyle finds a paragraph style by its Self ID.
@@ -317,3 +395,6 @@ func (sf *StylesFile) findParagraphStyleInGroup(group *ParagraphStyleGroup, styl
 
 	return nil
 }
+
+// ObjectExportOption is shared with page items; see common.ObjectExportOption.
+type ObjectExportOption = common.ObjectExportOption

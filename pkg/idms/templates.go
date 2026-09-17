@@ -14,24 +14,11 @@ import (
 //go:embed templates/snippet.xml
 var snippet []byte
 
-// Template initialization with sync.Once for thread-safe lazy loading
-// nolint:unused
-var (
-	snippetTmpl     *template.Template
-	snippetTmplErr  error
-	snippetTmplOnce sync.Once
-)
-
-// getSnippetTemplate returns the parsed snippet template.
-// The template is parsed once and cached for subsequent calls.
-// This function is currently unused but kept for potential future use
-// nolint:unused
-func getSnippetTemplate() (*template.Template, error) {
-	snippetTmplOnce.Do(func() {
-		snippetTmpl, snippetTmplErr = template.New("snippet").Parse(string(snippet))
-	})
-	return snippetTmpl, snippetTmplErr
-}
+// getSnippetTemplate parses the embedded snippet template once, on first use.
+// It is currently unused but kept for planned snippet generation.
+var getSnippetTemplate = sync.OnceValues(func() (*template.Template, error) { //nolint:unused
+	return template.New("snippet").Parse(string(snippet))
+})
 
 // generateSnippet creates a customized snippet based on options.
 // This function is currently unused but kept for potential future use

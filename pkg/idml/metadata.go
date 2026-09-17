@@ -18,17 +18,17 @@ type MetadataFile struct {
 	RawContent []byte
 }
 
-// ParseMetadataFile parses a metadata file using the preservation strategy.
+// parseMetadataFile parses a metadata file using the preservation strategy.
 // The file content is stored as-is for perfect roundtrip fidelity.
-func ParseMetadataFile(filename string, data []byte) (*MetadataFile, error) {
+func parseMetadataFile(filename string, data []byte) (*MetadataFile, error) {
 	return &MetadataFile{
 		Filename:   filename,
 		RawContent: data,
 	}, nil
 }
 
-// MarshalMetadataFile marshals a metadata file back to its original form.
+// marshalMetadataFile marshals a metadata file back to its original form.
 // Since we use the preservation strategy, this simply returns the raw content.
-func MarshalMetadataFile(mf *MetadataFile) ([]byte, error) {
+func marshalMetadataFile(mf *MetadataFile) ([]byte, error) {
 	return mf.RawContent, nil
 }

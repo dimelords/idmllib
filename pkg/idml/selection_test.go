@@ -1,6 +1,7 @@
 package idml
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/dimelords/idmllib/v2/pkg/spread"
@@ -28,7 +29,7 @@ func TestSelectionAddElements_AddsElementsCorrectly(t *testing.T) {
 	sel := NewSelection()
 
 	// Add a text frame
-	tf := &spread.SpreadTextFrame{
+	tf := &spread.TextFrame{
 		PageItemBase: spread.PageItemBase{Self: "tf1"},
 	}
 	sel.AddTextFrame(tf)
@@ -81,8 +82,8 @@ func TestSelectTextFrameByID_FindsTextFrame(t *testing.T) {
 	// Find a text frame ID from the first spread
 	var testID string
 	for _, spread := range spreads {
-		if len(spread.InnerSpread.TextFrames) > 0 {
-			testID = spread.InnerSpread.TextFrames[0].Self
+		if len(spread.TextFrames) > 0 {
+			testID = spread.TextFrames[0].Self
 			break
 		}
 	}
@@ -92,7 +93,7 @@ func TestSelectTextFrameByID_FindsTextFrame(t *testing.T) {
 	}
 
 	// Test selecting by ID
-	tf, err := pkg.SelectTextFrameByID(testID)
+	tf, err := PageItemOfType[spread.TextFrame](pkg, testID)
 	if err != nil {
 		t.Fatalf("SelectTextFrameByID() error: %v", err)
 	}
@@ -116,7 +117,7 @@ func TestSelectTextFrameByID_NotFound(t *testing.T) {
 	}
 
 	// Try to select a non-existent text frame
-	tf, err := pkg.SelectTextFrameByID("nonexistent_id")
+	tf, err := PageItemOfType[spread.TextFrame](pkg, "nonexistent_id")
 	if err == nil {
 		t.Error("Expected error for non-existent ID, got nil")
 	}
@@ -149,8 +150,8 @@ func TestSelectRectangleByID_FindsRectangle(t *testing.T) {
 	// Find a rectangle ID from the first spread
 	var testID string
 	for _, spread := range spreads {
-		if len(spread.InnerSpread.Rectangles) > 0 {
-			testID = spread.InnerSpread.Rectangles[0].Self
+		if len(spread.Rectangles) > 0 {
+			testID = spread.Rectangles[0].Self
 			break
 		}
 	}
@@ -160,7 +161,7 @@ func TestSelectRectangleByID_FindsRectangle(t *testing.T) {
 	}
 
 	// Test selecting by ID
-	rect, err := pkg.SelectRectangleByID(testID)
+	rect, err := PageItemOfType[spread.Rectangle](pkg, testID)
 	if err != nil {
 		t.Fatalf("SelectRectangleByID() error: %v", err)
 	}
@@ -184,7 +185,7 @@ func TestSelectRectangleByID_NotFound(t *testing.T) {
 	}
 
 	// Try to select a non-existent rectangle
-	rect, err := pkg.SelectRectangleByID("nonexistent_rect")
+	rect, err := PageItemOfType[spread.Rectangle](pkg, "nonexistent_rect")
 	if err == nil {
 		t.Error("Expected error for non-existent ID, got nil")
 	}
@@ -216,7 +217,7 @@ func TestSelectAllGraphicsInSpread_FindsAllGraphics(t *testing.T) {
 	// Find a spread with rectangles
 	var spreadFilename string
 	for filename, spread := range spreads {
-		if len(spread.InnerSpread.Rectangles) > 0 {
+		if len(spread.Rectangles) > 0 {
 			spreadFilename = filename
 			break
 		}
@@ -226,15 +227,12 @@ func TestSelectAllGraphicsInSpread_FindsAllGraphics(t *testing.T) {
 		t.Skip("No spreads with rectangles found")
 	}
 
-	// Test selecting all graphics
-	graphics, err := pkg.SelectAllGraphicsInSpread(spreadFilename)
+	// The spread element exposes its page items directly.
+	sp, err := pkg.Spread(spreadFilename)
 	if err != nil {
-		t.Fatalf("SelectAllGraphicsInSpread() error: %v", err)
+		t.Fatalf("Spread() error: %v", err)
 	}
-
-	if graphics == nil {
-		t.Fatal("SelectAllGraphicsInSpread() returned nil")
-	}
+	graphics := sp.Rectangles
 
 	t.Logf("✅ Found %d graphics in spread %s", len(graphics), spreadFilename)
 
@@ -268,9 +266,9 @@ func TestSelectAllTextFramesInSpread_FindsAllTextFrames(t *testing.T) {
 	var spreadFilename string
 	var expectedCount int
 	for filename, spread := range spreads {
-		if len(spread.InnerSpread.TextFrames) > 0 {
+		if len(spread.TextFrames) > 0 {
 			spreadFilename = filename
-			expectedCount = len(spread.InnerSpread.TextFrames)
+			expectedCount = len(spread.TextFrames)
 			break
 		}
 	}
@@ -279,15 +277,11 @@ func TestSelectAllTextFramesInSpread_FindsAllTextFrames(t *testing.T) {
 		t.Skip("No spreads with text frames found")
 	}
 
-	// Test selecting all text frames
-	textFrames, err := pkg.SelectAllTextFramesInSpread(spreadFilename)
+	sp, err := pkg.Spread(spreadFilename)
 	if err != nil {
-		t.Fatalf("SelectAllTextFramesInSpread() error: %v", err)
+		t.Fatalf("Spread() error: %v", err)
 	}
-
-	if textFrames == nil {
-		t.Fatal("SelectAllTextFramesInSpread() returned nil")
-	}
+	textFrames := sp.TextFrames
 
 	if len(textFrames) != expectedCount {
 		t.Errorf("Expected %d text frames, got %d", expectedCount, len(textFrames))
@@ -317,13 +311,13 @@ func TestSelectByIDs_SelectsMultipleElements(t *testing.T) {
 	var ids []string
 	for _, spread := range spreads {
 		// Add up to 2 text frame IDs
-		for i := 0; i < len(spread.InnerSpread.TextFrames) && i < 2; i++ {
-			ids = append(ids, spread.InnerSpread.TextFrames[i].Self)
+		for i := 0; i < len(spread.TextFrames) && i < 2; i++ {
+			ids = append(ids, spread.TextFrames[i].Self)
 		}
 
 		// Add up to 2 rectangle IDs
-		for i := 0; i < len(spread.InnerSpread.Rectangles) && i < 2; i++ {
-			ids = append(ids, spread.InnerSpread.Rectangles[i].Self)
+		for i := 0; i < len(spread.Rectangles) && i < 2; i++ {
+			ids = append(ids, spread.Rectangles[i].Self)
 		}
 
 		if len(ids) >= 4 {
@@ -387,28 +381,24 @@ func TestSelectByIDs_Empty(t *testing.T) {
 	t.Log("✅ Empty ID list returns empty selection")
 }
 
-// TestSelectByIDs_NonExistent tests selecting with non-existent IDs
+// TestSelectByIDs_NonExistent checks that an unknown id is reported rather
+// than silently skipped, so an export cannot quietly omit what was asked for.
 func TestSelectByIDs_NonExistent(t *testing.T) {
 	pkg, err := Read("../../testdata/plain.idml")
 	if err != nil {
 		t.Fatalf("Failed to read IDML: %v", err)
 	}
 
-	// Test selecting with non-existent IDs (should be silently skipped)
 	selection, err := pkg.SelectByIDs("fake1", "fake2", "fake3")
-	if err != nil {
-		t.Fatalf("SelectByIDs() error: %v", err)
+	if err == nil {
+		t.Fatal("expected an error for unknown ids")
 	}
-
-	if selection == nil {
-		t.Fatal("SelectByIDs() returned nil")
+	if selection != nil {
+		t.Error("no selection should be returned when an id is unknown")
 	}
-
-	if !selection.IsEmpty() {
-		t.Error("Selection should be empty for non-existent IDs")
+	if !strings.Contains(err.Error(), "fake1") {
+		t.Errorf("error should name the offending id, got: %v", err)
 	}
-
-	t.Log("✅ Non-existent IDs are silently skipped")
 }
 
 // TestSelectionAddAllTypes_AddsAllElementTypes tests adding all types of elements
@@ -512,8 +502,8 @@ func TestSelectOvalByID_FindsOval(t *testing.T) {
 
 	var testID string
 	for _, spread := range spreads {
-		if len(spread.InnerSpread.Ovals) > 0 {
-			testID = spread.InnerSpread.Ovals[0].Self
+		if len(spread.Ovals) > 0 {
+			testID = spread.Ovals[0].Self
 			break
 		}
 	}
@@ -522,7 +512,7 @@ func TestSelectOvalByID_FindsOval(t *testing.T) {
 		t.Skip("No ovals found in test file")
 	}
 
-	oval, err := pkg.SelectOvalByID(testID)
+	oval, err := PageItemOfType[spread.Oval](pkg, testID)
 	if err != nil {
 		t.Fatalf("SelectOvalByID() error: %v", err)
 	}
@@ -545,7 +535,7 @@ func TestSelectOvalByID_NotFound(t *testing.T) {
 		t.Fatalf("Failed to read IDML: %v", err)
 	}
 
-	_, err = pkg.SelectOvalByID("NonExistentOvalID")
+	_, err = PageItemOfType[spread.Oval](pkg, "NonExistentOvalID")
 	if err == nil {
 		t.Error("SelectOvalByID() should return error for non-existent ID")
 	}
@@ -565,8 +555,8 @@ func TestSelectPolygonByID_FindsPolygon(t *testing.T) {
 
 	var testID string
 	for _, spread := range spreads {
-		if len(spread.InnerSpread.Polygons) > 0 {
-			testID = spread.InnerSpread.Polygons[0].Self
+		if len(spread.Polygons) > 0 {
+			testID = spread.Polygons[0].Self
 			break
 		}
 	}
@@ -575,7 +565,7 @@ func TestSelectPolygonByID_FindsPolygon(t *testing.T) {
 		t.Skip("No polygons found in test file")
 	}
 
-	poly, err := pkg.SelectPolygonByID(testID)
+	poly, err := PageItemOfType[spread.Polygon](pkg, testID)
 	if err != nil {
 		t.Fatalf("SelectPolygonByID() error: %v", err)
 	}
@@ -598,7 +588,7 @@ func TestSelectPolygonByID_NotFound(t *testing.T) {
 		t.Fatalf("Failed to read IDML: %v", err)
 	}
 
-	_, err = pkg.SelectPolygonByID("NonExistentPolygonID")
+	_, err = PageItemOfType[spread.Polygon](pkg, "NonExistentPolygonID")
 	if err == nil {
 		t.Error("SelectPolygonByID() should return error for non-existent ID")
 	}
@@ -618,8 +608,8 @@ func TestSelectGraphicLineByID_FindsGraphicLine(t *testing.T) {
 
 	var testID string
 	for _, spread := range spreads {
-		if len(spread.InnerSpread.GraphicLines) > 0 {
-			testID = spread.InnerSpread.GraphicLines[0].Self
+		if len(spread.GraphicLines) > 0 {
+			testID = spread.GraphicLines[0].Self
 			break
 		}
 	}
@@ -628,7 +618,7 @@ func TestSelectGraphicLineByID_FindsGraphicLine(t *testing.T) {
 		t.Skip("No graphic lines found in test file")
 	}
 
-	line, err := pkg.SelectGraphicLineByID(testID)
+	line, err := PageItemOfType[spread.GraphicLine](pkg, testID)
 	if err != nil {
 		t.Fatalf("SelectGraphicLineByID() error: %v", err)
 	}
@@ -651,7 +641,7 @@ func TestSelectGraphicLineByID_NotFound(t *testing.T) {
 		t.Fatalf("Failed to read IDML: %v", err)
 	}
 
-	_, err = pkg.SelectGraphicLineByID("NonExistentLineID")
+	_, err = PageItemOfType[spread.GraphicLine](pkg, "NonExistentLineID")
 	if err == nil {
 		t.Error("SelectGraphicLineByID() should return error for non-existent ID")
 	}
@@ -671,8 +661,8 @@ func TestSelectGroupByID_FindsGroup(t *testing.T) {
 
 	var testID string
 	for _, spread := range spreads {
-		if len(spread.InnerSpread.Groups) > 0 {
-			testID = spread.InnerSpread.Groups[0].Self
+		if len(spread.Groups) > 0 {
+			testID = spread.Groups[0].Self
 			break
 		}
 	}
@@ -681,7 +671,7 @@ func TestSelectGroupByID_FindsGroup(t *testing.T) {
 		t.Skip("No groups found in test file")
 	}
 
-	group, err := pkg.SelectGroupByID(testID)
+	group, err := PageItemOfType[spread.Group](pkg, testID)
 	if err != nil {
 		t.Fatalf("SelectGroupByID() error: %v", err)
 	}
@@ -704,7 +694,7 @@ func TestSelectGroupByID_NotFound(t *testing.T) {
 		t.Fatalf("Failed to read IDML: %v", err)
 	}
 
-	_, err = pkg.SelectGroupByID("NonExistentGroupID")
+	_, err = PageItemOfType[spread.Group](pkg, "NonExistentGroupID")
 	if err == nil {
 		t.Error("SelectGroupByID() should return error for non-existent ID")
 	}

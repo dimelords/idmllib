@@ -22,11 +22,11 @@ func Example() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Spread Self: %s\n", sp.InnerSpread.Self)
-	fmt.Printf("Number of text frames: %d\n", len(sp.InnerSpread.TextFrames))
+	fmt.Printf("Spread Self: %s\n", sp.Spread.Self)
+	fmt.Printf("Number of text frames: %d\n", len(sp.Spread.TextFrames))
 
-	if len(sp.InnerSpread.TextFrames) > 0 {
-		tf := sp.InnerSpread.TextFrames[0]
+	if len(sp.Spread.TextFrames) > 0 {
+		tf := sp.Spread.TextFrames[0]
 		fmt.Printf("First text frame Self: %s\n", tf.Self)
 		fmt.Printf("First text frame ParentStory: %s\n", tf.ParentStory)
 	}
@@ -39,7 +39,7 @@ func Example() {
 }
 
 // ExampleSpread_pageItems demonstrates getting all page items from a spread.
-func ExampleSpread_pageItems() {
+func ExampleFile_pageItems() {
 	data := []byte(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <idPkg:Spread xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="16.0">
 <Spread Self="u210">
@@ -55,24 +55,24 @@ func ExampleSpread_pageItems() {
 	}
 
 	// Count all page items
-	totalItems := len(sp.InnerSpread.TextFrames) +
-		len(sp.InnerSpread.Rectangles) +
-		len(sp.InnerSpread.Ovals) +
-		len(sp.InnerSpread.Polygons) +
-		len(sp.InnerSpread.GraphicLines) +
-		len(sp.InnerSpread.Groups) +
-		len(sp.InnerSpread.Images)
+	totalItems := len(sp.Spread.TextFrames) +
+		len(sp.Spread.Rectangles) +
+		len(sp.Spread.Ovals) +
+		len(sp.Spread.Polygons) +
+		len(sp.Spread.GraphicLines) +
+		len(sp.Spread.Groups) +
+		len(sp.Spread.Images)
 
 	fmt.Printf("Total page items: %d\n", totalItems)
 
 	// Show individual items
-	for _, tf := range sp.InnerSpread.TextFrames {
+	for _, tf := range sp.Spread.TextFrames {
 		fmt.Printf("TextFrame Self: %s\n", tf.Self)
 	}
-	for _, rect := range sp.InnerSpread.Rectangles {
+	for _, rect := range sp.Spread.Rectangles {
 		fmt.Printf("Rectangle Self: %s\n", rect.Self)
 	}
-	for _, oval := range sp.InnerSpread.Ovals {
+	for _, oval := range sp.Spread.Ovals {
 		fmt.Printf("Oval Self: %s\n", oval.Self)
 	}
 

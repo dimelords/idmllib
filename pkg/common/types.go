@@ -38,15 +38,27 @@ type Properties struct {
 	// Label contains key-value pairs
 	Label *Label `xml:"Label,omitempty"`
 
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see ChildOrder.
+	childOrder ChildOrder
+
 	// Catch-all for other Properties children (AppliedMathMLSwatch, etc.)
 	// that are not yet explicitly modeled
 	OtherElements []RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // Label represents a container for key-value pairs.
 type Label struct {
 	XMLName       xml.Name       `xml:"Label"`
 	KeyValuePairs []KeyValuePair `xml:"KeyValuePair"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // KeyValuePair represents a single key-value metadata pair.
@@ -54,22 +66,38 @@ type KeyValuePair struct {
 	XMLName xml.Name `xml:"KeyValuePair"`
 	Key     string   `xml:"Key,attr"`
 	Value   string   `xml:"Value,attr"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // PathGeometry represents path geometry information.
 type PathGeometry struct {
 	GeometryPathType *GeometryPathType `xml:"GeometryPathType,omitempty"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // GeometryPathType defines a geometric path with points.
 type GeometryPathType struct {
 	PathOpen       string          `xml:"PathOpen,attr,omitempty"`
 	PathPointArray *PathPointArray `xml:"PathPointArray,omitempty"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // PathPointArray contains an array of path points.
 type PathPointArray struct {
 	PathPoints []PathPointType `xml:"PathPointType"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // PathPointType represents a single point in a path with anchor and direction handles.
@@ -77,6 +105,10 @@ type PathPointType struct {
 	Anchor         string `xml:"Anchor,attr"`
 	LeftDirection  string `xml:"LeftDirection,attr,omitempty"`
 	RightDirection string `xml:"RightDirection,attr,omitempty"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // GetAppliedFont extracts the AppliedFont value from Properties.OtherElements.
@@ -189,4 +221,12 @@ type GridDataInformation struct {
 
 	// Catch-all for other GridDataInformation children
 	OtherElements []RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder ChildOrder
 }

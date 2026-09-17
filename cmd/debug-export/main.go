@@ -9,6 +9,7 @@ import (
 
 	"github.com/dimelords/idmllib/v2/pkg/idml"
 	"github.com/dimelords/idmllib/v2/pkg/idms"
+	"github.com/dimelords/idmllib/v2/pkg/spread"
 )
 
 func main() {
@@ -42,16 +43,16 @@ func main() {
 		fmt.Println("   " + strings.Repeat("-", 80))
 
 		for spreadFile, spread := range spreads {
-			for _, tf := range spread.InnerSpread.TextFrames {
+			for _, tf := range spread.TextFrames {
 				preview := "[no story]"
 				if tf.ParentStory != "" {
 					storyFile := "Stories/Story_" + tf.ParentStory + ".xml"
 					story, err := pkg.Story(storyFile)
 					if err == nil {
 						// Get first few characters of content
-						if len(story.StoryElement.ParagraphStyleRanges) > 0 {
-							if len(story.StoryElement.ParagraphStyleRanges[0].CharacterStyleRanges) > 0 {
-								children := story.StoryElement.ParagraphStyleRanges[0].CharacterStyleRanges[0].Children
+						if len(story.ParagraphStyleRanges) > 0 {
+							if len(story.ParagraphStyleRanges[0].CharacterStyleRanges) > 0 {
+								children := story.ParagraphStyleRanges[0].CharacterStyleRanges[0].Children
 								// Concatenate all text from Content elements
 								var textBuilder strings.Builder
 								for _, child := range children {
@@ -89,7 +90,7 @@ func main() {
 	fmt.Printf("\n🔍 Debugging export for TextFrame: %s\n", frameID)
 
 	// Find the text frame
-	tf, err := pkg.SelectTextFrameByID(frameID)
+	tf, err := idml.PageItemOfType[spread.TextFrame](pkg, frameID)
 	if err != nil {
 		log.Fatalf("❌ Failed to find text frame: %v", err)
 	}
@@ -132,7 +133,7 @@ func main() {
 			if err != nil {
 				fmt.Printf("       ⚠️  ERROR loading story: %v\n", err)
 			} else {
-				fmt.Printf("       ✅ Story loaded: %d paragraph ranges\n", len(story.StoryElement.ParagraphStyleRanges))
+				fmt.Printf("       ✅ Story loaded: %d paragraph ranges\n", len(story.ParagraphStyleRanges))
 			}
 		}
 	}
@@ -210,6 +211,7 @@ func main() {
 	}
 
 	outputFile := "debug-output.idms"
+	//nolint:gosec // G703: the path is a constant; gosec taint analysis reports a false positive here
 	if err := os.WriteFile(outputFile, data, 0600); err != nil {
 		log.Fatalf("❌ Failed to write output: %v", err)
 	}

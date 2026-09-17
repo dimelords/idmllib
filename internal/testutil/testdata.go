@@ -65,7 +65,7 @@ func TempIDMLWithDebug(t *testing.T, name string) string {
 		// Clean up on test failure only if requested
 		t.Cleanup(func() {
 			if !t.Failed() && !*preserveTestOutput {
-				os.Remove(debugPath)
+				_ = os.Remove(debugPath)
 			}
 		})
 
@@ -104,10 +104,10 @@ func CreateTestZIP(t *testing.T, files map[string][]byte) string {
 	if err != nil {
 		t.Fatalf("failed to create test ZIP: %v", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	w := zip.NewWriter(f)
-	defer w.Close()
+	defer func() { _ = w.Close() }()
 
 	for name, data := range files {
 		fw, err := w.Create(name)
@@ -143,7 +143,7 @@ func CreateTestZIPWithDebug(t *testing.T, files map[string][]byte, name string) 
 		// Clean up on test success only if not preserving
 		t.Cleanup(func() {
 			if !t.Failed() && !*preserveTestOutput {
-				os.Remove(zipPath)
+				_ = os.Remove(zipPath)
 			}
 		})
 	} else {
@@ -156,10 +156,10 @@ func CreateTestZIPWithDebug(t *testing.T, files map[string][]byte, name string) 
 	if err != nil {
 		t.Fatalf("failed to create test ZIP: %v", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	w := zip.NewWriter(f)
-	defer w.Close()
+	defer func() { _ = w.Close() }()
 
 	for filename, data := range files {
 		fw, err := w.Create(filename)

@@ -55,6 +55,14 @@ type Rectangle struct {
 
 	// Catch-all for other elements
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // FrameFittingOption controls how content fits within a frame.
@@ -67,6 +75,10 @@ type FrameFittingOption struct {
 	BottomCrop          string `xml:"BottomCrop,attr,omitempty"`
 	FittingOnEmptyFrame string `xml:"FittingOnEmptyFrame,attr,omitempty"` // "None", "FitContentProportionally", etc.
 	FittingAlignment    string `xml:"FittingAlignment,attr,omitempty"`    // "TopLeftAnchor", "CenterAnchor", etc.
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // FrameContentBase contains common attributes shared by Image and PDF content.
@@ -123,6 +135,14 @@ type Image struct {
 
 	// Catch-all for other elements
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // Link represents a link to an external file (image, etc.).
@@ -148,6 +168,10 @@ type Link struct {
 	LinkImportTime             string `xml:"LinkImportTime,attr,omitempty"`
 	LinkResourceSize           string `xml:"LinkResourceSize,attr,omitempty"`
 	RenditionData              string `xml:"RenditionData,attr,omitempty"` // "Actual"
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // ClippingPathSettings controls image clipping behavior.
@@ -162,6 +186,10 @@ type ClippingPathSettings struct {
 	InsetFrame             string `xml:"InsetFrame,attr,omitempty"`
 	AppliedPathName        string `xml:"AppliedPathName,attr,omitempty"`
 	Index                  string `xml:"Index,attr,omitempty"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // ImageIOPreference controls image import/export settings.
@@ -169,6 +197,10 @@ type ImageIOPreference struct {
 	ApplyPhotoshopClippingPath string `xml:"ApplyPhotoshopClippingPath,attr,omitempty"`
 	AllowAutoEmbedding         string `xml:"AllowAutoEmbedding,attr,omitempty"`
 	AlphaChannelName           string `xml:"AlphaChannelName,attr,omitempty"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // ContourOption controls contour wrapping.
@@ -176,6 +208,10 @@ type ContourOption struct {
 	ContourType        string `xml:"ContourType,attr,omitempty"`
 	IncludeInsideEdges string `xml:"IncludeInsideEdges,attr,omitempty"`
 	ContourPathName    string `xml:"ContourPathName,attr,omitempty"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // TextWrapPreference controls how text wraps around objects.
@@ -186,20 +222,14 @@ type TextWrapPreference struct {
 	TextWrapMode          string             `xml:"TextWrapMode,attr,omitempty"` // "None", "BoundingBoxTextWrap", etc.
 	Properties            *common.Properties `xml:"Properties,omitempty"`
 	ContourOption         *ContourOption     `xml:"ContourOption,omitempty"`
-}
 
-// InCopyExportOption controls InCopy export settings.
-type InCopyExportOption struct {
-	XMLName               xml.Name `xml:"InCopyExportOption"`
-	IncludeGraphicProxies string   `xml:"IncludeGraphicProxies,attr,omitempty"`
-	IncludeAllResources   string   `xml:"IncludeAllResources,attr,omitempty"`
-}
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 
-// ObjectExportOption controls export settings for web/digital publishing.
-type ObjectExportOption struct {
-	XMLName xml.Name `xml:"ObjectExportOption"`
-	// Placeholder for export options - full definition will come in Phase 5
-	OtherElements []common.RawXMLElement `xml:",any"`
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // PDF represents a PDF file placed in a frame (typically Rectangle).
@@ -221,6 +251,14 @@ type PDF struct {
 
 	// Catch-all for other elements
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // PDFAttribute contains PDF-specific attributes like page number and crop settings.
@@ -228,4 +266,14 @@ type PDFAttribute struct {
 	PageNumber            string `xml:"PageNumber,attr,omitempty"`            // "1" (which page of multi-page PDF to display)
 	PDFCrop               string `xml:"PDFCrop,attr,omitempty"`               // "CropPDF", "CropContentBox", "CropMediaBox", etc.
 	TransparentBackground string `xml:"TransparentBackground,attr,omitempty"` // "true" or "false"
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
+
+// InCopyExportOption is shared with stories; see common.InCopyExportOption.
+type InCopyExportOption = common.InCopyExportOption
+
+// ObjectExportOption is shared with object styles; see common.ObjectExportOption.
+type ObjectExportOption = common.ObjectExportOption

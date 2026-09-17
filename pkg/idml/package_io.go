@@ -13,27 +13,6 @@ func (p *Package) hasFile(filename string) bool {
 	return exists
 }
 
-// getFileData returns the raw data for a file.
-// Returns ErrNotFound if the file doesn't exist.
-func (p *Package) getFileData(filename string) ([]byte, error) {
-	// Add validation for filename
-	if filename == "" {
-		return nil, common.Errorf("idml", "get file data", "", "filename is empty")
-	}
-
-	entry, exists := p.files[filename]
-	if !exists {
-		return nil, common.WrapErrorWithPath("idml", "get file data", filename, common.ErrNotFound)
-	}
-
-	// Add validation for file entry
-	if entry == nil {
-		return nil, common.WrapErrorWithPath("idml", "get file data", filename, common.Errorf("idml", "get file data", filename, "file entry is nil"))
-	}
-
-	return entry.data, nil
-}
-
 // setFileData sets the raw data for a file.
 // Creates a new fileEntry if the file doesn't exist.
 // Preserves the existing ZIP header if the file already exists.
@@ -52,6 +31,7 @@ func (p *Package) setFileData(filename string, data []byte) {
 	if entry, exists := p.files[filename]; exists {
 		// Preserve existing header, update data
 		entry.data = data
+		entry.src = nil // the bytes now live here, not in the source archive
 	} else {
 		// Create new entry
 		p.files[filename] = &fileEntry{
@@ -108,57 +88,14 @@ func (p *Package) getFileEntry(filename string) (*fileEntry, error) {
 		return nil, common.WrapErrorWithPath("idml", "get file entry", filename, common.Errorf("idml", "get file entry", filename, "file entry is nil"))
 	}
 
-	return entry, nil
-}
-
-// copyFileData creates a copy of file data to prevent accidental modification.
-// Returns ErrNotFound if the file doesn't exist.
-func (p *Package) copyFileData(filename string) ([]byte, error) {
-	// Add validation for filename
-	if filename == "" {
-		return nil, common.Errorf("idml", "copy file data", "", "filename is empty")
+	// In lazy mode the bytes are read the first time the entry is used.
+	if err := p.load(filename, entry); err != nil {
+		return nil, err
 	}
-
-	entry, exists := p.files[filename]
-	if !exists {
-		return nil, common.WrapErrorWithPath("idml", "copy file data", filename, common.ErrNotFound)
-	}
-
-	// Add validation for file entry
-	if entry == nil {
-		return nil, common.WrapErrorWithPath("idml", "copy file data", filename, common.Errorf("idml", "copy file data", filename, "file entry is nil"))
-	}
-
-	// Handle nil data gracefully
 	if entry.data == nil {
-		return []byte{}, nil
+		return nil, common.WrapErrorWithPath("idml", "get file entry", filename,
+			common.Errorf("idml", "get file entry", filename, "package was closed before this file was read"))
 	}
 
-	// Create a copy to prevent modification of original data
-	dataCopy := make([]byte, len(entry.data))
-	copy(dataCopy, entry.data)
-	return dataCopy, nil
-}
-
-// getFileSize returns the size of a file in bytes.
-// Returns 0 if the file doesn't exist.
-func (p *Package) getFileSize(filename string) int {
-	entry, exists := p.files[filename]
-	if !exists {
-		return 0
-	}
-	return len(entry.data)
-}
-
-// listFilesByPattern returns all filenames that match a pattern.
-// This is useful for finding all files in a directory (e.g., "Stories/", "Spreads/").
-func (p *Package) listFilesByPattern(pattern string) []string {
-	var matches []string
-	for filename := range p.files {
-		// Simple prefix matching - could be enhanced with regex if needed
-		if len(filename) >= len(pattern) && filename[:len(pattern)] == pattern {
-			matches = append(matches, filename)
-		}
-	}
-	return matches
+	return entry, nil
 }

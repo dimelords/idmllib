@@ -6,7 +6,7 @@ import (
 	"github.com/dimelords/idmllib/v2/pkg/spread"
 )
 
-func TestSpreadTextFrame_Bounds(t *testing.T) {
+func TestTextFrame_Bounds(t *testing.T) {
 	tests := []struct {
 		name            string
 		geometricBounds string
@@ -51,7 +51,7 @@ func TestSpreadTextFrame_Bounds(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tf := &spread.SpreadTextFrame{
+			tf := &spread.TextFrame{
 				PageItemBase: spread.PageItemBase{
 					GeometricBounds: tt.geometricBounds,
 				},
@@ -81,7 +81,7 @@ func TestSpreadTextFrame_Bounds(t *testing.T) {
 	}
 }
 
-func TestSpreadTextFrame_Position(t *testing.T) {
+func TestTextFrame_Position(t *testing.T) {
 	tests := []struct {
 		name          string
 		itemTransform string
@@ -126,7 +126,7 @@ func TestSpreadTextFrame_Position(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tf := &spread.SpreadTextFrame{
+			tf := &spread.TextFrame{
 				PageItemBase: spread.PageItemBase{
 					ItemTransform: tt.itemTransform,
 				},
@@ -156,7 +156,7 @@ func TestSpreadTextFrame_Position(t *testing.T) {
 	}
 }
 
-func TestSpreadTextFrame_Transform(t *testing.T) {
+func TestTextFrame_Transform(t *testing.T) {
 	tests := []struct {
 		name          string
 		itemTransform string
@@ -193,7 +193,7 @@ func TestSpreadTextFrame_Transform(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tf := &spread.SpreadTextFrame{
+			tf := &spread.TextFrame{
 				PageItemBase: spread.PageItemBase{
 					ItemTransform: tt.itemTransform,
 				},

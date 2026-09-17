@@ -2,42 +2,22 @@ package story
 
 import (
 	"encoding/xml"
-	"strings"
 
 	"github.com/dimelords/idmllib/v2/pkg/common"
 )
 
-// Story represents an InDesign Story XML file.
+// File represents an InDesign File XML file.
 // Stories contain text content with formatting information.
-type Story struct {
+type File struct {
 	XMLName    xml.Name `xml:"http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging Story"`
 	DOMVersion string   `xml:"DOMVersion,attr"`
 
 	// The actual story content
-	StoryElement StoryElement `xml:"Story"`
+	Story Story `xml:"Story"`
 }
 
-// ExtractText returns all text content from the story concatenated as a single string.
-// Line breaks (<Br> elements) are converted to newline characters.
-// This is a convenience method that navigates the story structure automatically.
-func (s *Story) ExtractText() string {
-	var buf strings.Builder
-	for _, psr := range s.StoryElement.ParagraphStyleRanges {
-		for _, csr := range psr.CharacterStyleRanges {
-			for _, child := range csr.Children {
-				if child.Content != nil {
-					buf.WriteString(child.Content.Text)
-				} else if child.Br != nil {
-					buf.WriteString("\n")
-				}
-			}
-		}
-	}
-	return buf.String()
-}
-
-// StoryElement represents the main Story element containing all content.
-type StoryElement struct {
+// Story represents the main Story element containing all content.
+type Story struct {
 	XMLName xml.Name `xml:"Story"`
 
 	// Identity
@@ -60,8 +40,20 @@ type StoryElement struct {
 	// Content - paragraph style ranges
 	ParagraphStyleRanges []ParagraphStyleRange `xml:"ParagraphStyleRange"`
 
+	// XMLElements are tag wrappers of a tagged story; their paragraphs are part
+	// of the text flow. Use Paragraphs() to iterate both in document order.
+	XMLElements []XMLElement `xml:"XMLElement"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
+
 	// Catch-all for unknown elements
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // StoryPreference represents story-level preferences.
@@ -79,17 +71,10 @@ type StoryPreference struct {
 
 	// Catch-all for unknown attributes/elements
 	OtherElements []common.RawXMLElement `xml:",any"`
-}
 
-// InCopyExportOption represents InCopy export settings for the story.
-type InCopyExportOption struct {
-	XMLName xml.Name `xml:"InCopyExportOption"`
-
-	IncludeGraphicProxies string `xml:"IncludeGraphicProxies,attr,omitempty"` // "true"/"false"
-	IncludeAllResources   string `xml:"IncludeAllResources,attr,omitempty"`   // "true"/"false"
-
-	// Catch-all for unknown attributes/elements
-	OtherElements []common.RawXMLElement `xml:",any"`
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // ParagraphStyleRange represents a range of paragraphs with the same paragraph style.
@@ -102,8 +87,20 @@ type ParagraphStyleRange struct {
 	// Character style ranges within this paragraph
 	CharacterStyleRanges []CharacterStyleRange `xml:"CharacterStyleRange"`
 
+	// XMLElements are tag wrappers around character ranges. Use Ranges() to
+	// iterate both in document order.
+	XMLElements []XMLElement `xml:"XMLElement"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
+
 	// Catch-all for unknown elements
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // CharacterStyleRange represents a range of characters with the same character style.
@@ -129,20 +126,40 @@ type CharacterStyleRange struct {
 
 // CharacterChild represents either a Content element or a Br element
 type CharacterChild struct {
-	Content *Content              // If non-nil, this is a Content element
-	Br      *Br                   // If non-nil, this is a Br element
-	Other   *common.RawXMLElement // If non-nil, this is an unknown element
+	Content             *Content              // If non-nil, this is a Content element
+	Br                  *Br                   // If non-nil, this is a Br element
+	XMLElement          *XMLElement           // Tagged inline content
+	Change              *Change               // Tracked change
+	Note                *Note                 // Editorial note (not printed)
+	HyperlinkTextSource *HyperlinkTextSource  // Hyperlink source text
+	Footnote            *Footnote             // Footnote (not in main flow)
+	Table               *Table                // Anchored table
+	Other               *common.RawXMLElement // If non-nil, this is an unknown element
 }
 
 // Content represents actual text content.
 type Content struct {
 	XMLName xml.Name `xml:"Content"`
 	Text    string   `xml:",chardata"`
+
+	// Segments holds the text runs and processing instructions (<?ACE n?>
+	// special characters) in order. It is populated only when the content
+	// contains at least one instruction; Text always holds the plain text.
+	// Setting Text directly (or via SetText) drops the instructions.
+	Segments []ContentSegment `xml:"-"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // Br represents a line break element.
 type Br struct {
 	XMLName xml.Name `xml:"Br"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // NewCharacterStyleRange creates a new CharacterStyleRange with the given style and content.
@@ -206,3 +223,6 @@ func (c *CharacterStyleRange) AddContent(text string) {
 	}})
 	c.Children = append(c.Children, CharacterChild{Br: &Br{XMLName: xml.Name{Local: "Br"}}})
 }
+
+// InCopyExportOption is shared with page items; see common.InCopyExportOption.
+type InCopyExportOption = common.InCopyExportOption

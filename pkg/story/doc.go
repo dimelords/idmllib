@@ -21,7 +21,7 @@
 // # Key Types
 //
 //   - Story: The outer wrapper with DOMVersion and namespace
-//   - StoryElement: The inner <Story> element containing actual content
+//   - Story: the <Story> element with the text content; File is the idPkg wrapper around it
 //   - ParagraphStyleRange: Groups characters by paragraph style
 //   - CharacterStyleRange: Groups text by character style with custom marshal/unmarshal
 //   - Content: Actual text content
@@ -42,7 +42,7 @@
 //	}
 //
 //	// Access story content
-//	for _, psr := range story.StoryElement.ParagraphStyleRanges {
+//	for _, psr := range story.Story.ParagraphStyleRanges {
 //	    for _, csr := range psr.CharacterStyleRanges {
 //	        contents := csr.GetContent()
 //	        for _, content := range contents {

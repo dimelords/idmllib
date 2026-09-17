@@ -55,7 +55,7 @@ func TestStoryUsesFont_DetectsFontUsage(t *testing.T) {
 	// for stories that use built-in styles (which don't have custom fonts)
 	builtInStyleCount := 0
 	for _, story := range stories {
-		for _, psr := range story.StoryElement.ParagraphStyleRanges {
+		for _, psr := range story.ParagraphStyleRanges {
 			for _, csr := range psr.CharacterStyleRanges {
 				if csr.AppliedCharacterStyle == "CharacterStyle/$ID/[No character style]" {
 					builtInStyleCount++

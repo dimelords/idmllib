@@ -16,10 +16,10 @@ import (
 // ============================================================================
 
 // createTestStory creates a simple test story with the given style reference.
-func createTestStory(paragraphStyle string) *story.Story {
-	return &story.Story{
+func createTestStory(paragraphStyle string) *story.File {
+	return &story.File{
 		XMLName: xml.Name{Local: "Story"},
-		StoryElement: story.StoryElement{
+		Story: story.Story{
 			Self: "u1",
 			ParagraphStyleRanges: []story.ParagraphStyleRange{
 				{
@@ -141,8 +141,7 @@ func TestRemoveStory_NotFound(t *testing.T) {
 	}
 
 	// Verify it's an common.ErrNotFound
-	var idmlErr *common.Error
-	if !errors.As(err, &idmlErr) {
+	if _, ok := errors.AsType[*common.Error](err); !ok {
 		t.Fatalf("Expected *common.Error type, got %T", err)
 	}
 
@@ -218,7 +217,7 @@ func TestAddStory_Basic(t *testing.T) {
 		FailOnMissing:     false,
 	}
 
-	err := pkg.AddStory("Stories/Story_new.xml", story, opts)
+	err := pkg.AddStory("Stories/Story_new.xml", &story.Story, opts)
 	if err != nil {
 		t.Fatalf("AddStory failed: %v", err)
 	}
@@ -244,9 +243,9 @@ func TestAddStory_Basic(t *testing.T) {
 	}
 
 	// Verify story content matches
-	if retrieved.StoryElement.Self != story.StoryElement.Self {
+	if retrieved.Self != story.Story.Self {
 		t.Errorf("Story Self mismatch: expected %s, got %s",
-			story.StoryElement.Self, retrieved.StoryElement.Self)
+			story.Story.Self, retrieved.Self)
 	}
 }
 
@@ -261,13 +260,13 @@ func TestAddStory_AlreadyExists(t *testing.T) {
 	}
 
 	// Add story first time
-	err := pkg.AddStory("Stories/Story_test.xml", story, opts)
+	err := pkg.AddStory("Stories/Story_test.xml", &story.Story, opts)
 	if err != nil {
 		t.Fatalf("First AddStory failed: %v", err)
 	}
 
 	// Try to add again
-	err = pkg.AddStory("Stories/Story_test.xml", story, opts)
+	err = pkg.AddStory("Stories/Story_test.xml", &story.Story, opts)
 	if err == nil {
 		t.Fatal("Expected error when adding duplicate story, got nil")
 	}
@@ -295,7 +294,7 @@ func TestAddStory_WithValidation(t *testing.T) {
 		FailOnMissing:     false,
 	}
 
-	err := pkg.AddStory("Stories/Story_validated.xml", story, opts)
+	err := pkg.AddStory("Stories/Story_validated.xml", &story.Story, opts)
 	if err != nil {
 		t.Fatalf("AddStory with validation and auto-add failed: %v", err)
 	}
@@ -329,7 +328,7 @@ func TestAddStory_AutoAddMissing(t *testing.T) {
 		FailOnMissing:     false,
 	}
 
-	err := pkg.AddStory("Stories/Story_autoadd.xml", story, opts)
+	err := pkg.AddStory("Stories/Story_autoadd.xml", &story.Story, opts)
 	if err != nil {
 		t.Fatalf("AddStory with auto-add failed: %v", err)
 	}
@@ -362,7 +361,7 @@ func TestAddStory_FailOnMissing(t *testing.T) {
 		FailOnMissing:     true,
 	}
 
-	err := pkg.AddStory("Stories/Story_fail.xml", story, opts)
+	err := pkg.AddStory("Stories/Story_fail.xml", &story.Story, opts)
 	if err == nil {
 		t.Fatal("Expected error with missing resources and FailOnMissing=true, got nil")
 	}
@@ -383,24 +382,24 @@ func TestUpdateStory_Basic(t *testing.T) {
 
 	// Add initial story
 	story1 := createTestStory("ParagraphStyle/$ID/NormalParagraphStyle")
-	story1.StoryElement.Self = "original"
+	story1.Story.Self = "original"
 
 	opts := ValidationOptions{
 		EnsureStylesExist: false,
 		EnsureFontsExist:  false,
 	}
 
-	err := pkg.AddStory("Stories/Story_update.xml", story1, opts)
+	err := pkg.AddStory("Stories/Story_update.xml", &story1.Story, opts)
 	if err != nil {
 		t.Fatalf("AddStory failed: %v", err)
 	}
 
 	// Create updated story
 	story2 := createTestStory("ParagraphStyle/$ID/NormalParagraphStyle")
-	story2.StoryElement.Self = "updated"
+	story2.Story.Self = "updated"
 
 	// Update the story
-	err = pkg.UpdateStory("Stories/Story_update.xml", story2, opts)
+	err = pkg.UpdateStory("Stories/Story_update.xml", &story2.Story, opts)
 	if err != nil {
 		t.Fatalf("UpdateStory failed: %v", err)
 	}
@@ -411,9 +410,9 @@ func TestUpdateStory_Basic(t *testing.T) {
 		t.Fatalf("Failed to retrieve updated story: %v", err)
 	}
 
-	if retrieved.StoryElement.Self != "updated" {
+	if retrieved.Self != "updated" {
 		t.Errorf("Story was not updated: expected Self='updated', got '%s'",
-			retrieved.StoryElement.Self)
+			retrieved.Self)
 	}
 }
 
@@ -427,7 +426,7 @@ func TestUpdateStory_NotFound(t *testing.T) {
 		EnsureFontsExist:  false,
 	}
 
-	err := pkg.UpdateStory("Stories/NonExistent.xml", story, opts)
+	err := pkg.UpdateStory("Stories/NonExistent.xml", &story.Story, opts)
 	if err == nil {
 		t.Fatal("Expected error when updating non-existent story, got nil")
 	}
@@ -449,26 +448,26 @@ func TestUpdateStory_PreservesOtherStories(t *testing.T) {
 
 	// Add multiple stories
 	story1 := createTestStory("ParagraphStyle/$ID/NormalParagraphStyle")
-	story1.StoryElement.Self = "story1"
+	story1.Story.Self = "story1"
 
 	story2 := createTestStory("ParagraphStyle/$ID/NormalParagraphStyle")
-	story2.StoryElement.Self = "story2"
+	story2.Story.Self = "story2"
 
-	err := pkg.AddStory("Stories/Story_1.xml", story1, opts)
+	err := pkg.AddStory("Stories/Story_1.xml", &story1.Story, opts)
 	if err != nil {
 		t.Fatalf("Failed to add story 1: %v", err)
 	}
 
-	err = pkg.AddStory("Stories/Story_2.xml", story2, opts)
+	err = pkg.AddStory("Stories/Story_2.xml", &story2.Story, opts)
 	if err != nil {
 		t.Fatalf("Failed to add story 2: %v", err)
 	}
 
 	// Update story 1
 	updatedStory1 := createTestStory("ParagraphStyle/$ID/NormalParagraphStyle")
-	updatedStory1.StoryElement.Self = "story1_updated"
+	updatedStory1.Story.Self = "story1_updated"
 
-	err = pkg.UpdateStory("Stories/Story_1.xml", updatedStory1, opts)
+	err = pkg.UpdateStory("Stories/Story_1.xml", &updatedStory1.Story, opts)
 	if err != nil {
 		t.Fatalf("UpdateStory failed: %v", err)
 	}
@@ -479,7 +478,7 @@ func TestUpdateStory_PreservesOtherStories(t *testing.T) {
 		t.Fatalf("Failed to retrieve story 1: %v", err)
 	}
 
-	if retrieved1.StoryElement.Self != "story1_updated" {
+	if retrieved1.Self != "story1_updated" {
 		t.Errorf("Story 1 was not updated correctly")
 	}
 
@@ -489,7 +488,7 @@ func TestUpdateStory_PreservesOtherStories(t *testing.T) {
 		t.Fatalf("Failed to retrieve story 2: %v", err)
 	}
 
-	if retrieved2.StoryElement.Self != "story2" {
+	if retrieved2.Self != "story2" {
 		t.Errorf("Story 2 was unexpectedly modified")
 	}
 }
@@ -528,7 +527,7 @@ func TestComplexScenario_MultipleModifications(t *testing.T) {
 
 	// Step 2: Add a new story with validation
 	newStory := createTestStory("ParagraphStyle/$ID/NormalParagraphStyle")
-	newStory.StoryElement.Self = "newstory"
+	newStory.Story.Self = "newstory"
 
 	opts := ValidationOptions{
 		EnsureStylesExist: true,
@@ -536,7 +535,7 @@ func TestComplexScenario_MultipleModifications(t *testing.T) {
 		FailOnMissing:     false,
 	}
 
-	err = pkg.AddStory("Stories/Story_added.xml", newStory, opts)
+	err = pkg.AddStory("Stories/Story_added.xml", &newStory.Story, opts)
 	if err != nil {
 		t.Fatalf("AddStory failed: %v", err)
 	}
@@ -606,10 +605,10 @@ func TestRemoveTextFrame_Basic(t *testing.T) {
 	var initialTFCount int
 
 	for filename, sp := range spreads {
-		if len(sp.InnerSpread.TextFrames) > 0 {
+		if len(sp.TextFrames) > 0 {
 			spreadFilename = filename
-			textFrameID = sp.InnerSpread.TextFrames[0].Self
-			initialTFCount = len(sp.InnerSpread.TextFrames)
+			textFrameID = sp.TextFrames[0].Self
+			initialTFCount = len(sp.TextFrames)
 			break
 		}
 	}
@@ -635,13 +634,13 @@ func TestRemoveTextFrame_Basic(t *testing.T) {
 		t.Fatalf("Failed to get spread after removal: %v", err)
 	}
 
-	if len(sp.InnerSpread.TextFrames) != initialTFCount-1 {
+	if len(sp.TextFrames) != initialTFCount-1 {
 		t.Errorf("Expected %d text frames after removal, got %d",
-			initialTFCount-1, len(sp.InnerSpread.TextFrames))
+			initialTFCount-1, len(sp.TextFrames))
 	}
 
 	// Verify removed text frame is not in the spread
-	for _, tf := range sp.InnerSpread.TextFrames {
+	for _, tf := range sp.TextFrames {
 		if tf.Self == textFrameID {
 			t.Errorf("Removed text frame '%s' still exists in spread", textFrameID)
 		}
@@ -667,9 +666,9 @@ func TestRemoveTextFrame_WithCleanup(t *testing.T) {
 	var textFrameID string
 
 	for filename, sp := range spreads {
-		if len(sp.InnerSpread.TextFrames) > 0 {
+		if len(sp.TextFrames) > 0 {
 			spreadFilename = filename
-			textFrameID = sp.InnerSpread.TextFrames[0].Self
+			textFrameID = sp.TextFrames[0].Self
 			break
 		}
 	}
@@ -742,12 +741,12 @@ func TestAddTextFrame_Basic(t *testing.T) {
 	var initialTFCount int
 	for filename, sp := range spreads {
 		spreadFilename = filename
-		initialTFCount = len(sp.InnerSpread.TextFrames)
+		initialTFCount = len(sp.TextFrames)
 		break
 	}
 
 	// Create a new text frame
-	newTF := spread.SpreadTextFrame{
+	newTF := spread.TextFrame{
 		PageItemBase: spread.PageItemBase{
 			Self:            "u_new_textframe_test",
 			GeometricBounds: "0 0 100 200",
@@ -775,14 +774,14 @@ func TestAddTextFrame_Basic(t *testing.T) {
 		t.Fatalf("Failed to get spread after addition: %v", err)
 	}
 
-	if len(sp.InnerSpread.TextFrames) != initialTFCount+1 {
+	if len(sp.TextFrames) != initialTFCount+1 {
 		t.Errorf("Expected %d text frames after addition, got %d",
-			initialTFCount+1, len(sp.InnerSpread.TextFrames))
+			initialTFCount+1, len(sp.TextFrames))
 	}
 
 	// Verify new text frame is in the spread
 	found := false
-	for _, tf := range sp.InnerSpread.TextFrames {
+	for _, tf := range sp.TextFrames {
 		if tf.Self == "u_new_textframe_test" {
 			found = true
 			if tf.AppliedObjectStyle != "ObjectStyle/$ID/[Normal Text Frame]" {
@@ -819,7 +818,7 @@ func TestAddTextFrame_WithValidation(t *testing.T) {
 	}
 
 	// Create a new text frame with a non-existent object style
-	newTF := spread.SpreadTextFrame{
+	newTF := spread.TextFrame{
 		PageItemBase: spread.PageItemBase{
 			Self:            "u_new_textframe_validation",
 			GeometricBounds: "0 0 100 200",
@@ -880,10 +879,10 @@ func TestUpdateTextFrame_Basic(t *testing.T) {
 	var originalObjectStyle string
 
 	for filename, sp := range spreads {
-		if len(sp.InnerSpread.TextFrames) > 0 {
+		if len(sp.TextFrames) > 0 {
 			spreadFilename = filename
-			textFrameID = sp.InnerSpread.TextFrames[0].Self
-			originalObjectStyle = sp.InnerSpread.TextFrames[0].AppliedObjectStyle
+			textFrameID = sp.TextFrames[0].Self
+			originalObjectStyle = sp.TextFrames[0].AppliedObjectStyle
 			break
 		}
 	}
@@ -898,10 +897,10 @@ func TestUpdateTextFrame_Basic(t *testing.T) {
 		t.Fatalf("Failed to get spread: %v", err)
 	}
 
-	var tfToUpdate *spread.SpreadTextFrame
-	for i := range sp.InnerSpread.TextFrames {
-		if sp.InnerSpread.TextFrames[i].Self == textFrameID {
-			tfToUpdate = &sp.InnerSpread.TextFrames[i]
+	var tfToUpdate *spread.TextFrame
+	for i := range sp.TextFrames {
+		if sp.TextFrames[i].Self == textFrameID {
+			tfToUpdate = &sp.TextFrames[i]
 			break
 		}
 	}
@@ -929,7 +928,7 @@ func TestUpdateTextFrame_Basic(t *testing.T) {
 	}
 
 	found := false
-	for _, tf := range sp.InnerSpread.TextFrames {
+	for _, tf := range sp.TextFrames {
 		if tf.Self == textFrameID {
 			found = true
 			if tf.GeometricBounds != "10 10 110 210" {
@@ -969,7 +968,7 @@ func TestUpdateTextFrame_NotFound(t *testing.T) {
 	}
 
 	// Create a text frame to update
-	tf := &spread.SpreadTextFrame{
+	tf := &spread.TextFrame{
 		PageItemBase: spread.PageItemBase{
 			Self:            "nonexistent_textframe",
 			GeometricBounds: "0 0 100 200",
@@ -1013,10 +1012,10 @@ func TestRemoveRectangle_Basic(t *testing.T) {
 	var initialRectCount int
 
 	for filename, sp := range spreads {
-		if len(sp.InnerSpread.Rectangles) > 0 {
+		if len(sp.Rectangles) > 0 {
 			spreadFilename = filename
-			rectangleID = sp.InnerSpread.Rectangles[0].Self
-			initialRectCount = len(sp.InnerSpread.Rectangles)
+			rectangleID = sp.Rectangles[0].Self
+			initialRectCount = len(sp.Rectangles)
 			break
 		}
 	}
@@ -1042,13 +1041,13 @@ func TestRemoveRectangle_Basic(t *testing.T) {
 		t.Fatalf("Failed to get spread after removal: %v", err)
 	}
 
-	if len(sp.InnerSpread.Rectangles) != initialRectCount-1 {
+	if len(sp.Rectangles) != initialRectCount-1 {
 		t.Errorf("Expected %d rectangles after removal, got %d",
-			initialRectCount-1, len(sp.InnerSpread.Rectangles))
+			initialRectCount-1, len(sp.Rectangles))
 	}
 
 	// Verify removed rectangle is not in the spread
-	for _, rect := range sp.InnerSpread.Rectangles {
+	for _, rect := range sp.Rectangles {
 		if rect.Self == rectangleID {
 			t.Errorf("Removed rectangle '%s' still exists in spread", rectangleID)
 		}
@@ -1074,9 +1073,9 @@ func TestRemoveRectangle_WithCleanup(t *testing.T) {
 	var rectangleID string
 
 	for filename, sp := range spreads {
-		if len(sp.InnerSpread.Rectangles) > 0 {
+		if len(sp.Rectangles) > 0 {
 			spreadFilename = filename
-			rectangleID = sp.InnerSpread.Rectangles[0].Self
+			rectangleID = sp.Rectangles[0].Self
 			break
 		}
 	}
@@ -1149,7 +1148,7 @@ func TestAddRectangle_Basic(t *testing.T) {
 	var initialRectCount int
 	for filename, sp := range spreads {
 		spreadFilename = filename
-		initialRectCount = len(sp.InnerSpread.Rectangles)
+		initialRectCount = len(sp.Rectangles)
 		break
 	}
 
@@ -1181,14 +1180,14 @@ func TestAddRectangle_Basic(t *testing.T) {
 		t.Fatalf("Failed to get spread after addition: %v", err)
 	}
 
-	if len(sp.InnerSpread.Rectangles) != initialRectCount+1 {
+	if len(sp.Rectangles) != initialRectCount+1 {
 		t.Errorf("Expected %d rectangles after addition, got %d",
-			initialRectCount+1, len(sp.InnerSpread.Rectangles))
+			initialRectCount+1, len(sp.Rectangles))
 	}
 
 	// Verify new rectangle is in the spread
 	found := false
-	for _, rect := range sp.InnerSpread.Rectangles {
+	for _, rect := range sp.Rectangles {
 		if rect.Self == "u_new_rectangle_test" {
 			found = true
 			if rect.AppliedObjectStyle != "ObjectStyle/$ID/[Basic Graphics Frame]" {
@@ -1285,10 +1284,10 @@ func TestUpdateRectangle_Basic(t *testing.T) {
 	var originalObjectStyle string
 
 	for filename, sp := range spreads {
-		if len(sp.InnerSpread.Rectangles) > 0 {
+		if len(sp.Rectangles) > 0 {
 			spreadFilename = filename
-			rectangleID = sp.InnerSpread.Rectangles[0].Self
-			originalObjectStyle = sp.InnerSpread.Rectangles[0].AppliedObjectStyle
+			rectangleID = sp.Rectangles[0].Self
+			originalObjectStyle = sp.Rectangles[0].AppliedObjectStyle
 			break
 		}
 	}
@@ -1304,9 +1303,9 @@ func TestUpdateRectangle_Basic(t *testing.T) {
 	}
 
 	var rectToUpdate *spread.Rectangle
-	for i := range sp.InnerSpread.Rectangles {
-		if sp.InnerSpread.Rectangles[i].Self == rectangleID {
-			rectToUpdate = &sp.InnerSpread.Rectangles[i]
+	for i := range sp.Rectangles {
+		if sp.Rectangles[i].Self == rectangleID {
+			rectToUpdate = &sp.Rectangles[i]
 			break
 		}
 	}
@@ -1334,7 +1333,7 @@ func TestUpdateRectangle_Basic(t *testing.T) {
 	}
 
 	found := false
-	for _, rect := range sp.InnerSpread.Rectangles {
+	for _, rect := range sp.Rectangles {
 		if rect.Self == rectangleID {
 			found = true
 			if rect.GeometricBounds != "20 20 70 120" {

@@ -68,13 +68,13 @@ func (e *Exporter) buildMinimalPackage(sel *idml.Selection, resources *Extracted
 
 	// Add spreads with selected items (IDMS uses inline spreads, not ResourceRef)
 	spreadElem := e.buildSpreadFromSelection(sel)
-	doc.InlineSpreads = []spread.SpreadElement{spreadElem}
+	doc.InlineSpreads = []spread.Spread{spreadElem}
 
 	// Add stories inline (IDMS uses inline stories, not ResourceRef)
 	if len(resources.Stories) > 0 {
-		doc.InlineStories = make([]story.StoryElement, 0, len(resources.Stories))
+		doc.InlineStories = make([]story.Story, 0, len(resources.Stories))
 		for _, st := range resources.Stories {
-			doc.InlineStories = append(doc.InlineStories, st.StoryElement)
+			doc.InlineStories = append(doc.InlineStories, *st)
 		}
 	}
 
@@ -218,14 +218,14 @@ func (e *Exporter) buildTransparencyDefaults() *document.TransparencyDefaultCont
 }
 
 // buildSpreadFromSelection creates a spread containing the selected page items.
-func (e *Exporter) buildSpreadFromSelection(sel *idml.Selection) spread.SpreadElement {
-	spreadElem := spread.SpreadElement{
+func (e *Exporter) buildSpreadFromSelection(sel *idml.Selection) spread.Spread {
+	spreadElem := spread.Spread{
 		Self: "ue6",
 	}
 
 	// Copy selected text frames
 	if len(sel.TextFrames) > 0 {
-		spreadElem.TextFrames = make([]spread.SpreadTextFrame, len(sel.TextFrames))
+		spreadElem.TextFrames = make([]spread.TextFrame, len(sel.TextFrames))
 		for i, tf := range sel.TextFrames {
 			spreadElem.TextFrames[i] = *tf
 		}

@@ -29,8 +29,13 @@
 - ✅ Selection API for programmatic element access
 - ✅ IDMS snippet export functionality
 - ✅ Domain-driven architecture for maintainability
+- ✅ Lossless roundtrip: unknown attributes and child order are preserved, unmodified files are written back byte for byte (see docs/FIDELITY.md)
+- ✅ Streaming mode: ~58% less memory for documents with embedded images (see docs/STREAMING_MODE_DESIGN.md)
+- ✅ Lazy reading: entries loaded on demand, untouched ones copied compressed on write (114 MB → 0.8 MB for a structure-only read)
 
 ## Overview
+
+> **Concurrency:** a `Package` is not safe for concurrent use. Read and modify a package from one goroutine, or guard it with your own lock. Independent packages can be processed in parallel.
 
 IDML is Adobe InDesign's XML-based file format. This library provides a clean, type-safe API for working with IDML files in Go.
 
@@ -97,15 +102,14 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-    log.Printf("Story has %d paragraph ranges",
-        len(story.StoryElement.ParagraphStyleRanges))
+    log.Printf("Story has %d paragraph ranges", len(story.ParagraphStyleRanges))
 
     // Access a spread
     spread, err := pkg.Spread("Spreads/Spread_ue6.xml")
     if err != nil {
         log.Fatal(err)
     }
-    log.Printf("Spread has %d text frames", len(spread.InnerSpread.TextFrames))
+    log.Printf("Spread has %d text frames", len(spread.TextFrames))
 }
 ```
 
@@ -128,8 +132,8 @@ func main() {
 
     // Create a new story
     newStory := &story.Story{}
-    newStory.StoryElement.Self = "u1234"
-    newStory.StoryElement.ParagraphStyleRanges = []story.ParagraphStyleRange{
+    newStory.Self = "u1234"
+    newStory.ParagraphStyleRanges = []story.ParagraphStyleRange{
         {
             AppliedParagraphStyle: "ParagraphStyle/$ID/NormalParagraphStyle",
             CharacterStyleRanges: []story.CharacterStyleRange{
@@ -211,7 +215,7 @@ func main() {
 
     // Select elements to export
     sel := idml.NewSelection()
-    textFrame, _ := pkg.SelectTextFrameByID("u1e6")
+    textFrame, _ := idml.PageItemOfType[spread.TextFrame](pkg, "u1e6")
     sel.AddTextFrame(textFrame)
 
     // Export as IDMS snippet
@@ -235,7 +239,7 @@ The project includes an interactive CLI tool for exploring and manipulating IDML
 
 ```bash
 # Build the CLI
-go build -o bin/idmllib ./cmd/cli
+(cd cmd && go build -o ../bin/idmllib ./cli)
 
 # Run interactively
 ./bin/idmllib
@@ -252,7 +256,7 @@ Features:
 
 ### Requirements
 
-- Go 1.23 or later
+- Go 1.26 or later (the toolchain is pinned in go.mod)
 - golangci-lint (for code quality checks)
 
 ### Code Quality and Linting
@@ -445,7 +449,7 @@ Fredrik Gustafsson ([@dimelords](https://github.com/dimelords))
 - ✅ **BREAKING**: Updated module path to `github.com/dimelords/idmllib/v2` following Go module versioning semantics
 - ✅ Complete IDML read/write support with roundtrip fidelity
 - ✅ Domain-driven package architecture mirroring IDML file structure
-- ✅ Go 1.23 compatibility with comprehensive security fixes
+- ✅ Go 1.26 toolchain with comprehensive security fixes
 - ✅ CLI tool with interactive TUI interface
 - ✅ ResourceManager for tracking, validating, and cleaning up resources
 - ✅ Selection API for programmatically selecting elements by ID

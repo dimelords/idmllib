@@ -2,6 +2,7 @@ package document
 
 import (
 	"encoding/xml"
+	"reflect"
 	"testing"
 
 	"github.com/dimelords/idmllib/v2/internal/testutil"
@@ -83,7 +84,7 @@ func TestDesignmapRoundtripMinimal(t *testing.T) {
 	}
 
 	// Parse both for structural comparison
-	var origStruct, outputStruct interface{}
+	var origStruct, outputStruct any
 	if err := xml.Unmarshal(original, &origStruct); err != nil {
 		t.Fatalf("failed to unmarshal original: %v", err)
 	}
@@ -92,7 +93,7 @@ func TestDesignmapRoundtripMinimal(t *testing.T) {
 	}
 
 	// Compare structures
-	if diff := cmp.Diff(origStruct, outputStruct); diff != "" {
+	if diff := cmp.Diff(origStruct, outputStruct, cmp.Exporter(func(reflect.Type) bool { return true })); diff != "" {
 		t.Errorf("roundtrip produced different structure (-want +got):\n%s", diff)
 
 		// Print both for debugging
@@ -119,7 +120,7 @@ func TestDesignmapRoundtripFull(t *testing.T) {
 	}
 
 	// Parse both for structural comparison
-	var origStruct, outputStruct interface{}
+	var origStruct, outputStruct any
 	if err := xml.Unmarshal(original, &origStruct); err != nil {
 		t.Fatalf("failed to unmarshal original: %v", err)
 	}
@@ -128,7 +129,7 @@ func TestDesignmapRoundtripFull(t *testing.T) {
 	}
 
 	// Compare structures
-	if diff := cmp.Diff(origStruct, outputStruct); diff != "" {
+	if diff := cmp.Diff(origStruct, outputStruct, cmp.Exporter(func(reflect.Type) bool { return true })); diff != "" {
 		t.Errorf("roundtrip produced different structure (-want +got):\n%s", diff)
 	}
 }
@@ -175,7 +176,7 @@ func TestDesignmapEmptyStruct(t *testing.T) {
 	}
 
 	// Verify it's valid XML
-	var check interface{}
+	var check any
 	if err := xml.Unmarshal(output, &check); err != nil {
 		t.Fatalf("output is not valid XML: %v", err)
 	}

@@ -87,7 +87,7 @@ func TestReadBytesWithOptions_FileCountLimit(t *testing.T) {
 	files := map[string][]byte{
 		"designmap.xml": designmap,
 	}
-	for i := 0; i < 15; i++ {
+	for i := range 15 {
 		files["Stories/file"+string(rune('a'+i))+".xml"] = []byte("<test/>")
 	}
 
@@ -249,7 +249,7 @@ func TestReadFromWithOptions_Limits(t *testing.T) {
 	files := map[string][]byte{
 		"designmap.xml": designmap,
 	}
-	for i := 0; i < 15; i++ {
+	for i := range 15 {
 		files["Stories/file"+string(rune('a'+i))+".xml"] = []byte("<test/>")
 	}
 
@@ -346,7 +346,7 @@ func TestReadBytes_DisabledLimits(t *testing.T) {
 	files := map[string][]byte{
 		"designmap.xml": designmap,
 	}
-	for i := 0; i < 50; i++ {
+	for i := range 50 {
 		files["Stories/file"+string(rune('a'+i))+".xml"] = []byte("<test/>")
 	}
 

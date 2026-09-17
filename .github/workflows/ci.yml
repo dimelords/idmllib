@@ -1,5 +1,7 @@
 # CI/CD Pipeline for idmlbuild
-# This workflow runs linting, testing, and coverage reporting on every push and pull request
+# Runs linting, tests with coverage, vulnerability scanning and builds on every
+# push and pull request. The Go version comes from go.mod so CI and developers
+# always agree.
 
 name: CI
 
@@ -8,236 +10,145 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
-
-# Allow manual triggering of the workflow
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  # Linting job - runs golangci-lint to check code quality
   lint:
     name: Lint
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
-
-      - name: Cache Go modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
-      - name: Download dependencies
-        run: go mod download
-
+          go-version-file: go.mod
+          check-latest: true
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v7
         with:
-          version: v2.8.0
+          version: v2.13.2
           args: --timeout=5m --config=.golangci.yml
+      - name: Run golangci-lint (cmd module)
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.13.2
+          working-directory: cmd
+          args: --timeout=5m --config=../.golangci.yml
 
-      - name: Check linting results
-        run: |
-          if [ $? -ne 0 ]; then
-            echo "❌ Linting failed. Please fix the issues above."
-            exit 1
-          else
-            echo "✅ Linting passed successfully."
-          fi
-
-  # Testing job - runs all tests with coverage reporting
   test:
-    name: Test
+    name: Test (Go ${{ matrix.go-version }})
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
+    timeout-minutes: 20
     strategy:
       matrix:
-        go-version: ['1.21', '1.22', '1.23']
-
+        # go.mod's version plus the newest stable release
+        go-version: ['1.26', '1.27']
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Go ${{ matrix.go-version }}
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
-
-      - name: Cache Go modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-${{ matrix.go-version }}-
-            ${{ runner.os }}-go-
-
+          check-latest: true
       - name: Download dependencies
         run: go mod download
-
-      - name: Run tests with coverage
-        run: |
-          go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
-
-      - name: Check test results
-        run: |
-          if [ $? -ne 0 ]; then
-            echo "❌ Tests failed. Please fix the failing tests."
-            exit 1
-          else
-            echo "✅ All tests passed successfully."
-          fi
-
-      - name: Generate coverage report
-        run: |
-          go tool cover -html=coverage.out -o coverage.html
-          go tool cover -func=coverage.out | tail -1 | awk '{print "Coverage: " $3}'
-
+      - name: Run tests with race detector and coverage
+        run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
+      - name: Vet the cmd module
+        working-directory: cmd
+        run: go vet ./...
+      - name: Coverage summary
+        run: go tool cover -func=coverage.out | tail -1 | awk '{print "Coverage: " $3}'
       - name: Upload coverage to Codecov
-        if: matrix.go-version == '1.23'  # Only upload coverage for latest Go version
+        if: matrix.go-version == '1.26'
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.out
           flags: unittests
           name: codecov-umbrella
-          fail_ci_if_error: false  # Don't fail CI if codecov upload fails
-
-      - name: Upload coverage artifacts
-        if: matrix.go-version == '1.23'
+          fail_ci_if_error: false
+      - name: Upload coverage artifact
+        if: matrix.go-version == '1.26'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: |
-            coverage.out
-            coverage.html
+          path: coverage.out
 
-  # Build job - ensures the project builds successfully
+  fuzz:
+    name: Fuzz smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+      - name: Fuzz the parsers briefly
+        run: |
+          go test ./pkg/story  -run '^$' -fuzz=FuzzParseStory  -fuzztime=60s
+          go test ./pkg/spread -run '^$' -fuzz=FuzzParseSpread -fuzztime=60s
+          go test ./pkg/idml   -run '^$' -fuzz=FuzzReadBytes   -fuzztime=60s
+
+  security:
+    name: Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+      - name: govulncheck (known vulnerabilities in code paths and toolchain)
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+      - name: gosec
+        uses: securego/gosec@master
+        with:
+          args: '-severity medium -confidence medium -exclude-dir=testdata ./...'
+
   build:
     name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [lint, test]  # Only run if linting and tests pass
-
+    needs: [lint, test]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
-
-      - name: Cache Go modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-build-
-
-      - name: Download dependencies
-        run: go mod download
-
-      - name: Build CLI application
+          go-version-file: go.mod
+          check-latest: true
+      - name: Build CLI and tools (cmd module)
+        working-directory: cmd
         run: |
-          go build -v -o bin/idmlbuild ./cmd/cli
-
-      - name: Build debug export tool
-        run: |
-          go build -v -o bin/debug-export ./cmd/debug-export
-
-      - name: Verify binaries
-        run: |
-          ./bin/idmlbuild --help || echo "CLI help command executed"
-          ls -la bin/
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+          go build -v -o ../bin/idmlbuild ./cli
+          go build -v -o ../bin/debug-export ./debug-export
+          ls -la ../bin/
+      - uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: bin/
 
-  # Security scanning job
-  security:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    timeout-minutes: 5  # Set explicit timeout
-    continue-on-error: true  # Don't fail the entire pipeline on security findings
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-
-      - name: Run Gosec Security Scanner
-        uses: securego/gosec@master
-        with:
-          args: '-severity medium -confidence medium ./...'
-
-  # Summary job - provides overall status
   summary:
     name: CI Summary
     runs-on: ubuntu-latest
-    needs: [lint, test, build, security]
-    if: always()  # Run even if some jobs fail
-
+    needs: [lint, test, fuzz, security, build]
+    if: always()
     steps:
-      - name: Check overall status
+      - name: Report
         run: |
-          echo "## CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          if [ "${{ needs.lint.result }}" == "success" ]; then
-            echo "✅ **Linting**: Passed" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **Linting**: Failed" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          if [ "${{ needs.test.result }}" == "success" ]; then
-            echo "✅ **Testing**: Passed" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **Testing**: Failed" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          if [ "${{ needs.build.result }}" == "success" ]; then
-            echo "✅ **Build**: Passed" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **Build**: Failed" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          if [ "${{ needs.security.result }}" == "success" ]; then
-            echo "✅ **Security**: Passed" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **Security**: Failed" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          # Fail the job if any critical jobs failed
-          if [ "${{ needs.lint.result }}" != "success" ] || [ "${{ needs.test.result }}" != "success" ]; then
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "❌ **Overall Status**: Failed - Critical jobs failed" >> $GITHUB_STEP_SUMMARY
-            exit 1
-          else
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "✅ **Overall Status**: Passed - All critical jobs succeeded" >> $GITHUB_STEP_SUMMARY
-          fi
+          {
+            echo "## CI Pipeline Results"
+            echo ""
+            echo "- Lint: ${{ needs.lint.result }}"
+            echo "- Test: ${{ needs.test.result }}"
+            echo "- Fuzz: ${{ needs.fuzz.result }}"
+            echo "- Security: ${{ needs.security.result }}"
+            echo "- Build: ${{ needs.build.result }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          for r in "${{ needs.lint.result }}" "${{ needs.test.result }}" "${{ needs.security.result }}" "${{ needs.build.result }}"; do
+            if [ "$r" != "success" ]; then exit 1; fi
+          done

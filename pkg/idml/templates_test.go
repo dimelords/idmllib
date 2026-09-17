@@ -217,26 +217,22 @@ func TestNewFromTemplate_ResourceParsing(t *testing.T) {
 	}
 
 	// Verify Preferences.xml can be parsed
-	prefs, err := pkg.Resource("Resources/Preferences.xml")
+	prefs, err := pkg.Preferences()
 	if err != nil {
-		t.Fatalf("Resource() failed: %v", err)
+		t.Fatalf("Preferences() failed: %v", err)
 	}
 
 	if prefs == nil {
-		t.Fatal("Resource() returned nil")
+		t.Fatal("Preferences() returned nil")
 	}
 
-	// Verify resource properties
-	if prefs.ResourceType != "Preferences" {
-		t.Errorf("ResourceType = %q, want %q", prefs.ResourceType, "Preferences")
+	// Verify the file carries a DOM version and at least one preference element
+	if prefs.DOMVersion == "" || len(prefs.Elements) == 0 {
+		t.Errorf("DOMVersion = %q, elements = %d", prefs.DOMVersion, len(prefs.Elements))
 	}
 
 	if prefs.DOMVersion == "" {
 		t.Error("Resource DOMVersion is empty")
-	}
-
-	if len(prefs.RawContent) == 0 {
-		t.Error("Resource RawContent is empty")
 	}
 }
 

@@ -15,6 +15,7 @@ coverage.html
 
 # Go workspace file
 go.work
+go.work.sum
 
 # Dependency directories
 vendor/
@@ -48,6 +49,10 @@ test_output/
 
 # Test output files
 testdata/*_roundtrip.idml
+
+# Large local fixture used by the memory tests and benchmarks; not committed.
+# Tests skip when it is absent.
+testdata/example_big.idml
 testdata/*_extracted/
 output_test.idml
 

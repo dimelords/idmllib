@@ -36,6 +36,14 @@ type GraphicFile struct {
 
 	// Catch-all for other elements we haven't explicitly modeled
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	// childOrder records the document order of children so MarshalXML can
+	// replay them; see common.ChildOrder.
+	childOrder common.ChildOrder
 }
 
 // Color represents a color swatch definition.
@@ -55,6 +63,10 @@ type Color struct {
 	Visible                   string `xml:"Visible,attr,omitempty"`        // "true" or "false"
 	SwatchCreatorID           string `xml:"SwatchCreatorID,attr,omitempty"`
 	SwatchColorGroupReference string `xml:"SwatchColorGroupReference,attr,omitempty"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // Ink represents a printing ink definition.
@@ -69,6 +81,10 @@ type Ink struct {
 	PrintInk         string `xml:"PrintInk,attr,omitempty"`         // "true" or "false"
 	TrapOrder        string `xml:"TrapOrder,attr,omitempty"`        // Trap order number
 	InkType          string `xml:"InkType,attr,omitempty"`          // "Normal", "Transparent", "Opaque"
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // Gradient represents a gradient fill definition.
@@ -83,6 +99,10 @@ type Gradient struct {
 	SwatchCreatorID           string         `xml:"SwatchCreatorID,attr,omitempty"`
 	SwatchColorGroupReference string         `xml:"SwatchColorGroupReference,attr,omitempty"`
 	GradientStops             []GradientStop `xml:"GradientStop,omitempty"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // GradientStop represents a color stop in a gradient.
@@ -91,6 +111,10 @@ type GradientStop struct {
 	StopColor string `xml:"StopColor,attr"`          // Reference to a Color (e.g., "Color/Black")
 	Location  string `xml:"Location,attr"`           // Position 0-100
 	Midpoint  string `xml:"Midpoint,attr,omitempty"` // Midpoint position (0-100)
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // Swatch represents a named swatch reference.
@@ -103,6 +127,10 @@ type Swatch struct {
 	Visible                   string `xml:"Visible,attr,omitempty"`        // "true" or "false"
 	SwatchCreatorID           string `xml:"SwatchCreatorID,attr,omitempty"`
 	SwatchColorGroupReference string `xml:"SwatchColorGroupReference,attr,omitempty"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // PastedSmoothShade represents a pasted smooth shade definition.
@@ -121,6 +149,10 @@ type PastedSmoothShade struct {
 	SwatchCreatorID           string             `xml:"SwatchCreatorID,attr,omitempty"`
 	SwatchColorGroupReference string             `xml:"SwatchColorGroupReference,attr,omitempty"`
 	Properties                *common.Properties `xml:"Properties,omitempty"` // Contains <Contents> CDATA
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
 // StrokeStyle represents a stroke/line style definition.
@@ -130,4 +162,8 @@ type StrokeStyle struct {
 	Name string `xml:"Name,attr"`
 	// Additional stroke properties would go here
 	OtherElements []common.RawXMLElement `xml:",any"`
+
+	// OtherAttrs preserves attributes not modeled by a typed field, so
+	// nothing is lost when the element is written back.
+	OtherAttrs []xml.Attr `xml:",any,attr"`
 }

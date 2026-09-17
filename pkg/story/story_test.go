@@ -2,6 +2,7 @@ package story
 
 import (
 	"encoding/xml"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -26,17 +27,17 @@ func TestParseStory_ParsesStoryXML(t *testing.T) {
 	}
 
 	// Verify story element
-	if story.StoryElement.Self == "" {
+	if story.Story.Self == "" {
 		t.Error("Story Self is empty")
 	}
 
 	// Verify story preferences exist
-	if story.StoryElement.StoryPreference == nil {
+	if story.Story.StoryPreference == nil {
 		t.Error("StoryPreference is nil")
 	}
 
 	// Verify paragraph style ranges exist
-	if len(story.StoryElement.ParagraphStyleRanges) == 0 {
+	if len(story.Story.ParagraphStyleRanges) == 0 {
 		t.Error("No ParagraphStyleRanges found")
 	}
 }
@@ -66,6 +67,7 @@ func TestStoryRoundtrip(t *testing.T) {
 
 	// Compare structures (ignoring XMLName differences since Go adds namespace to all elements)
 	opts := []cmp.Option{
+		cmp.Exporter(func(reflect.Type) bool { return true }),
 		cmp.Comparer(func(a, b xml.Name) bool {
 			// Only compare local name, ignore namespace differences
 			return a.Local == b.Local
@@ -140,7 +142,7 @@ func TestStoryContentExtraction(t *testing.T) {
 
 	// Extract all text content
 	var allText string
-	for _, psr := range story.StoryElement.ParagraphStyleRanges {
+	for _, psr := range story.Story.ParagraphStyleRanges {
 		for _, csr := range psr.CharacterStyleRanges {
 			for _, content := range csr.GetContent() {
 				allText += content.Text
@@ -176,7 +178,7 @@ func TestStoryAttributes(t *testing.T) {
 	}
 
 	// Verify Story element attributes
-	se := story.StoryElement
+	se := story.Story
 	if se.Self != "u1d8" {
 		t.Errorf("Self: want u1d8, got %s", se.Self)
 	}
@@ -206,7 +208,7 @@ func TestStoryPreference(t *testing.T) {
 	}
 
 	// Verify StoryPreference exists
-	sp := story.StoryElement.StoryPreference
+	sp := story.Story.StoryPreference
 	if sp == nil {
 		t.Fatal("StoryPreference is nil")
 	}
@@ -245,7 +247,7 @@ func TestParagraphStyleRanges(t *testing.T) {
 	}
 
 	// Verify we have paragraph style ranges
-	ranges := story.StoryElement.ParagraphStyleRanges
+	ranges := story.Story.ParagraphStyleRanges
 	if len(ranges) == 0 {
 		t.Fatal("No ParagraphStyleRanges found")
 	}
@@ -274,11 +276,11 @@ func TestCharacterStyleRanges(t *testing.T) {
 	}
 
 	// Get first character style range
-	if len(story.StoryElement.ParagraphStyleRanges) == 0 {
+	if len(story.Story.ParagraphStyleRanges) == 0 {
 		t.Fatal("No ParagraphStyleRanges")
 	}
 
-	csrs := story.StoryElement.ParagraphStyleRanges[0].CharacterStyleRanges
+	csrs := story.Story.ParagraphStyleRanges[0].CharacterStyleRanges
 	if len(csrs) == 0 {
 		t.Fatal("No CharacterStyleRanges")
 	}

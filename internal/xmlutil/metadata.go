@@ -24,7 +24,7 @@ type Metadata struct {
 
 // ParseWithMetadata parses XML data into the provided interface while preserving metadata.
 // Returns the parsed data and extracted metadata (processing instructions, etc.).
-func ParseWithMetadata(data []byte, v interface{}) (*Metadata, error) {
+func ParseWithMetadata(data []byte, v any) (*Metadata, error) {
 	// Add nil checks for input parameters
 	if data == nil {
 		return nil, common.Errorf("xmlutil", "parse with metadata", "", "input data is nil")
@@ -90,7 +90,7 @@ func ParseWithMetadata(data []byte, v interface{}) (*Metadata, error) {
 
 // MarshalWithMetadata marshals the provided interface to XML with preserved metadata.
 // The metadata includes processing instructions and namespace declarations.
-func MarshalWithMetadata(v interface{}, metadata *Metadata) ([]byte, error) {
+func MarshalWithMetadata(v any, metadata *Metadata) ([]byte, error) {
 	var buf bytes.Buffer
 
 	// Add XML declaration (use preserved if available, otherwise use default)
@@ -135,12 +135,12 @@ func MarshalWithMetadata(v interface{}, metadata *Metadata) ([]byte, error) {
 
 // MarshalWithHeader marshals the provided interface to XML with standard XML header.
 // This is a convenience function for cases where no special metadata is needed.
-func MarshalWithHeader(v interface{}) ([]byte, error) {
+func MarshalWithHeader(v any) ([]byte, error) {
 	return MarshalWithMetadata(v, nil)
 }
 
 // MarshalIndentWithHeader marshals the provided interface to XML with custom indentation and header.
-func MarshalIndentWithHeader(v interface{}, prefix, indent string) ([]byte, error) {
+func MarshalIndentWithHeader(v any, prefix, indent string) ([]byte, error) {
 	var buf bytes.Buffer
 
 	// Add XML declaration

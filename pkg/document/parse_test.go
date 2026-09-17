@@ -208,7 +208,7 @@ func TestParseDocumentWithMetadata_Basic(t *testing.T) {
 	<Language Self="Language/en_US" Name="English: USA" />
 </Document>`
 
-	docMeta, err := ParseDocumentWithMetadata([]byte(xmlData))
+	docMeta, err := ParseFile([]byte(xmlData))
 	if err != nil {
 		t.Fatalf("ParseDocumentWithMetadata() error = %v", err)
 	}
@@ -237,14 +237,14 @@ func TestParseDocumentWithMetadata_Basic(t *testing.T) {
 		t.Fatal("Document is nil")
 	}
 
-	if docMeta.Document.DOMVersion != "15.0" {
-		t.Errorf("DOMVersion = %q, want %q", docMeta.Document.DOMVersion, "15.0")
+	if docMeta.DOMVersion != "15.0" {
+		t.Errorf("DOMVersion = %q, want %q", docMeta.DOMVersion, "15.0")
 	}
 }
 
 // TestMarshalDocumentWithMetadata_PreservesMetadata tests that metadata is preserved.
 func TestMarshalDocumentWithMetadata_PreservesMetadata(t *testing.T) {
-	original := &DocumentWithMetadata{
+	original := &File{
 		Document: &Document{
 			DOMVersion: "15.0",
 			Self:       "d",
@@ -259,7 +259,7 @@ func TestMarshalDocumentWithMetadata_PreservesMetadata(t *testing.T) {
 	}
 
 	// Marshal
-	data, err := MarshalDocumentWithMetadata(original)
+	data, err := MarshalFile(original)
 	if err != nil {
 		t.Fatalf("MarshalDocumentWithMetadata() error = %v", err)
 	}
@@ -275,7 +275,7 @@ func TestMarshalDocumentWithMetadata_PreservesMetadata(t *testing.T) {
 	}
 
 	// Parse back
-	parsed, err := ParseDocumentWithMetadata(data)
+	parsed, err := ParseFile(data)
 	if err != nil {
 		t.Fatalf("ParseDocumentWithMetadata() after marshal error = %v", err)
 	}

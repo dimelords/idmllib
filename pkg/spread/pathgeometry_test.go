@@ -7,7 +7,7 @@ import (
 )
 
 func TestBoundsFromPathGeometry(t *testing.T) {
-	tf := &SpreadTextFrame{
+	tf := &TextFrame{
 		Properties: &common.Properties{
 			PathGeometry: &common.PathGeometry{
 				GeometryPathType: &common.GeometryPathType{
@@ -52,7 +52,7 @@ func abs(x float64) float64 {
 
 func TestBoundsFallbackToPathGeometry(t *testing.T) {
 	// Frame with empty GeometricBounds but valid PathGeometry
-	tf := &SpreadTextFrame{
+	tf := &TextFrame{
 		PageItemBase: PageItemBase{
 			GeometricBounds: "", // Empty, should fallback
 		},

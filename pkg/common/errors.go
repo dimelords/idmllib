@@ -116,7 +116,7 @@ func WrapErrorWithPath(pkg, op, path string, err error) error {
 }
 
 // Errorf creates a new Error with a formatted message as the underlying error.
-func Errorf(pkg, op, path, format string, args ...interface{}) *Error {
+func Errorf(pkg, op, path, format string, args ...any) *Error {
 	return &Error{
 		Package: pkg,
 		Op:      op,

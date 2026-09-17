@@ -2,6 +2,7 @@ package idml
 
 import (
 	"archive/zip"
+	"io"
 
 	"github.com/dimelords/idmllib/v2/pkg/common"
 	"github.com/dimelords/idmllib/v2/pkg/document"
@@ -15,6 +16,10 @@ import (
 type fileEntry struct {
 	data   []byte
 	header *zip.FileHeader
+
+	// src points at the entry in the source archive while its bytes have not
+	// been read yet; see lazy.go.
+	src *zip.File
 }
 
 // Package represents an IDML document loaded into memory.
@@ -52,21 +57,18 @@ type Package struct {
 
 	// documentMetadata stores processing instructions and other metadata
 	// that needs to be preserved during marshal/unmarshal.
-	documentMetadata *document.DocumentWithMetadata
+	documentMetadata *document.File
 
 	// stories caches parsed Story files from the Stories/ directory.
 	// Map key is the story filename (e.g., "Stories/Story_u1d8.xml").
-	stories map[string]*story.Story
+	stories map[string]*story.File
 
 	// spreads caches parsed Spread files from the Spreads/ directory.
 	// Map key is the spread filename (e.g., "Spreads/Spread_u210.xml").
-	spreads map[string]*spread.Spread
+	spreads map[string]*spread.File
 
 	// resources caches parsed Resource files from the Resources/ directory.
 	// Map key is the resource filename (e.g., "Resources/Graphic.xml").
-	// This is the generic preservation-based parser.
-	resources map[string]*ResourceFile
-
 	// fonts caches the typed Fonts.xml file (if parsed)
 	fonts *resources.FontsFile
 
@@ -75,6 +77,12 @@ type Package struct {
 
 	// styles caches the typed Styles.xml file (if parsed)
 	styles *resources.StylesFile
+
+	// preferences caches the parsed Resources/Preferences.xml.
+	preferences *resources.PreferencesFile
+
+	// tags caches the parsed XML/Tags.xml.
+	tags *resources.TagsFile
 
 	// metadata caches optional metadata files (META-INF/*, XML/*).
 	// Map key is the file path (e.g., "META-INF/container.xml").
@@ -88,16 +96,32 @@ type Package struct {
 	// indexState holds the item index for O(1) page item lookups.
 	// Built lazily on first SelectXxxByID call.
 	indexState itemIndexState
+
+	// streamingMode strips embedded image payloads from parsed spreads; see
+	// streaming.go.
+	streamingMode bool
+
+	// streamedContents holds those payloads as sub-slices of the raw bytes.
+	streamedContents contentsStore
+
+	// Lazy reading state; see lazy.go.
+	lazy     bool
+	source   string
+	readOpts *ReadOptions
+	closer   io.Closer
+
+	// dirty tracks which cached files were modified through the API and must be
+	// re-marshaled on Write. Untouched files are written back byte for byte.
+	dirty map[string]bool
 }
 
 // New creates a new empty IDML package.
 func New() *Package {
 	return &Package{
-		files:     make(map[string]*fileEntry),
-		stories:   make(map[string]*story.Story),
-		spreads:   make(map[string]*spread.Spread),
-		resources: make(map[string]*ResourceFile),
-		metadata:  make(map[string]*MetadataFile),
+		files:    make(map[string]*fileEntry),
+		stories:  make(map[string]*story.File),
+		spreads:  make(map[string]*spread.File),
+		metadata: make(map[string]*MetadataFile),
 	}
 }
 
@@ -132,7 +156,7 @@ func (p *Package) Document() (*document.Document, error) {
 	}
 
 	// Parse the document with metadata (processing instructions, etc.)
-	docMeta, err := document.ParseDocumentWithMetadata(entry.data)
+	docMeta, err := document.ParseFile(entry.data)
 	if err != nil {
 		return nil, err
 	}
@@ -140,151 +164,6 @@ func (p *Package) Document() (*document.Document, error) {
 	// Cache for future calls
 	p.cacheDocument(docMeta.Document, docMeta)
 	return p.document, nil
-}
-
-// Story returns a parsed Story from the Stories/ directory.
-// The story is parsed on first access and cached.
-// Returns an error if the story file doesn't exist or can't be parsed.
-func (p *Package) Story(filename string) (*story.Story, error) {
-	// Return cached story if available
-	if st, cached := p.getCachedStory(filename); cached {
-		return st, nil
-	}
-
-	// Get story file
-	entry, err := p.getFileEntry(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	// Parse the story
-	st, err := story.ParseStory(entry.data)
-	if err != nil {
-		return nil, common.WrapErrorWithPath("idml", "parse story", filename, err)
-	}
-
-	// Cache for future calls
-	p.cacheStory(filename, st)
-	return st, nil
-}
-
-// Stories returns all parsed Story files from the Stories/ directory.
-// Stories are parsed on first access and cached.
-func (p *Package) Stories() (map[string]*story.Story, error) {
-	stories := make(map[string]*story.Story)
-
-	// First, add any already-cached stories
-	for filename, st := range p.stories {
-		stories[filename] = st
-	}
-
-	// Then find all story files from p.files that aren't cached yet
-	for filename := range p.files {
-		if IsStoryPath(filename) {
-			// Skip if already in cache
-			if _, cached := stories[filename]; cached {
-				continue
-			}
-
-			st, err := p.Story(filename)
-			if err != nil {
-				return nil, err
-			}
-			stories[filename] = st
-		}
-	}
-
-	return stories, nil
-}
-
-// Spread returns a parsed Spread from the Spreads/ directory.
-// The spread is parsed on first access and cached.
-// Returns an error if the spread file doesn't exist or can't be parsed.
-func (p *Package) Spread(filename string) (*spread.Spread, error) {
-	// Return cached spread if available
-	if sp, cached := p.getCachedSpread(filename); cached {
-		return sp, nil
-	}
-
-	// Get spread file
-	entry, err := p.getFileEntry(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	// Parse the spread
-	sp, err := spread.ParseSpread(entry.data)
-	if err != nil {
-		return nil, common.WrapErrorWithPath("idml", "parse spread", filename, err)
-	}
-
-	// Cache for future calls
-	p.cacheSpread(filename, sp)
-	return sp, nil
-}
-
-// Spreads returns all parsed Spread files from the Spreads/ directory.
-// Spreads are parsed on first access and cached.
-func (p *Package) Spreads() (map[string]*spread.Spread, error) {
-	spreads := make(map[string]*spread.Spread)
-
-	// Find all spread files
-	for filename := range p.files {
-		if IsSpreadPath(filename) {
-			sp, err := p.Spread(filename)
-			if err != nil {
-				return nil, err
-			}
-			spreads[filename] = sp
-		}
-	}
-
-	return spreads, nil
-}
-
-// Resource returns a parsed Resource file from the Resources/ directory.
-// The resource is parsed on first access and cached.
-// Returns an error if the resource file doesn't exist or can't be parsed.
-func (p *Package) Resource(filename string) (*ResourceFile, error) {
-	// Return cached resource if available
-	if resource, cached := p.getCachedResource(filename); cached {
-		return resource, nil
-	}
-
-	// Get resource file
-	entry, err := p.getFileEntry(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	// Parse the resource
-	resource, err := ParseResourceFile(entry.data)
-	if err != nil {
-		return nil, common.WrapErrorWithPath("idml", "parse resource", filename, err)
-	}
-
-	// Cache for future calls
-	p.cacheResource(filename, resource)
-	return resource, nil
-}
-
-// Resources returns all parsed Resource files from the Resources/ directory.
-// Resources are parsed on first access and cached.
-func (p *Package) Resources() (map[string]*ResourceFile, error) {
-	resources := make(map[string]*ResourceFile)
-
-	// Find all resource files
-	for filename := range p.files {
-		if IsResourcePath(filename) {
-			resource, err := p.Resource(filename)
-			if err != nil {
-				return nil, err
-			}
-			resources[filename] = resource
-		}
-	}
-
-	return resources, nil
 }
 
 // MetadataFile returns a metadata file by path.
@@ -309,7 +188,7 @@ func (p *Package) MetadataFile(path string) (*MetadataFile, error) {
 	}
 
 	// Parse the metadata file
-	mf, err := ParseMetadataFile(path, entry.data)
+	mf, err := parseMetadataFile(path, entry.data)
 	if err != nil {
 		return nil, common.WrapErrorWithPath("idml", "parse metadata", path, err)
 	}
@@ -420,18 +299,21 @@ func (p *Package) Styles() (*resources.StylesFile, error) {
 // The file will be marshaled when Write() is called.
 func (p *Package) SetFonts(fonts *resources.FontsFile) {
 	p.cacheFonts(fonts)
+	p.markDirty(PathFonts)
 }
 
 // SetStyles updates the cached styles file.
 // The file will be marshaled when Write() is called.
 func (p *Package) SetStyles(styles *resources.StylesFile) {
 	p.cacheStyles(styles)
+	p.markDirty(PathStyles)
 }
 
 // SetGraphics updates the cached graphics file.
 // The file will be marshaled when Write() is called.
 func (p *Package) SetGraphics(graphics *resources.GraphicFile) {
 	p.cacheGraphics(graphics)
+	p.markDirty(PathGraphic)
 }
 
 // XMP returns an XMP accessor for the package metadata.

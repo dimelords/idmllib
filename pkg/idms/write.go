@@ -3,25 +3,11 @@ package idms
 import (
 	"bytes"
 	"fmt"
-	"os"
+	"io"
 
 	"github.com/dimelords/idmllib/v2/pkg/common"
 	"github.com/dimelords/idmllib/v2/pkg/document"
 )
-
-// Write writes an IDMS Package to the given path.
-func Write(pkg *Package, path string) error {
-	data, err := Marshal(pkg)
-	if err != nil {
-		return common.WrapErrorWithPath("idms", "marshal", path, err)
-	}
-
-	if err := os.WriteFile(path, data, 0600); err != nil {
-		return common.WrapErrorWithPath("idms", "write", path, err)
-	}
-
-	return nil
-}
 
 // Marshal serializes an IDMS Package to XML bytes.
 func Marshal(pkg *Package) ([]byte, error) {
@@ -85,4 +71,22 @@ func Marshal(pkg *Package) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+// Write marshals the snippet and writes it to path. The file is written to a
+// temporary file next to path and renamed into place, so a failure never
+// leaves a truncated snippet behind. The file is created with mode 0600.
+func Write(pkg *Package, path string) error {
+	data, err := Marshal(pkg)
+	if err != nil {
+		return common.WrapErrorWithPath("idms", "marshal", path, err)
+	}
+	err = common.WriteFileAtomic(path, 0o600, func(w io.Writer) error {
+		_, err := w.Write(data)
+		return err
+	})
+	if err != nil {
+		return common.WrapErrorWithPath("idms", "write", path, err)
+	}
+	return nil
 }

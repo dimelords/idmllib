@@ -98,7 +98,7 @@ func (rm *ResourceManager) analyzeDependencies() (*dependencySet, error) {
 // analyzeStory analyzes a story and tracks all style dependencies.
 func (rm *ResourceManager) analyzeStory(st *story.Story, deps *dependencySet) error {
 	// Analyze each paragraph style range
-	for _, psr := range st.StoryElement.ParagraphStyleRanges {
+	for _, psr := range st.Paragraphs() {
 		// Track the paragraph style
 		if psr.AppliedParagraphStyle != "" {
 			deps.paragraphStyles[psr.AppliedParagraphStyle] = true
@@ -108,7 +108,7 @@ func (rm *ResourceManager) analyzeStory(st *story.Story, deps *dependencySet) er
 		// after all styles are collected. See extractColorsFromParagraphStyles().
 
 		// Analyze each character style range within the paragraph
-		for _, csr := range psr.CharacterStyleRanges {
+		for _, csr := range psr.Ranges() {
 			// Track the character style
 			if csr.AppliedCharacterStyle != "" {
 				deps.characterStyles[csr.AppliedCharacterStyle] = true
@@ -125,7 +125,7 @@ func (rm *ResourceManager) analyzeStory(st *story.Story, deps *dependencySet) er
 // analyzeSpread analyzes a spread and tracks all object dependencies.
 func (rm *ResourceManager) analyzeSpread(sp *spread.Spread, deps *dependencySet) error {
 	// Analyze text frames
-	for _, tf := range sp.InnerSpread.TextFrames {
+	for _, tf := range sp.TextFrames {
 		// Track the applied object style
 		if tf.AppliedObjectStyle != "" {
 			deps.objectStyles[tf.AppliedObjectStyle] = true
@@ -156,7 +156,7 @@ func (rm *ResourceManager) analyzeSpread(sp *spread.Spread, deps *dependencySet)
 	}
 
 	// Analyze rectangles
-	for _, rect := range sp.InnerSpread.Rectangles {
+	for _, rect := range sp.Rectangles {
 		// Track the applied object style
 		if rect.AppliedObjectStyle != "" {
 			deps.objectStyles[rect.AppliedObjectStyle] = true
@@ -172,8 +172,8 @@ func (rm *ResourceManager) analyzeSpread(sp *spread.Spread, deps *dependencySet)
 	}
 
 	// Analyze ovals
-	for i := range sp.InnerSpread.Ovals {
-		oval := &sp.InnerSpread.Ovals[i]
+	for i := range sp.Ovals {
+		oval := &sp.Ovals[i]
 		if oval.AppliedObjectStyle != "" {
 			deps.objectStyles[oval.AppliedObjectStyle] = true
 		}
@@ -188,8 +188,8 @@ func (rm *ResourceManager) analyzeSpread(sp *spread.Spread, deps *dependencySet)
 	}
 
 	// Analyze polygons
-	for i := range sp.InnerSpread.Polygons {
-		polygon := &sp.InnerSpread.Polygons[i]
+	for i := range sp.Polygons {
+		polygon := &sp.Polygons[i]
 		if polygon.AppliedObjectStyle != "" {
 			deps.objectStyles[polygon.AppliedObjectStyle] = true
 		}
@@ -204,8 +204,8 @@ func (rm *ResourceManager) analyzeSpread(sp *spread.Spread, deps *dependencySet)
 	}
 
 	// Analyze graphic lines
-	for i := range sp.InnerSpread.GraphicLines {
-		line := &sp.InnerSpread.GraphicLines[i]
+	for i := range sp.GraphicLines {
+		line := &sp.GraphicLines[i]
 		if line.AppliedObjectStyle != "" {
 			deps.objectStyles[line.AppliedObjectStyle] = true
 		}
@@ -219,8 +219,8 @@ func (rm *ResourceManager) analyzeSpread(sp *spread.Spread, deps *dependencySet)
 	}
 
 	// Analyze groups
-	for i := range sp.InnerSpread.Groups {
-		group := &sp.InnerSpread.Groups[i]
+	for i := range sp.Groups {
+		group := &sp.Groups[i]
 		if group.AppliedObjectStyle != "" {
 			deps.objectStyles[group.AppliedObjectStyle] = true
 		}
@@ -357,7 +357,7 @@ func (rm *ResourceManager) findOrphanedSwatches(deps *dependencySet, result *Orp
 }
 
 // findOrphanedLayers identifies layers that exist but have no page items on them.
-// NOTE: Layer tracking is currently disabled as layers are not stored in SpreadElement.
+// NOTE: Layer tracking is currently disabled as layers are not stored in the Spread element.
 // This will be re-enabled once we understand where layers are stored in IDML.
 func (rm *ResourceManager) findOrphanedLayers(deps *dependencySet, result *OrphanedResources) error {
 	// Layer tracking not yet implemented.
@@ -719,7 +719,7 @@ func (rm *ResourceManager) removeOrphanedSwatches(swatchIDs []string, result *Cl
 }
 
 // removeOrphanedLayers removes the specified layers from all spread files.
-// NOTE: Layer removal is currently disabled as layers are not stored in SpreadElement.
+// NOTE: Layer removal is currently disabled as layers are not stored in the Spread element.
 // This will be re-enabled once we understand where layers are stored in IDML.
 func (rm *ResourceManager) removeOrphanedLayers(layerIDs []string, result *CleanupResult) error {
 	// Layer removal not yet implemented.

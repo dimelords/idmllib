@@ -40,20 +40,20 @@ func TestParseSpread(t *testing.T) {
 	}
 
 	// Verify inner spread attributes
-	if sp.InnerSpread.Self != "ud3" {
-		t.Errorf("Self = %q, want %q", sp.InnerSpread.Self, "ud3")
+	if sp.Spread.Self != "ud3" {
+		t.Errorf("Self = %q, want %q", sp.Spread.Self, "ud3")
 	}
 
-	if sp.InnerSpread.PageTransitionType != "None" {
-		t.Errorf("PageTransitionType = %q, want %q", sp.InnerSpread.PageTransitionType, "None")
+	if sp.Spread.PageTransitionType != "None" {
+		t.Errorf("PageTransitionType = %q, want %q", sp.Spread.PageTransitionType, "None")
 	}
 
 	// Verify Page
-	if len(sp.InnerSpread.Pages) != 1 {
-		t.Fatalf("Pages count = %d, want 1", len(sp.InnerSpread.Pages))
+	if len(sp.Spread.Pages) != 1 {
+		t.Fatalf("Pages count = %d, want 1", len(sp.Spread.Pages))
 	}
 
-	page := sp.InnerSpread.Pages[0]
+	page := sp.Spread.Pages[0]
 	if page.Self != "ud8" {
 		t.Errorf("Page.Self = %q, want %q", page.Self, "ud8")
 	}
@@ -61,9 +61,9 @@ func TestParseSpread(t *testing.T) {
 
 // TestMarshalSpread tests spread marshaling.
 func TestMarshalSpread(t *testing.T) {
-	sp := &Spread{
+	sp := &File{
 		DOMVersion: "20.4",
-		InnerSpread: SpreadElement{
+		Spread: Spread{
 			Self:               "ud3",
 			PageTransitionType: "None",
 			PageCount:          "1",
@@ -132,7 +132,7 @@ func TestSpreadRoundtrip(t *testing.T) {
 		t.Errorf("DOMVersion mismatch: %q vs %q", sp1.DOMVersion, sp2.DOMVersion)
 	}
 
-	if sp1.InnerSpread.Self != sp2.InnerSpread.Self {
-		t.Errorf("Self mismatch: %q vs %q", sp1.InnerSpread.Self, sp2.InnerSpread.Self)
+	if sp1.Spread.Self != sp2.Spread.Self {
+		t.Errorf("Self mismatch: %q vs %q", sp1.Spread.Self, sp2.Spread.Self)
 	}
 }

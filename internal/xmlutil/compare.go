@@ -2,6 +2,7 @@ package xmlutil
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -31,6 +32,11 @@ type CompareOptions struct {
 	// IgnoreWhitespace controls whether text whitespace differences are ignored.
 	// Default is true (whitespace is trimmed before comparison).
 	IgnoreWhitespace bool
+
+	// EmptyAttrEqualsAbsent treats an attribute with an empty value as equivalent
+	// to a missing attribute. IDML writers emit attributes like OverrideList=""
+	// which Go structs with omitempty cannot distinguish from absent.
+	EmptyAttrEqualsAbsent bool
 }
 
 // DefaultCompareOptions returns sensible defaults for IDML comparison.
@@ -171,6 +177,9 @@ func compareAttributes(orig, gen *etree.Element, path string, diffs *[]XMLDiffer
 			return
 		}
 		if genVal, exists := genAttrs[key]; !exists {
+			if opts.EmptyAttrEqualsAbsent && origVal == "" {
+				continue
+			}
 			*diffs = append(*diffs, XMLDifference{
 				Path:        path,
 				Type:        "attribute",
@@ -195,6 +204,9 @@ func compareAttributes(orig, gen *etree.Element, path string, diffs *[]XMLDiffer
 			return
 		}
 		if _, exists := origAttrs[key]; !exists {
+			if opts.EmptyAttrEqualsAbsent && genVal == "" {
+				continue
+			}
 			*diffs = append(*diffs, XMLDifference{
 				Path:        path,
 				Type:        "attribute",
@@ -268,12 +280,9 @@ func compareChildren(orig, gen *etree.Element, path string, diffs *[]XMLDifferen
 	}
 
 	// Compare common children
-	minLen := len(origChildren)
-	if len(genChildren) < minLen {
-		minLen = len(genChildren)
-	}
+	minLen := min(len(genChildren), len(origChildren))
 
-	for i := 0; i < minLen; i++ {
+	for i := range minLen {
 		childPath := fmt.Sprintf("%s/%s[%d]", path, origChildren[i].Tag, i)
 		compareElementsDetailed(origChildren[i], genChildren[i], childPath, diffs, opts)
 
@@ -287,12 +296,7 @@ func compareChildren(orig, gen *etree.Element, path string, diffs *[]XMLDifferen
 // Helper functions
 
 func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(slice, item)
 }
 
 func sortElementsByTag(elements []*etree.Element) {
@@ -448,17 +452,28 @@ func FormatDifferences(diffs []XMLDifference) string {
 	}
 
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf("Found %d difference(s):\n\n", len(diffs)))
+	fmt.Fprintf(&b, "Found %d difference(s):\n\n", len(diffs))
 
 	for i, diff := range diffs {
-		b.WriteString(fmt.Sprintf("%d. %s [%s]\n", i+1, diff.Path, diff.Type))
-		b.WriteString(fmt.Sprintf("   %s\n", diff.Description))
-		b.WriteString(fmt.Sprintf("   Expected: %s\n", diff.Expected))
-		b.WriteString(fmt.Sprintf("   Got:      %s\n", diff.Got))
+		fmt.Fprintf(&b, "%d. %s [%s]\n", i+1, diff.Path, diff.Type)
+		fmt.Fprintf(&b, "   %s\n", diff.Description)
+		fmt.Fprintf(&b, "   Expected: %s\n", diff.Expected)
+		fmt.Fprintf(&b, "   Got:      %s\n", diff.Got)
 		if i < len(diffs)-1 {
 			b.WriteString("\n")
 		}
 	}
 
 	return b.String()
+}
+
+// StrictCompareOptions returns options for fidelity testing: child order is
+// significant everywhere, whitespace is ignored, and an empty attribute is
+// considered equal to a missing one.
+func StrictCompareOptions() *CompareOptions {
+	return &CompareOptions{
+		MaxDifferences:        50,
+		IgnoreWhitespace:      true,
+		EmptyAttrEqualsAbsent: true,
+	}
 }

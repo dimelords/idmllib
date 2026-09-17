@@ -377,11 +377,8 @@ func (rm *ResourceManager) getFontFromCharacterStyle(styleID string) (string, er
 	current := styleID
 
 	// Walk the BasedOn chain
-	for {
-		// Check for circular reference
-		if visited[current] {
-			break
-		}
+	// Stop when a style repeats (circular BasedOn reference).
+	for !visited[current] {
 		visited[current] = true
 
 		// Find the style definition
@@ -426,9 +423,9 @@ func (rm *ResourceManager) getFontFromCharacterStyle(styleID string) (string, er
 // applied character styles reference the given font family (following BasedOn inheritance).
 func (rm *ResourceManager) storyUsesFont(st *story.Story, fontFamily string) bool {
 	// Iterate through all paragraph style ranges
-	for _, psr := range st.StoryElement.ParagraphStyleRanges {
+	for _, psr := range st.Paragraphs() {
 		// Check each character style range within the paragraph
-		for _, csr := range psr.CharacterStyleRanges {
+		for _, csr := range psr.Ranges() {
 			// Get the font from this character style (with inheritance)
 			font, err := rm.getFontFromCharacterStyle(csr.AppliedCharacterStyle)
 			if err != nil {
@@ -457,7 +454,7 @@ func (rm *ResourceManager) findParagraphStyleUsage(styleID string) []string {
 
 	for filename, story := range stories {
 		// Check each paragraph style range
-		for _, psr := range story.StoryElement.ParagraphStyleRanges {
+		for _, psr := range story.Paragraphs() {
 			if psr.AppliedParagraphStyle == styleID {
 				usedBy = append(usedBy, filename)
 				break // Only add the filename once
@@ -479,9 +476,9 @@ func (rm *ResourceManager) findCharacterStyleUsage(styleID string) []string {
 
 	for filename, story := range stories {
 		// Check each paragraph style range
-		for _, psr := range story.StoryElement.ParagraphStyleRanges {
+		for _, psr := range story.Paragraphs() {
 			// Check each character style range within the paragraph
-			for _, csr := range psr.CharacterStyleRanges {
+			for _, csr := range psr.Ranges() {
 				if csr.AppliedCharacterStyle == styleID {
 					usedBy = append(usedBy, filename)
 					break
@@ -608,7 +605,7 @@ func (rm *ResourceManager) findMissingSwatches(deps *dependencySet, result *Miss
 }
 
 // findMissingLayers checks if all used layers exist in the spread files.
-// NOTE: Layer validation is currently disabled as layers are not stored in SpreadElement.
+// NOTE: Layer validation is currently disabled as layers are not stored in the Spread element.
 // This will be re-enabled once we understand where layers are stored in IDML.
 func (rm *ResourceManager) findMissingLayers(deps *dependencySet, result *MissingResources) error {
 	// Layer validation not yet implemented.
@@ -627,7 +624,7 @@ func (rm *ResourceManager) findObjectStyleUsage(styleID string) []string {
 
 	for filename, sp := range spreads {
 		// Check text frames
-		for _, tf := range sp.InnerSpread.TextFrames {
+		for _, tf := range sp.TextFrames {
 			if tf.AppliedObjectStyle == styleID {
 				usedBy = append(usedBy, filename)
 				break
@@ -635,7 +632,7 @@ func (rm *ResourceManager) findObjectStyleUsage(styleID string) []string {
 		}
 
 		// Check rectangles
-		for _, rect := range sp.InnerSpread.Rectangles {
+		for _, rect := range sp.Rectangles {
 			if rect.AppliedObjectStyle == styleID {
 				usedBy = append(usedBy, filename)
 				break
@@ -691,21 +688,21 @@ func (rm *ResourceManager) findColorUsage(colorRef string) []string {
 // spreadUsesColor checks if a spread uses a specific color in any of its page items.
 func (rm *ResourceManager) spreadUsesColor(sp *spread.Spread, colorRef string) bool {
 	// Check ovals
-	for _, oval := range sp.InnerSpread.Ovals {
+	for _, oval := range sp.Ovals {
 		if oval.StrokeColor == colorRef || oval.FillColor == colorRef {
 			return true
 		}
 	}
 
 	// Check polygons
-	for _, polygon := range sp.InnerSpread.Polygons {
+	for _, polygon := range sp.Polygons {
 		if polygon.StrokeColor == colorRef || polygon.FillColor == colorRef {
 			return true
 		}
 	}
 
 	// Check graphic lines
-	for _, line := range sp.InnerSpread.GraphicLines {
+	for _, line := range sp.GraphicLines {
 		if line.StrokeColor == colorRef || line.FillColor == colorRef {
 			return true
 		}
@@ -796,7 +793,7 @@ func (rm *ResourceManager) findLayerUsage(layerID string) []string {
 
 	for filename, sp := range spreads {
 		// Check text frames
-		for _, tf := range sp.InnerSpread.TextFrames {
+		for _, tf := range sp.TextFrames {
 			if tf.ItemLayer == layerID {
 				usedBy = append(usedBy, filename)
 				break
@@ -804,7 +801,7 @@ func (rm *ResourceManager) findLayerUsage(layerID string) []string {
 		}
 
 		// Check rectangles
-		for _, rect := range sp.InnerSpread.Rectangles {
+		for _, rect := range sp.Rectangles {
 			if rect.ItemLayer == layerID {
 				usedBy = append(usedBy, filename)
 				break

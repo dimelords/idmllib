@@ -138,7 +138,7 @@ func (p *Package) Validate() error {
 //
 // Returns a slice of spread elements. Each element contains the full spread
 // structure including page items (TextFrames, Rectangles, etc.).
-func (p *Package) Spreads() []spread.SpreadElement {
+func (p *Package) Spreads() []spread.Spread {
 	if p.Document == nil {
 		return nil
 	}
@@ -151,7 +151,7 @@ func (p *Package) Spreads() []spread.SpreadElement {
 //
 // Returns a slice of story elements. Each element contains the full story
 // structure including text content and style ranges.
-func (p *Package) Stories() []story.StoryElement {
+func (p *Package) Stories() []story.Story {
 	if p.Document == nil {
 		return nil
 	}

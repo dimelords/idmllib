@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/dimelords/idmllib/v2/pkg/idml"
+	"github.com/dimelords/idmllib/v2/pkg/spread"
 )
 
 // ExampleRead demonstrates reading an IDML file.
@@ -145,8 +146,8 @@ func ExamplePackage_Styles() {
 	// Output: Has paragraph styles: true
 }
 
-// ExamplePackage_SelectTextFrameByID demonstrates finding a text frame by ID.
-func ExamplePackage_SelectTextFrameByID() {
+// ExamplePageItemOfType demonstrates finding a page item by its Self attribute.
+func ExamplePageItemOfType() {
 	pkg, err := idml.Read("../../testdata/plain.idml")
 	if err != nil {
 		log.Fatal(err)
@@ -160,9 +161,9 @@ func ExamplePackage_SelectTextFrameByID() {
 
 	// Find first text frame
 	for _, sp := range spreads {
-		if len(sp.InnerSpread.TextFrames) > 0 {
-			tfID := sp.InnerSpread.TextFrames[0].Self
-			tf, err := pkg.SelectTextFrameByID(tfID)
+		if len(sp.TextFrames) > 0 {
+			tfID := sp.TextFrames[0].Self
+			tf, err := idml.PageItemOfType[spread.TextFrame](pkg, tfID)
 			if err != nil {
 				log.Fatal(err)
 			}

@@ -120,9 +120,9 @@ func TestFindMissingResources_MissingStyles(t *testing.T) {
 	pkg := New()
 
 	// Create a story with a reference to a missing paragraph style
-	st := &story.Story{
+	st := &story.File{
 		XMLName: xml.Name{Local: "Story"},
-		StoryElement: story.StoryElement{
+		Story: story.Story{
 			ParagraphStyleRanges: []story.ParagraphStyleRange{
 				{
 					AppliedParagraphStyle: "ParagraphStyle/MissingStyle",
@@ -145,7 +145,7 @@ func TestFindMissingResources_MissingStyles(t *testing.T) {
 	pkg.files["Stories/Story_u1.xml"] = &fileEntry{data: storyData}
 
 	// Also cache it in stories map
-	pkg.stories = map[string]*story.Story{
+	pkg.stories = map[string]*story.File{
 		"Stories/Story_u1.xml": st,
 	}
 
@@ -190,9 +190,9 @@ func TestFindMissingResources_NoStylesFile(t *testing.T) {
 	// Create a package with a story but no Styles.xml
 	pkg := New()
 
-	st := &story.Story{
+	st := &story.File{
 		XMLName: xml.Name{Local: "Story"},
-		StoryElement: story.StoryElement{
+		Story: story.Story{
 			ParagraphStyleRanges: []story.ParagraphStyleRange{
 				{
 					AppliedParagraphStyle: "ParagraphStyle/SomeStyle",
@@ -215,7 +215,7 @@ func TestFindMissingResources_NoStylesFile(t *testing.T) {
 	pkg.files["Stories/Story_u1.xml"] = &fileEntry{data: storyData}
 
 	// Cache in stories map
-	pkg.stories = map[string]*story.Story{
+	pkg.stories = map[string]*story.File{
 		"Stories/Story_u1.xml": st,
 	}
 
@@ -289,9 +289,9 @@ func TestFindParagraphStyleUsage_FindsUsage(t *testing.T) {
 	pkg := New()
 
 	// Create stories with different paragraph styles
-	st1 := &story.Story{
+	st1 := &story.File{
 		XMLName: xml.Name{Local: "Story"},
-		StoryElement: story.StoryElement{
+		Story: story.Story{
 			ParagraphStyleRanges: []story.ParagraphStyleRange{
 				{
 					AppliedParagraphStyle: "ParagraphStyle/Style1",
@@ -303,9 +303,9 @@ func TestFindParagraphStyleUsage_FindsUsage(t *testing.T) {
 		},
 	}
 
-	st2 := &story.Story{
+	st2 := &story.File{
 		XMLName: xml.Name{Local: "Story"},
-		StoryElement: story.StoryElement{
+		Story: story.Story{
 			ParagraphStyleRanges: []story.ParagraphStyleRange{
 				{
 					AppliedParagraphStyle: "ParagraphStyle/Style2",
@@ -317,9 +317,9 @@ func TestFindParagraphStyleUsage_FindsUsage(t *testing.T) {
 		},
 	}
 
-	st3 := &story.Story{
+	st3 := &story.File{
 		XMLName: xml.Name{Local: "Story"},
-		StoryElement: story.StoryElement{
+		Story: story.Story{
 			ParagraphStyleRanges: []story.ParagraphStyleRange{
 				{
 					AppliedParagraphStyle: "ParagraphStyle/Style1", // Uses Style1
@@ -331,7 +331,7 @@ func TestFindParagraphStyleUsage_FindsUsage(t *testing.T) {
 		},
 	}
 
-	pkg.stories = map[string]*story.Story{
+	pkg.stories = map[string]*story.File{
 		"Stories/Story_u1.xml": st1,
 		"Stories/Story_u2.xml": st2,
 		"Stories/Story_u3.xml": st3,
@@ -368,9 +368,9 @@ func TestFindParagraphStyleUsage_FindsUsage(t *testing.T) {
 func TestFindCharacterStyleUsage_FindsUsage(t *testing.T) {
 	pkg := New()
 
-	st1 := &story.Story{
+	st1 := &story.File{
 		XMLName: xml.Name{Local: "Story"},
-		StoryElement: story.StoryElement{
+		Story: story.Story{
 			ParagraphStyleRanges: []story.ParagraphStyleRange{
 				{
 					AppliedParagraphStyle: "ParagraphStyle/Normal",
@@ -382,9 +382,9 @@ func TestFindCharacterStyleUsage_FindsUsage(t *testing.T) {
 		},
 	}
 
-	st2 := &story.Story{
+	st2 := &story.File{
 		XMLName: xml.Name{Local: "Story"},
-		StoryElement: story.StoryElement{
+		Story: story.Story{
 			ParagraphStyleRanges: []story.ParagraphStyleRange{
 				{
 					AppliedParagraphStyle: "ParagraphStyle/Normal",
@@ -396,7 +396,7 @@ func TestFindCharacterStyleUsage_FindsUsage(t *testing.T) {
 		},
 	}
 
-	pkg.stories = map[string]*story.Story{
+	pkg.stories = map[string]*story.File{
 		"Stories/Story_u1.xml": st1,
 		"Stories/Story_u2.xml": st2,
 	}
