@@ -184,7 +184,8 @@ func TestErrorChain_WorksCorrectly(t *testing.T) {
 	}
 
 	// Should be able to unwrap to level1
-	if _, ok := errors.AsType[*Error](level2); !ok {
+	var cerr *Error
+	if !errors.As(level2, &cerr) {
 		t.Error("errors.As should find *Error in chain")
 	}
 }

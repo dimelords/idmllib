@@ -1,8 +1,7 @@
 module github.com/dimelords/idmllib/v3
 
-go 1.26.0
+go 1.25.0
 
-toolchain go1.26.8
 
 require (
 	github.com/beevik/etree v1.8.0

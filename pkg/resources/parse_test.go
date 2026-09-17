@@ -36,7 +36,8 @@ func TestParseFontsFile_InvalidXML(t *testing.T) {
 			}
 
 			// Verify it's our custom error type
-			if _, ok := errors.AsType[*common.Error](err); !ok {
+			var cerr *common.Error
+			if !errors.As(err, &cerr) {
 				t.Errorf("ParseFontsFile() error type = %T, want *common.Error", err)
 			}
 		})
@@ -71,7 +72,8 @@ func TestParseGraphicFile_InvalidXML(t *testing.T) {
 			}
 
 			// Verify it's our custom error type
-			if _, ok := errors.AsType[*common.Error](err); !ok {
+			var cerr *common.Error
+			if !errors.As(err, &cerr) {
 				t.Errorf("ParseGraphicFile() error type = %T, want *common.Error", err)
 			}
 		})
@@ -106,7 +108,8 @@ func TestParseStylesFile_InvalidXML(t *testing.T) {
 			}
 
 			// Verify it's our custom error type
-			if _, ok := errors.AsType[*common.Error](err); !ok {
+			var cerr *common.Error
+			if !errors.As(err, &cerr) {
 				t.Errorf("ParseStylesFile() error type = %T, want *common.Error", err)
 			}
 		})

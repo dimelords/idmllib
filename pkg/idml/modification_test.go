@@ -141,7 +141,8 @@ func TestRemoveStory_NotFound(t *testing.T) {
 	}
 
 	// Verify it's an common.ErrNotFound
-	if _, ok := errors.AsType[*common.Error](err); !ok {
+	var cerr *common.Error
+	if !errors.As(err, &cerr) {
 		t.Fatalf("Expected *common.Error type, got %T", err)
 	}
 
