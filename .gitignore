@@ -79,3 +79,6 @@ __debug_bin
 .kiro/
 
 .claude/
+
+# Build output
+bin/

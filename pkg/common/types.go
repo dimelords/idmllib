@@ -112,11 +112,11 @@ type PathPointType struct {
 }
 
 // GetAppliedFont extracts the AppliedFont value from Properties.OtherElements.
-// Returns the font family name (e.g., "Polaris Condensed") or empty string if not found.
+// Returns the font family name (e.g., "Minion Pro") or empty string if not found.
 //
 // AppliedFont is stored in the Properties element as:
 //
-//	<AppliedFont type="string">Polaris Condensed</AppliedFont>
+//	<AppliedFont type="string">Minion Pro</AppliedFont>
 func (p *Properties) GetAppliedFont() string {
 	if p == nil {
 		return ""

@@ -48,7 +48,7 @@ type StylesFile struct {
 }
 
 // CharacterStyleGroup represents a group of character styles.
-// Supports nested groups for hierarchical organization (e.g., "Naviga:Standard").
+// Supports nested groups for hierarchical organization (e.g., "Editorial:Body").
 // XMLName will be "RootCharacterStyleGroup" for root or "CharacterStyleGroup" for nested.
 type CharacterStyleGroup struct {
 	XMLName         xml.Name              // Will be set during unmarshal
@@ -119,7 +119,7 @@ func (cs *CharacterStyle) GetPointSize() float64 {
 }
 
 // ParagraphStyleGroup represents a group of paragraph styles.
-// Supports nested groups for hierarchical organization (e.g., "Naviga:Standard").
+// Supports nested groups for hierarchical organization (e.g., "Editorial:Body").
 // XMLName will be "RootParagraphStyleGroup" for root or "ParagraphStyleGroup" for nested.
 type ParagraphStyleGroup struct {
 	XMLName         xml.Name              // Will be set during unmarshal
