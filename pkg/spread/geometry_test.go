@@ -3,7 +3,7 @@ package spread_test
 import (
 	"testing"
 
-	"github.com/dimelords/idmllib/v2/pkg/spread"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
 )
 
 func TestTextFrame_Bounds(t *testing.T) {

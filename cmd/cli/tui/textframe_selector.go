@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/dimelords/idmllib/v2/pkg/idml"
-	"github.com/dimelords/idmllib/v2/pkg/spread"
-	"github.com/dimelords/idmllib/v2/pkg/story"
+	"github.com/dimelords/idmllib/v3/pkg/idml"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
+	"github.com/dimelords/idmllib/v3/pkg/story"
 )
 
 // TextFrameItem represents a textframe with preview text

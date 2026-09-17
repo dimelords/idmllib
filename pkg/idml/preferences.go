@@ -1,8 +1,8 @@
 package idml
 
 import (
-	"github.com/dimelords/idmllib/v2/pkg/common"
-	"github.com/dimelords/idmllib/v2/pkg/resources"
+	"github.com/dimelords/idmllib/v3/pkg/common"
+	"github.com/dimelords/idmllib/v3/pkg/resources"
 )
 
 // Preferences returns the parsed Resources/Preferences.xml. The result is

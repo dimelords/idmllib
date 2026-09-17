@@ -1,7 +1,7 @@
 package idml
 
 import (
-	"github.com/dimelords/idmllib/v2/pkg/common"
+	"github.com/dimelords/idmllib/v3/pkg/common"
 )
 
 // File I/O helper methods for Package struct.

@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dimelords/idmllib/v2/pkg/common"
+	"github.com/dimelords/idmllib/v3/pkg/common"
 )
 
 // Typed story content beyond plain paragraph and character ranges. All types

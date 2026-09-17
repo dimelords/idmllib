@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dimelords/idmllib/v2/pkg/spread"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
 )
 
 // TestNewSelection_CreatesEmptySelection tests creating a new empty selection

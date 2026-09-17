@@ -42,7 +42,7 @@ generated fixture. Details in FIDELITY.md.
 
 ### 3. Module split (done 2026-09-16)
 
-`cmd/` becomes its own Go module (`github.com/dimelords/idmllib/v2/cmd`) with
+`cmd/` becomes its own Go module (`github.com/dimelords/idmllib/v3/cmd`) with
 a `replace` to the library. Library consumers no longer inherit Bubbletea
 and Lipgloss in their dependency graph. CI lints and builds both modules.
 

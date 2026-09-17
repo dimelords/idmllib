@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/dimelords/idmllib/v2/pkg/document"
+	"github.com/dimelords/idmllib/v3/pkg/document"
 )
 
 // Example demonstrates basic usage of the document package.

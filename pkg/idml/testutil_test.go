@@ -3,7 +3,7 @@ package idml
 import (
 	"testing"
 
-	"github.com/dimelords/idmllib/v2/internal/testutil"
+	"github.com/dimelords/idmllib/v3/internal/testutil"
 )
 
 // loadTestIDML loads a test IDML file from testdata directory.

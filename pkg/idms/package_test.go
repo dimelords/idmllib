@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dimelords/idmllib/v2/internal/testutil"
-	"github.com/dimelords/idmllib/v2/pkg/xmp"
+	"github.com/dimelords/idmllib/v3/internal/testutil"
+	"github.com/dimelords/idmllib/v3/pkg/xmp"
 )
 
 // loadTestIDMS loads a test IDMS file from testdata directory.

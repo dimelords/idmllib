@@ -11,7 +11,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/dimelords/idmllib/v2/pkg/common"
+	"github.com/dimelords/idmllib/v3/pkg/common"
 )
 
 // Default limits for ZIP bomb protection

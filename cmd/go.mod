@@ -1,4 +1,4 @@
-module github.com/dimelords/idmllib/v2/cmd
+module github.com/dimelords/idmllib/v3/cmd
 
 go 1.26.0
 
@@ -7,7 +7,7 @@ toolchain go1.26.8
 require (
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
-	github.com/dimelords/idmllib/v2 v2.0.0
+	github.com/dimelords/idmllib/v3 v3.0.0
 )
 
 require (
@@ -34,4 +34,4 @@ require (
 	golang.org/x/text v0.42.0 // indirect
 )
 
-replace github.com/dimelords/idmllib/v2 => ../
+replace github.com/dimelords/idmllib/v3 => ../

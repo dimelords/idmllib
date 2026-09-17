@@ -4,12 +4,12 @@ import (
 	"archive/zip"
 	"io"
 
-	"github.com/dimelords/idmllib/v2/pkg/common"
-	"github.com/dimelords/idmllib/v2/pkg/document"
-	"github.com/dimelords/idmllib/v2/pkg/resources"
-	"github.com/dimelords/idmllib/v2/pkg/spread"
-	"github.com/dimelords/idmllib/v2/pkg/story"
-	"github.com/dimelords/idmllib/v2/pkg/xmp"
+	"github.com/dimelords/idmllib/v3/pkg/common"
+	"github.com/dimelords/idmllib/v3/pkg/document"
+	"github.com/dimelords/idmllib/v3/pkg/resources"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
+	"github.com/dimelords/idmllib/v3/pkg/story"
+	"github.com/dimelords/idmllib/v3/pkg/xmp"
 )
 
 // fileEntry stores both the content and ZIP metadata for a file.

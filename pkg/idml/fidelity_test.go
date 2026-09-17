@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dimelords/idmllib/v2/internal/xmlutil"
+	"github.com/dimelords/idmllib/v3/internal/xmlutil"
 )
 
 // Fidelity tests guard the core promise of the library: parsing a file and

@@ -11,10 +11,10 @@ package document
 import (
 	"encoding/xml"
 
-	"github.com/dimelords/idmllib/v2/pkg/common"
-	"github.com/dimelords/idmllib/v2/pkg/resources"
-	"github.com/dimelords/idmllib/v2/pkg/spread"
-	"github.com/dimelords/idmllib/v2/pkg/story"
+	"github.com/dimelords/idmllib/v3/pkg/common"
+	"github.com/dimelords/idmllib/v3/pkg/resources"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
+	"github.com/dimelords/idmllib/v3/pkg/story"
 )
 
 // Document represents the root element of designmap.xml.

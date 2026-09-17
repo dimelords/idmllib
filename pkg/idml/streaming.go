@@ -1,7 +1,7 @@
 package idml
 
 import (
-	"github.com/dimelords/idmllib/v2/internal/xmlutil"
+	"github.com/dimelords/idmllib/v3/internal/xmlutil"
 )
 
 // Streaming mode.

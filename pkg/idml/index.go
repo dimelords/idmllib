@@ -3,7 +3,7 @@ package idml
 import (
 	"sync"
 
-	"github.com/dimelords/idmllib/v2/pkg/spread"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
 )
 
 // itemIndex provides O(1) lookup for page items by their Self ID.

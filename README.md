@@ -3,7 +3,7 @@
   
   # IDML Library
 
-  [![Go Reference](https://pkg.go.dev/badge/github.com/dimelords/idmllib/v2.svg)](https://pkg.go.dev/github.com/dimelords/idmllib/v2)
+  [![Go Reference](https://pkg.go.dev/badge/github.com/dimelords/idmllib/v3.svg)](https://pkg.go.dev/github.com/dimelords/idmllib/v3)
   [![Go Report Card](https://goreportcard.com/badge/github.com/dimelords/idmllib)](https://goreportcard.com/report/github.com/dimelords/idmllib)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![CI](https://github.com/dimelords/idmllib/actions/workflows/ci.yml/badge.svg)](https://github.com/dimelords/idmllib/actions/workflows/ci.yml)
@@ -64,7 +64,7 @@ pkg/
 ## Installation
 
 ```bash
-go get github.com/dimelords/idmllib/v2
+go get github.com/dimelords/idmllib/v3
 ```
 
 ## Usage
@@ -76,7 +76,7 @@ package main
 
 import (
     "log"
-    "github.com/dimelords/idmllib/v2/pkg/idml"
+    "github.com/dimelords/idmllib/v3/pkg/idml"
 )
 
 func main() {
@@ -120,8 +120,8 @@ package main
 
 import (
     "log"
-    "github.com/dimelords/idmllib/v2/pkg/idml"
-    "github.com/dimelords/idmllib/v2/pkg/story"
+    "github.com/dimelords/idmllib/v3/pkg/idml"
+    "github.com/dimelords/idmllib/v3/pkg/story"
 )
 
 func main() {
@@ -166,7 +166,7 @@ package main
 
 import (
     "log"
-    "github.com/dimelords/idmllib/v2/pkg/idml"
+    "github.com/dimelords/idmllib/v3/pkg/idml"
 )
 
 func main() {
@@ -202,8 +202,8 @@ package main
 
 import (
     "log"
-    "github.com/dimelords/idmllib/v2/pkg/idml"
-    "github.com/dimelords/idmllib/v2/pkg/idms"
+    "github.com/dimelords/idmllib/v3/pkg/idml"
+    "github.com/dimelords/idmllib/v3/pkg/idms"
 )
 
 func main() {
@@ -446,7 +446,7 @@ Fredrik Gustafsson ([@dimelords](https://github.com/dimelords))
 ## Changelog
 
 ### v2.0.0 (2025-01-13)
-- ✅ **BREAKING**: Updated module path to `github.com/dimelords/idmllib/v2` following Go module versioning semantics
+- ✅ **BREAKING**: Updated module path to `github.com/dimelords/idmllib/v3` following Go module versioning semantics
 - ✅ Complete IDML read/write support with roundtrip fidelity
 - ✅ Domain-driven package architecture mirroring IDML file structure
 - ✅ Go 1.26 toolchain with comprehensive security fixes

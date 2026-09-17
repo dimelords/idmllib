@@ -7,9 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/dimelords/idmllib/v2/pkg/idml"
-	"github.com/dimelords/idmllib/v2/pkg/idms"
-	"github.com/dimelords/idmllib/v2/pkg/spread"
+	"github.com/dimelords/idmllib/v3/pkg/idml"
+	"github.com/dimelords/idmllib/v3/pkg/idms"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
 )
 
 func main() {

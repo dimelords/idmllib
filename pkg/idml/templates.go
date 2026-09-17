@@ -9,7 +9,7 @@ import (
 	"sync"
 	"text/template"
 
-	"github.com/dimelords/idmllib/v2/pkg/common"
+	"github.com/dimelords/idmllib/v3/pkg/common"
 )
 
 // The embedded templates are parsed once, on first use. sync.OnceValues

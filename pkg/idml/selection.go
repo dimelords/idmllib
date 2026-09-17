@@ -1,7 +1,7 @@
 package idml
 
 import (
-	"github.com/dimelords/idmllib/v2/pkg/spread"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
 )
 
 // Selection represents a collection of selected page items from an IDML document.

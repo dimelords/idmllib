@@ -3,9 +3,9 @@
 package analysis
 
 import (
-	"github.com/dimelords/idmllib/v2/pkg/idml"
-	"github.com/dimelords/idmllib/v2/pkg/spread"
-	"github.com/dimelords/idmllib/v2/pkg/story"
+	"github.com/dimelords/idmllib/v3/pkg/idml"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
+	"github.com/dimelords/idmllib/v3/pkg/story"
 )
 
 // DependencySet tracks all dependencies for a set of selected page items.

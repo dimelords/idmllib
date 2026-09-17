@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dimelords/idmllib/v2/internal/testutil"
+	"github.com/dimelords/idmllib/v3/internal/testutil"
 	"github.com/google/go-cmp/cmp"
 )
 

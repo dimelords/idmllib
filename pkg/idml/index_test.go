@@ -4,7 +4,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/dimelords/idmllib/v2/pkg/spread"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
 )
 
 func TestItemIndex_LazyBuild(t *testing.T) {

@@ -3,8 +3,8 @@ package resources
 import (
 	"encoding/xml"
 
-	"github.com/dimelords/idmllib/v2/internal/xmlutil"
-	"github.com/dimelords/idmllib/v2/pkg/common"
+	"github.com/dimelords/idmllib/v3/internal/xmlutil"
+	"github.com/dimelords/idmllib/v3/pkg/common"
 )
 
 // ParseGraphicFile parses a Graphic.xml file into a GraphicFile struct.

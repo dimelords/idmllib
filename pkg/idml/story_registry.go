@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/dimelords/idmllib/v2/pkg/document"
+	"github.com/dimelords/idmllib/v3/pkg/document"
 )
 
 // idPkgNamespace is the IDML packaging namespace used by designmap.xml

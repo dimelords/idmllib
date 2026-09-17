@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dimelords/idmllib/v2/pkg/story"
+	"github.com/dimelords/idmllib/v3/pkg/story"
 )
 
 func newTestStory(id string) *story.Story {

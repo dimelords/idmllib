@@ -1,4 +1,4 @@
-module github.com/dimelords/idmllib/v2
+module github.com/dimelords/idmllib/v3
 
 go 1.26.0
 

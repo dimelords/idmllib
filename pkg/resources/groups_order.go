@@ -3,7 +3,7 @@ package resources
 import (
 	"encoding/xml"
 
-	"github.com/dimelords/idmllib/v2/pkg/common"
+	"github.com/dimelords/idmllib/v3/pkg/common"
 )
 
 // Style groups hold styles and nested groups interleaved in document order.

@@ -7,7 +7,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/dimelords/idmllib/v2/internal/xmlutil"
+	"github.com/dimelords/idmllib/v3/internal/xmlutil"
 )
 
 func readFixtureStreaming(path string) (*Package, error) {

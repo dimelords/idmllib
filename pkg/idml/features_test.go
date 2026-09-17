@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dimelords/idmllib/v2/pkg/spread"
-	"github.com/dimelords/idmllib/v2/pkg/story"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
+	"github.com/dimelords/idmllib/v3/pkg/story"
 )
 
 // features.idml was exported from InDesign 2026 and contains a tagged story

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/dimelords/idmllib/v2/internal/xmlutil"
+	"github.com/dimelords/idmllib/v3/internal/xmlutil"
 )
 
 // TestFidelityReMarshalIsLossless parses every IDMS snippet in testdata and

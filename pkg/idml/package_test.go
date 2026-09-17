@@ -3,7 +3,7 @@ package idml
 import (
 	"testing"
 
-	"github.com/dimelords/idmllib/v2/pkg/xmp"
+	"github.com/dimelords/idmllib/v3/pkg/xmp"
 )
 
 // TestXMP_ReadIDMLExtractsMetadata tests that reading an IDML file extracts XMP metadata.

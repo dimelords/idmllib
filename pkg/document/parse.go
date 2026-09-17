@@ -4,11 +4,11 @@ import (
 	"encoding/xml"
 	"io"
 
-	"github.com/dimelords/idmllib/v2/internal/xmlutil"
-	"github.com/dimelords/idmllib/v2/pkg/common"
-	"github.com/dimelords/idmllib/v2/pkg/resources"
-	"github.com/dimelords/idmllib/v2/pkg/spread"
-	"github.com/dimelords/idmllib/v2/pkg/story"
+	"github.com/dimelords/idmllib/v3/internal/xmlutil"
+	"github.com/dimelords/idmllib/v3/pkg/common"
+	"github.com/dimelords/idmllib/v3/pkg/resources"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
+	"github.com/dimelords/idmllib/v3/pkg/story"
 )
 
 // ParseDocument parses a designmap.xml file into a Document struct.

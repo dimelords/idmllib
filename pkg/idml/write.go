@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dimelords/idmllib/v2/pkg/common"
-	"github.com/dimelords/idmllib/v2/pkg/document"
-	"github.com/dimelords/idmllib/v2/pkg/resources"
-	"github.com/dimelords/idmllib/v2/pkg/spread"
-	"github.com/dimelords/idmllib/v2/pkg/story"
+	"github.com/dimelords/idmllib/v3/pkg/common"
+	"github.com/dimelords/idmllib/v3/pkg/document"
+	"github.com/dimelords/idmllib/v3/pkg/resources"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
+	"github.com/dimelords/idmllib/v3/pkg/story"
 )
 
 // marshalCachedObjects marshals all cached objects back to XML data.

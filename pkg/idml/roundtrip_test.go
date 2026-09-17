@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dimelords/idmllib/v2/internal/xmlutil"
+	"github.com/dimelords/idmllib/v3/internal/xmlutil"
 )
 
 // TestRoundtrip verifies that we can read an IDML file and write it back

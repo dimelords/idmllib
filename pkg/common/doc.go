@@ -19,7 +19,7 @@
 //
 // Domain packages import common/ to access these types:
 //
-//	import "github.com/dimelords/idmllib/v2/pkg/common"
+//	import "github.com/dimelords/idmllib/v3/pkg/common"
 //
 //	type MyType struct {
 //	    Properties *common.Properties

@@ -3,7 +3,7 @@ package resources
 import (
 	"encoding/xml"
 
-	"github.com/dimelords/idmllib/v2/pkg/common"
+	"github.com/dimelords/idmllib/v3/pkg/common"
 )
 
 // GraphicFile represents the Resources/Graphic.xml file containing colors, swatches, and graphic resources.

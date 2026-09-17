@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/dimelords/idmllib/v2/pkg/common"
-	"github.com/dimelords/idmllib/v2/pkg/document"
+	"github.com/dimelords/idmllib/v3/pkg/common"
+	"github.com/dimelords/idmllib/v3/pkg/document"
 )
 
 // Read reads an IDMS file from the given path.
