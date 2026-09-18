@@ -54,6 +54,9 @@ var minimalStyles []byte
 //go:embed templates/minimal/Tags.xml
 var minimalTags []byte
 
+//go:embed templates/minimal/BackingStory.xml
+var minimalBackingStory []byte
+
 //go:embed templates/minimal/metadata.xml
 var minimalMetadata []byte
 
@@ -261,6 +264,17 @@ func NewFromTemplate(opts *TemplateOptions) (*Package, error) {
 	// Add XML/Tags.xml
 	if err := pkg.addFileFromTemplate(PathTags, minimalTags); err != nil {
 		return nil, common.WrapErrorWithPath("idml", "create from template", PathTags, err)
+	}
+
+	// Add XML/BackingStory.xml. Every IDML InDesign writes has one, and a
+	// designmap that names it without the archive carrying it is a
+	// document InDesign refuses outright: "This InDesign Interchange
+	// document does not hold all its components. Could not find the UCF
+	// component file XML/BackingStory.xml." Found by trying to open a
+	// generated fixture, which is the check this repository says matters
+	// and which nothing was actually running.
+	if err := pkg.addFileFromTemplate(PathBackingStory, minimalBackingStory); err != nil {
+		return nil, common.WrapErrorWithPath("idml", "create from template", PathBackingStory, err)
 	}
 
 	// Add META-INF/metadata.xml. Every IDML InDesign writes has one, and
