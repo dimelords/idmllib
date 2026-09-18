@@ -22,6 +22,7 @@ package fixturegen
 import (
 	"encoding/xml"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/dimelords/idmllib/v3/pkg/common"
@@ -132,6 +133,38 @@ func labelProperties() *common.Properties {
 	}
 }
 
+// layerColourProperties gives the layer the swatch InDesign shows beside
+// it in the Layers panel. Cosmetic, but a Layer without it is a shape
+// InDesign never writes.
+// firstPageID names the page a spread's first page carries, so anything
+// that has to point at a page and the spread that defines it cannot
+// drift apart.
+func firstPageID(spread int) string {
+	return fmt.Sprintf("upage%d", 209+spread)
+}
+
+// sectionProperties carries the page-number style every Section InDesign
+// writes has. A Label alone is not the shape it expects.
+func sectionProperties() *common.Properties {
+	return &common.Properties{
+		OtherElements: []common.RawXMLElement{{
+			XMLName: xml.Name{Local: "PageNumberStyle"},
+			Attrs:   []xml.Attr{{Name: xml.Name{Local: "type"}, Value: "enumeration"}},
+			Content: []byte("Arabic"),
+		}},
+	}
+}
+
+func layerColourProperties() *common.Properties {
+	return &common.Properties{
+		OtherElements: []common.RawXMLElement{{
+			XMLName: xml.Name{Local: "LayerColor"},
+			Attrs:   []xml.Attr{{Name: xml.Name{Local: "type"}, Value: "enumeration"}},
+			Content: []byte("LightBlue"),
+		}},
+	}
+}
+
 func enrichDesignMap(pkg *idml.Package, spec Spec) error {
 	doc, err := pkg.Document()
 	if err != nil {
@@ -141,6 +174,26 @@ func enrichDesignMap(pkg *idml.Package, spec Spec) error {
 	doc.Self = "d"
 	doc.Name = strings.TrimSuffix(spec.Name, ".idml")
 	doc.ZeroPoint = "0 0"
+	// The layer has to exist before anything names it. Setting
+	// ActiveLayer without adding the Layer leaves designmap.xml pointing
+	// at an id nothing defines, and InDesign refuses the whole document
+	// over it - with an unresolved "^2" that names neither the attribute
+	// nor the file. Every fixture this package produced was unopenable
+	// for that one missing element, which nothing noticed because no test
+	// opens a document.
+	doc.Layers = append(doc.Layers, document.Layer{
+		Self:       "uba",
+		Name:       "Layer 1",
+		Visible:    "true",
+		Locked:     "false",
+		IgnoreWrap: "false",
+		ShowGuides: "true",
+		LockGuides: "false",
+		UI:         "true",
+		Expendable: "true",
+		Printable:  "true",
+		Properties: layerColourProperties(),
+	})
 	doc.ActiveLayer = "uba"
 	doc.CMYKProfile = "U.S. Web Coated (SWOP) v2"
 	doc.RGBProfile = "sRGB IEC61966-2.1"
@@ -172,14 +225,24 @@ func enrichDesignMap(pkg *idml.Package, spec Spec) error {
 			Properties:      labelProperties(),
 		},
 	})
+	// PageStart is not optional in practice. A Section that names no page
+	// is what InDesign rejected every fixture over - and it says so with
+	// an unresolved "^2", which names neither the element nor the file.
+	// Both documents InDesign does accept, the captured one and the
+	// template's own, carry a PageStart; the generated ones never did.
 	doc.Sections = append(doc.Sections, document.Section{
-		Self:              "ub4",
-		Name:              "A",
-		Length:            "2",
-		PageNumberStart:   "22",
-		SectionPrefix:     "A",
-		ContinueNumbering: "false",
-		Properties:        labelProperties(),
+		Self: "ub4",
+		Name: "A",
+		// One page per spread, so the section's length is the spread
+		// count. Claiming more pages than the document has is another way
+		// to make InDesign refuse it.
+		Length:               strconv.Itoa(spec.Spreads),
+		PageNumberStart:      "22",
+		SectionPrefix:        "A",
+		IncludeSectionPrefix: "false",
+		ContinueNumbering:    "false",
+		PageStart:            firstPageID(1),
+		Properties:           sectionProperties(),
 	})
 	// InDesign's own placeholder for an unattributed user. The captured
 	// document named four real members of a customer's staff here.
@@ -482,7 +545,7 @@ func buildSpread(n, firstStory, lastStory int) *spread.Spread {
 		ItemTransform:   "1 0 0 1 0 0",
 	}
 	sp.Pages = append(sp.Pages, spread.Page{
-		Self:            fmt.Sprintf("upage%d", 209+n),
+		Self:            firstPageID(n),
 		Name:            fmt.Sprintf("%d", n),
 		GeometricBounds: "0 0 841.89 595.276",
 		ItemTransform:   "1 0 0 1 0 0",
