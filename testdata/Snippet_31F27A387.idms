@@ -2,12 +2,12 @@
 <?aid style="50" type="snippet" readerVersion="6.0" featureSet="257" product="20.5(66)" ?>
 <?aid SnippetType="PageItem" ?>
 <Document DOMVersion="20.4" Self="d">
+	<NumberingList Self="NumberingList/$ID/[Default]" Name="$ID/[Default]" ContinueNumbersAcrossStories="false" ContinueNumbersAcrossDocuments="false" />
 	<Layer Self="uba" Name="Layer 1" Visible="true" Locked="false" IgnoreWrap="false" ShowGuides="true" LockGuides="false" UI="true" Expendable="true" Printable="true">
 		<Properties>
 			<LayerColor type="enumeration">LightBlue</LayerColor>
 		</Properties>
 	</Layer>
-	<NumberingList Self="NumberingList/$ID/[Default]" Name="$ID/[Default]" ContinueNumbersAcrossStories="false" ContinueNumbersAcrossDocuments="false" />
 	<ColorGroup Self="ColorGroup/[Root Color Group]" Name="[Root Color Group]" IsRootColorGroup="true">
 		<ColorGroupSwatch Self="u12ColorGroupSwatch0" SwatchItemRef="Swatch/None" />
 		<ColorGroupSwatch Self="u12ColorGroupSwatch3" SwatchItemRef="Color/Black" />

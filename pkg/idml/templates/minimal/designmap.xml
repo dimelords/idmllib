@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="20.5(48)" ?>
 <Document xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="{{.DOMVersion}}">
+	<Properties>
+		<Label type="list" />
+	</Properties>
 	<Language Name="$ID/English: USA" SingleQuotes="&#39;&#39;" DoubleQuotes="&#34;&#34;" PrimaryWritingScript="$ID/Roman" />
 	<idPkg:Graphic src="Resources/Graphic.xml" />
 	<idPkg:Fonts src="Resources/Fonts.xml" />

@@ -481,8 +481,11 @@ func TestDocumentSectionsAndUsers(t *testing.T) {
 		if sec.Name != "A" {
 			t.Errorf("Section.Name = %q, want %q", sec.Name, "A")
 		}
-		if sec.Length != "2" {
-			t.Errorf("Section.Length = %q, want %q", sec.Length, "2")
+		// One page per spread in the generated fixture, so the section
+		// spans one. The value is the fixture's to state; what this
+		// asserts is that parsing reads it back.
+		if sec.Length != "1" {
+			t.Errorf("Section.Length = %q, want %q", sec.Length, "1")
 		}
 		if sec.ContinueNumbering != "false" {
 			t.Errorf("Section.ContinueNumbering = %q, want %q", sec.ContinueNumbering, "false")

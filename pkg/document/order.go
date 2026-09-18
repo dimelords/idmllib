@@ -61,6 +61,14 @@ func sliceKind(name string, n int, get func(i int) any) common.ChildKind {
 // order) are written grouped by kind in the order listed below, which matches
 // the order InDesign itself uses for a freshly exported designmap.xml.
 func (d Document) marshalChildren(e *xml.Encoder) error {
+	// The order InDesign writes, and the order it demands when reading:
+	// a designmap whose children are in any other sequence is refused
+	// outright, with an error that names neither the element nor the
+	// file. Taken from two documents it does open, which agree on it
+	// exactly. This list only decides where children go when nothing was
+	// recorded from a parsed document - EncodeChildren replays a recorded
+	// order first - so it governs documents this library builds rather
+	// than documents it read.
 	kinds := []common.ChildKind{
 		ptrKind("Properties", d.Properties != nil, d.Properties),
 		sliceKind("Language", len(d.Languages), func(i int) any { return d.Languages[i] }),
@@ -68,22 +76,25 @@ func (d Document) marshalChildren(e *xml.Encoder) error {
 		ptrKind("idPkg:Graphic", d.GraphicResource != nil, d.GraphicResource),
 		ptrKind("idPkg:Fonts", d.FontsResource != nil, d.FontsResource),
 		ptrKind("idPkg:Styles", d.StylesResource != nil, d.StylesResource),
-		ptrKind("idPkg:Preferences", d.PreferencesResource != nil, d.PreferencesResource),
-		ptrKind("idPkg:Tags", d.TagsResource != nil, d.TagsResource),
-		sliceKind("idPkg:MasterSpread", len(d.MasterSpreads), func(i int) any { return d.MasterSpreads[i] }),
-		sliceKind("idPkg:Spread", len(d.Spreads), func(i int) any { return d.Spreads[i] }),
-		sliceKind("idPkg:Story", len(d.Stories), func(i int) any { return d.Stories[i] }),
-		ptrKind("idPkg:BackingStory", d.BackingStory != nil, d.BackingStory),
 
-		sliceKind("Layer", len(d.Layers), func(i int) any { return d.Layers[i] }),
 		sliceKind("NumberingList", len(d.NumberingLists), func(i int) any { return d.NumberingLists[i] }),
 		sliceKind("NamedGrid", len(d.NamedGrids), func(i int) any { return d.NamedGrids[i] }),
+
+		ptrKind("idPkg:Preferences", d.PreferencesResource != nil, d.PreferencesResource),
+
+		sliceKind("TextVariable", len(d.TextVariables), func(i int) any { return d.TextVariables[i] }),
+
+		ptrKind("idPkg:Tags", d.TagsResource != nil, d.TagsResource),
+		sliceKind("Layer", len(d.Layers), func(i int) any { return d.Layers[i] }),
+		sliceKind("idPkg:MasterSpread", len(d.MasterSpreads), func(i int) any { return d.MasterSpreads[i] }),
+		sliceKind("idPkg:Spread", len(d.Spreads), func(i int) any { return d.Spreads[i] }),
 		sliceKind("Section", len(d.Sections), func(i int) any { return d.Sections[i] }),
 		sliceKind("DocumentUser", len(d.DocumentUsers), func(i int) any { return d.DocumentUsers[i] }),
+		ptrKind("idPkg:BackingStory", d.BackingStory != nil, d.BackingStory),
+		sliceKind("idPkg:Story", len(d.Stories), func(i int) any { return d.Stories[i] }),
 		sliceKind("ColorGroup", len(d.ColorGroups), func(i int) any { return d.ColorGroups[i] }),
 		sliceKind("ABullet", len(d.ABullets), func(i int) any { return d.ABullets[i] }),
 		sliceKind("Assignment", len(d.Assignments), func(i int) any { return d.Assignments[i] }),
-		sliceKind("TextVariable", len(d.TextVariables), func(i int) any { return d.TextVariables[i] }),
 
 		// IDMS inline content (used by snippets instead of resource references)
 		sliceKind("Color", len(d.Colors), func(i int) any { return d.Colors[i] }),

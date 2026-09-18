@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="20.5(48)" ?>
 <Document xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="20.4" Self="d" Name="example" StoryList="story01 story02 story03 story04 story05 story06 story07 story08 story09 story10 story11 story12 story13" ZeroPoint="0 0" ActiveLayer="uba" CMYKProfile="U.S. Web Coated (SWOP) v2" RGBProfile="sRGB IEC61966-2.1">
+	<Properties>
+		<Label type="list" />
+	</Properties>
 	<Language Self="" Name="$ID/English: USA" SingleQuotes="&#39;&#39;" DoubleQuotes="&#34;&#34;" PrimaryWritingScript="$ID/Roman" />
 	<idPkg:Graphic src="Resources/Graphic.xml" />
 	<idPkg:Fonts src="Resources/Fonts.xml" />
@@ -10,10 +13,43 @@
 	<idPkg:MasterSpread src="MasterSpreads/MasterSpread_ub4.xml" />
 	<ViewPreference HorizontalMeasurementUnits="Points" VerticalMeasurementUnits="Points" />
 	<DocumentPreference PageWidth="595.276" PageHeight="841.890" PageOrientation="Portrait" ColumnCount="3" ColumnGutter="12" />
-	<Properties>
-		<Label type="list" />
-	</Properties>
+	<NumberingList Self="NumberingList/$ID/[Default]" Name="$ID/[Default]" ContinueNumbersAcrossStories="false" ContinueNumbersAcrossDocuments="false" />
+	<NamedGrid Self="NamedGrid/$ID/[Page Grid]" Name="$ID/[Page Grid]">
+		<GridDataInformation FontStyle="Roman" PointSize="12" CharacterAki="0" LineAki="9" HorizontalScale="100" VerticalScale="100">
+			<Properties>
+				<Label type="list" />
+			</Properties>
+		</GridDataInformation>
+	</NamedGrid>
+	<TextVariable Self="dTextVariablenChapter Number" Name="Chapter Number" VariableType="ChapterNumberType">
+		<ChapterNumberVariablePreference Format="Current" />
+	</TextVariable>
+	<TextVariable Self="dTextVariablenCreation Date" Name="Creation Date" VariableType="CreationDateType">
+		<DateVariablePreference Format="dd/MM/yy" />
+	</TextVariable>
+	<TextVariable Self="dTextVariablenFile Name" Name="File Name" VariableType="FileNameType">
+		<FileNameVariablePreference IncludePath="false" IncludeExtension="false" />
+	</TextVariable>
+	<TextVariable Self="dTextVariablenRunning Header" Name="Running Header" VariableType="MatchParagraphStyleType">
+		<MatchParagraphStylePreference SearchStrategy="FirstOnPage" />
+	</TextVariable>
+	<Layer Self="uba" Name="Layer 1" Visible="true" Locked="false" IgnoreWrap="false" ShowGuides="true" LockGuides="false" UI="true" Expendable="true" Printable="true">
+		<Properties>
+			<LayerColor type="enumeration">LightBlue</LayerColor>
+		</Properties>
+	</Layer>
 	<idPkg:Spread src="Spreads/Spread_u210.xml" />
+	<Section Self="ub4" Name="A" Length="1" PageStart="upage210" ContinueNumbering="false" IncludeSectionPrefix="false" PageNumberStart="22" SectionPrefix="A">
+		<Properties>
+			<PageNumberStyle type="enumeration">Arabic</PageNumberStyle>
+		</Properties>
+	</Section>
+	<DocumentUser Self="dDocumentUser0" UserName="$ID/Unknown User Name">
+		<Properties>
+			<Label type="list" />
+		</Properties>
+	</DocumentUser>
+	<idPkg:BackingStory src="XML/BackingStory.xml" />
 	<idPkg:Story src="Stories/Story_story01.xml" />
 	<idPkg:Story src="Stories/Story_story02.xml" />
 	<idPkg:Story src="Stories/Story_story03.xml" />
@@ -27,30 +63,6 @@
 	<idPkg:Story src="Stories/Story_story11.xml" />
 	<idPkg:Story src="Stories/Story_story12.xml" />
 	<idPkg:Story src="Stories/Story_story13.xml" />
-	<idPkg:BackingStory src="XML/BackingStory.xml" />
-	<Layer Self="uba" Name="Layer 1" Visible="true" Locked="false" IgnoreWrap="false" ShowGuides="true" LockGuides="false" UI="true" Expendable="true" Printable="true">
-		<Properties>
-			<LayerColor type="enumeration">LightBlue</LayerColor>
-		</Properties>
-	</Layer>
-	<NumberingList Self="NumberingList/$ID/[Default]" Name="$ID/[Default]" ContinueNumbersAcrossStories="false" ContinueNumbersAcrossDocuments="false" />
-	<NamedGrid Self="NamedGrid/$ID/[Page Grid]" Name="$ID/[Page Grid]">
-		<GridDataInformation FontStyle="Roman" PointSize="12" CharacterAki="0" LineAki="9" HorizontalScale="100" VerticalScale="100">
-			<Properties>
-				<Label type="list" />
-			</Properties>
-		</GridDataInformation>
-	</NamedGrid>
-	<Section Self="ub4" Name="A" Length="1" PageStart="upage210" ContinueNumbering="false" IncludeSectionPrefix="false" PageNumberStart="22" SectionPrefix="A">
-		<Properties>
-			<PageNumberStyle type="enumeration">Arabic</PageNumberStyle>
-		</Properties>
-	</Section>
-	<DocumentUser Self="dDocumentUser0" UserName="$ID/Unknown User Name">
-		<Properties>
-			<Label type="list" />
-		</Properties>
-	</DocumentUser>
 	<ColorGroup Self="ColorGroup/[Root Color Group]" Name="[Root Color Group]" IsRootColorGroup="true">
 		<ColorGroupSwatch Self="ColorGroupSwatch/Text" SwatchItemRef="Color/Text" />
 		<ColorGroupSwatch Self="ColorGroupSwatch/Paper" SwatchItemRef="Color/Paper" />
@@ -65,16 +77,4 @@
 			<Label type="list" />
 		</Properties>
 	</Assignment>
-	<TextVariable Self="dTextVariablenChapter Number" Name="Chapter Number" VariableType="ChapterNumberType">
-		<ChapterNumberVariablePreference Format="Current" />
-	</TextVariable>
-	<TextVariable Self="dTextVariablenCreation Date" Name="Creation Date" VariableType="CreationDateType">
-		<DateVariablePreference Format="dd/MM/yy" />
-	</TextVariable>
-	<TextVariable Self="dTextVariablenFile Name" Name="File Name" VariableType="FileNameType">
-		<FileNameVariablePreference IncludePath="false" IncludeExtension="false" />
-	</TextVariable>
-	<TextVariable Self="dTextVariablenRunning Header" Name="Running Header" VariableType="MatchParagraphStyleType">
-		<MatchParagraphStylePreference SearchStrategy="FirstOnPage" />
-	</TextVariable>
 </Document>
