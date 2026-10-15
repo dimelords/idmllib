@@ -8,14 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- `fit.StoryFrameConstraints`: frame constraints that read the story's own local formatting (`PointSize`, `Leading` including `Auto`, `AppliedFont`, `FontStyle` on its first text-bearing `CharacterStyleRange`, then its `ParagraphStyleRange`) ahead of the applied paragraph style. `FrameConstraints` reads the style only, so a hand-sized headline got the style's size and leading and too few lines
-- `fit.Ascender`, an optional interface a `Measurer` implements to report its font's ascent, and `Constraints.Measured`, which works out `MaxLines` with it. A frame's first baseline sits at the ascent by default (`FirstBaselineOffset`, now on `Constraints` with `MinFirstBaseline`), so the first line no longer costs a full leading and a display headline gets the line InDesign gives it. `Evaluate` and `Budget` measure for themselves; without an `Ascender` the count is unchanged
-- `Constraints.WordSpacing` and `fit.StyleWordSpacing`: the style's `DesiredWordSpacing`, followed through `BasedOn` and overridable on the story's `ParagraphStyleRange`, is applied to every space `fit` measures. Headline styles commonly set 90%, and full-width spaces ran their lines a few percent wide
-- `Constraints.LetterSpacing` and `fit.StyleLetterSpacing`: the style's `DesiredLetterSpacing`, resolved like word spacing (an explicit `0` is a value and stops the `BasedOn` walk), is added after every character `fit` measures. A real headline style's `-5` was the last 2% between this package's widths and the lines InDesign sets
-- `fit.Result.Close` and `fit.CloseMargin`: `Evaluate` reports when its verdict would flip with every width 3% wider or narrower, the margin measured on a real headline between this package's widths and what a composer sets (kerning, and letter spacing and glyph scaling squeezed on ragged lines). A close verdict should be settled by rendering
 
 ### Changed
-- `fit.Evaluate` no longer rejects a candidate because the spine of a spread runs through a word. Text that otherwise fits now has `Fits: true`, with a `fit.Warning` (`Why: word_on_fold`, the word and a reason) in the new `Result.Warnings`. InDesign sets such a line, and real pages ship with a word across the fold, so rewording is an editor's call. Callers that treated `Why == FailWordOnFold` as a rejection should read `Warnings` instead
 
 ### Deprecated
 
@@ -24,6 +18,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [3.2.0] - 2026-10-15
+
+### Added
+- `fit.StoryFrameConstraints`: frame constraints that read the story's own local formatting (`PointSize`, `Leading` including `Auto`, `AppliedFont`, `FontStyle` on its first text-bearing `CharacterStyleRange`, then its `ParagraphStyleRange`) ahead of the applied paragraph style. `FrameConstraints` reads the style only, so a hand-sized headline got the style's size and leading and too few lines
+- `fit.Ascender`, an optional interface a `Measurer` implements to report its font's ascent, and `Constraints.Measured`, which works out `MaxLines` with it. A frame's first baseline sits at the ascent by default (`FirstBaselineOffset`, now on `Constraints` with `MinFirstBaseline`), so the first line no longer costs a full leading and a display headline gets the line InDesign gives it. `Evaluate` and `Budget` measure for themselves; without an `Ascender` the count is unchanged
+- `Constraints.WordSpacing` and `fit.StyleWordSpacing`: the style's `DesiredWordSpacing`, followed through `BasedOn` and overridable on the story's `ParagraphStyleRange`, is applied to every space `fit` measures. Headline styles commonly set 90%, and full-width spaces ran their lines a few percent wide
+- `Constraints.LetterSpacing` and `fit.StyleLetterSpacing`: the style's `DesiredLetterSpacing`, resolved like word spacing (an explicit `0` is a value and stops the `BasedOn` walk), is added after every character `fit` measures. A real headline style's `-5` was the last 2% between this package's widths and the lines InDesign sets
+- `fit.Result.Close` and `fit.CloseMargin`: `Evaluate` reports when its verdict would flip with every width 3% wider or narrower, the margin measured on a real headline between this package's widths and what a composer sets (kerning, and letter spacing and glyph scaling squeezed on ragged lines). A close verdict should be settled by rendering
+
+### Changed
+- `fit.Evaluate` no longer rejects a candidate because the spine of a spread runs through a word. Text that otherwise fits now has `Fits: true`, with a `fit.Warning` (`Why: word_on_fold`, the word and a reason) in the new `Result.Warnings`. InDesign sets such a line, and real pages ship with a word across the fold, so rewording is an editor's call. Callers that treated `Why == FailWordOnFold` as a rejection should read `Warnings` instead
 
 ## [2.2.0] - 2026-01-20
 
