@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Typed hyperlinks in `document.Document`: `HyperlinkURLDestinations`, `HyperlinkPageItemSources` and `Hyperlinks`, which were kept as raw `OtherElements`. `Hyperlink.Destination` returns the destination named in its Properties, `Document.HyperlinkURL` resolves a hyperlink to its URL (by that destination, else by `DestinationUniqueKey`), and `Document.PageItemHyperlinks` / `Document.PageItemURLs` return the hyperlinks and URLs of a page item, such as an ad frame that links to a web page. Roundtrip is unchanged: child order is recorded and replayed, and the empty `EpubAriaRole` and `HypherlinkAltText` attributes InDesign writes stay in `OtherAttrs` so they are not dropped
 
 ### Changed
 

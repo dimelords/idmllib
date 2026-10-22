@@ -49,6 +49,36 @@ func (x DocumentUser) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return common.MarshalOrdered(x, x.childOrder, e, start)
 }
 
+// UnmarshalXML decodes <Hyperlink> recording child order (see common.UnmarshalOrdered).
+func (x *Hyperlink) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return common.UnmarshalOrdered(x, &x.childOrder, d, start)
+}
+
+// MarshalXML encodes <Hyperlink> replaying the recorded child order.
+func (x Hyperlink) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return common.MarshalOrdered(x, x.childOrder, e, start)
+}
+
+// UnmarshalXML decodes <HyperlinkPageItemSource> recording child order (see common.UnmarshalOrdered).
+func (x *HyperlinkPageItemSource) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return common.UnmarshalOrdered(x, &x.childOrder, d, start)
+}
+
+// MarshalXML encodes <HyperlinkPageItemSource> replaying the recorded child order.
+func (x HyperlinkPageItemSource) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return common.MarshalOrdered(x, x.childOrder, e, start)
+}
+
+// UnmarshalXML decodes <HyperlinkURLDestination> recording child order (see common.UnmarshalOrdered).
+func (x *HyperlinkURLDestination) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return common.UnmarshalOrdered(x, &x.childOrder, d, start)
+}
+
+// MarshalXML encodes <HyperlinkURLDestination> replaying the recorded child order.
+func (x HyperlinkURLDestination) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return common.MarshalOrdered(x, x.childOrder, e, start)
+}
+
 // UnmarshalXML decodes <Layer> recording child order (see common.UnmarshalOrdered).
 func (x *Layer) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	return common.UnmarshalOrdered(x, &x.childOrder, d, start)

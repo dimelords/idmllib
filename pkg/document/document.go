@@ -98,6 +98,11 @@ type Document struct {
 	// Step 9: Text Variables
 	TextVariables []TextVariable `xml:"TextVariable,omitempty"`
 
+	// Step 10: Hyperlinks and their page item sources and URL destinations
+	HyperlinkURLDestinations []HyperlinkURLDestination `xml:"HyperlinkURLDestination,omitempty"`
+	HyperlinkPageItemSources []HyperlinkPageItemSource `xml:"HyperlinkPageItemSource,omitempty"`
+	Hyperlinks               []Hyperlink               `xml:"Hyperlink,omitempty"`
+
 	// ========================================================================
 	// Phase 4.3: IDMS Inline Resources
 	// ========================================================================

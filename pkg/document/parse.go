@@ -216,6 +216,27 @@ func (d *Document) unmarshalChildElement(decoder *xml.Decoder, start xml.StartEl
 		}
 		d.TextVariables = append(d.TextVariables, tv)
 
+	case "HyperlinkURLDestination":
+		var dest HyperlinkURLDestination
+		if err := decoder.DecodeElement(&dest, &start); err != nil {
+			return common.WrapError("document", "parse document", err)
+		}
+		d.HyperlinkURLDestinations = append(d.HyperlinkURLDestinations, dest)
+
+	case "HyperlinkPageItemSource":
+		var src HyperlinkPageItemSource
+		if err := decoder.DecodeElement(&src, &start); err != nil {
+			return common.WrapError("document", "parse document", err)
+		}
+		d.HyperlinkPageItemSources = append(d.HyperlinkPageItemSources, src)
+
+	case "Hyperlink":
+		var link Hyperlink
+		if err := decoder.DecodeElement(&link, &start); err != nil {
+			return common.WrapError("document", "parse document", err)
+		}
+		d.Hyperlinks = append(d.Hyperlinks, link)
+
 	// IDMS inline resources (used in snippets instead of separate files)
 	case "Color":
 		var color resources.Color
