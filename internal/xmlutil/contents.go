@@ -23,6 +23,8 @@ var (
 	contentsEmptyPair = []byte("<Contents></Contents>")
 	contentsSelfClose = []byte("<Contents/>")
 	selfAttr          = []byte(` Self="`)
+	cdataOpen         = []byte("<![CDATA[")
+	cdataClose        = []byte("]]>")
 )
 
 // contentsOwners are the page item elements that can carry an embedded
@@ -71,9 +73,11 @@ func ownerSelfBefore(data []byte, pos int) string {
 // owns them. Payload values are sub-slices of data and share its memory, so
 // they cost nothing as long as data is retained.
 //
-// A payload whose owner cannot be identified, or whose owner's Self is already
-// present, is left inline so nothing is lost. When no payload is found the
-// returned slice is data itself and the map is nil.
+// A payload whose owner cannot be identified, whose owner's Self is already
+// present, or whose owner also has an empty <Contents> is left inline so
+// nothing is lost: RestoreContents matches by owner, so it could not tell the
+// emptied element from one that was empty to begin with. When no payload is
+// found the returned slice is data itself and the map is nil.
 func StripContents(data []byte) ([]byte, map[string][]byte) {
 	if !bytes.Contains(data, contentsOpen) {
 		return data, nil
@@ -81,24 +85,29 @@ func StripContents(data []byte) ([]byte, map[string][]byte) {
 	var (
 		out      []byte
 		payloads map[string][]byte
-		pos      int
+		search   int // where to look for the next <Contents>
+		copied   int // data before this is already in out
+		empty    = ownersWithEmptyContents(data)
 	)
 	for {
-		i := bytes.Index(data[pos:], contentsOpen)
+		i := bytes.Index(data[search:], contentsOpen)
 		if i < 0 {
 			break
 		}
-		openAt := pos + i
+		openAt := search + i
 		bodyAt := openAt + len(contentsOpen)
 		j := bytes.Index(data[bodyAt:], contentsClose)
 		if j < 0 {
 			break // unterminated; leave the rest untouched
 		}
 		bodyEnd := bodyAt + j
+		search = bodyEnd + len(contentsClose)
 
+		// A payload that stays inline is copied along with the bytes around
+		// it, so only the search moves past it here.
 		self := ownerSelfBefore(data, openAt)
-		if self == "" || payloads[self] != nil || bodyEnd == bodyAt {
-			pos = bodyEnd + len(contentsClose)
+		if self == "" || payloads[self] != nil || bodyEnd == bodyAt || empty[self] ||
+			hasOwnerTag(data[bodyAt:bodyEnd]) {
 			continue
 		}
 		if payloads == nil {
@@ -106,13 +115,13 @@ func StripContents(data []byte) ([]byte, map[string][]byte) {
 			out = make([]byte, 0, len(data)/64+1024)
 		}
 		payloads[self] = data[bodyAt:bodyEnd]
-		out = append(out, data[pos:bodyAt]...) // up to and including <Contents>
-		pos = bodyEnd                          // skip the payload
+		out = append(out, data[copied:bodyAt]...) // up to and including <Contents>
+		copied = bodyEnd                          // skip the payload
 	}
 	if payloads == nil {
 		return data, nil
 	}
-	out = append(out, data[pos:]...)
+	out = append(out, data[copied:]...)
 	return out, payloads
 }
 
@@ -125,32 +134,82 @@ func RestoreContents(data []byte, payloads map[string][]byte) []byte {
 	if len(payloads) == 0 {
 		return data
 	}
-	var out []byte
-	pos := 0
+	var (
+		out    []byte
+		search int // where to look for the next empty <Contents>
+		copied int // data before this is already in out
+	)
 	for {
-		next, form := nextEmptyContents(data, pos)
+		next, form := nextEmptyContents(data, search)
 		if next < 0 {
 			break
 		}
+		search = next + len(form)
+
+		// An empty element with no payload stays as it is and is copied
+		// along with the bytes around it.
 		self := ownerSelfBefore(data, next)
 		payload, ok := payloads[self]
 		if !ok {
-			pos = next + len(form)
 			continue
 		}
 		if out == nil {
 			out = make([]byte, 0, len(data)+payloadBytes(payloads))
 		}
-		out = append(out, data[pos:next]...)
+		out = append(out, data[copied:next]...)
 		out = append(out, contentsOpen...)
 		out = append(out, payload...)
 		out = append(out, contentsClose...)
-		pos = next + len(form)
+		copied = search
 	}
 	if out == nil {
 		return data
 	}
-	return append(out, data[pos:]...)
+	return append(out, data[copied:]...)
+}
+
+// hasOwnerTag reports whether a payload holds what looks like an owner's
+// start tag. Removing such a payload would change which owner
+// ownerSelfBefore finds for a later <Contents>, so the stripped and the
+// original data would disagree about ownership. Base64 never contains "<", so
+// the common case is one scan inside the CDATA wrapper.
+func hasOwnerTag(body []byte) bool {
+	inner := bytes.TrimSuffix(bytes.TrimPrefix(body, cdataOpen), cdataClose)
+	if bytes.IndexByte(inner, '<') < 0 {
+		return false
+	}
+	for _, owner := range contentsOwners {
+		if bytes.Contains(body, owner) {
+			return true
+		}
+	}
+	return false
+}
+
+// ownersWithEmptyContents returns the Self of every owner that has an empty
+// <Contents></Contents> or <Contents/> element in data. It visits each
+// "<Contents" once, so it stays linear in the size of data.
+func ownersWithEmptyContents(data []byte) map[string]bool {
+	var owners map[string]bool
+	prefix := contentsOpen[:len(contentsOpen)-1] // "<Contents"
+	for pos := 0; ; {
+		i := bytes.Index(data[pos:], prefix)
+		if i < 0 {
+			return owners
+		}
+		at := pos + i
+		rest := data[at:]
+		pos = at + len(prefix)
+		if !bytes.HasPrefix(rest, contentsEmptyPair) && !bytes.HasPrefix(rest, contentsSelfClose) {
+			continue
+		}
+		if self := ownerSelfBefore(data, at); self != "" {
+			if owners == nil {
+				owners = make(map[string]bool)
+			}
+			owners[self] = true
+		}
+	}
 }
 
 // nextEmptyContents finds the next empty <Contents> element at or after pos

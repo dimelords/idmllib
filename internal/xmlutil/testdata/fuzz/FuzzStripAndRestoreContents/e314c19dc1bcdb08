@@ -1,0 +1,2 @@
+go test fuzz v1
+string("<Image Self=\"0\"><Contents><Image </Contents><Contents></Contents>")

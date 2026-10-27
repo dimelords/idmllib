@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+- `ReadOptions.StreamingMode` no longer breaks a spread where one page item has a second `<Contents>`, such as an embedded EPS whose `MetadataPacketPreference` holds its XMP packet. The second payload is kept inline by design, but the bytes from the previous stripped payload up to it were dropped, so parsing failed with "element `<Contents>` closed by `</Properties>`". Writing a modified spread had the same flaw: an empty `<Contents>` with no payload of its own was dropped with the bytes before it
+- In streaming mode a payload is now also kept inline when its owner has an empty `<Contents>` as well, or when the payload itself holds a page item start tag. Restoring matches payloads by owner and could otherwise fill the wrong element, duplicating the payload
 
 ### Security
 
