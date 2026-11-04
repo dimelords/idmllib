@@ -420,3 +420,50 @@ func TestStandardPresets_AllPresetsDefined(t *testing.T) {
 		}
 	}
 }
+
+// masterMargins returns the margins of the first page of the template's master spread, as written.
+func masterMargins(t *testing.T, pkg *Package) (top, bottom, left, right string) {
+	t.Helper()
+	ms, err := pkg.MasterSpread(PathMasterSpread)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(ms.Pages) == 0 || ms.Pages[0].MarginPreference == nil {
+		t.Fatal("master spread has no page with a MarginPreference")
+	}
+	m := ms.Pages[0].MarginPreference
+	return m.Top, m.Bottom, m.Left, m.Right
+}
+
+// TestNewFromTemplate_AppliesMargins checks that TemplateOptions.Margins reaches the master page. It used to be
+// validated and then ignored, leaving every side at 36 points.
+func TestNewFromTemplate_AppliesMargins(t *testing.T) {
+	opts := DefaultTemplateOptions()
+	opts.Margins.Top, opts.Margins.Bottom, opts.Margins.Left, opts.Margins.Right = 72, 54, 40.5, 36.8503937007874
+	pkg, err := NewFromTemplate(opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pkg2 := reread(t, pkg, "margins-template.idml")
+	top, bottom, left, right := masterMargins(t, pkg2)
+	if top != "72" || bottom != "54" || left != "40.5" || right != "36.8503937007874" {
+		t.Errorf("margins top %s, bottom %s, left %s, right %s; want 72, 54, 40.5, 36.8503937007874", top, bottom, left, right)
+	}
+}
+
+// TestNewFromTemplate_DefaultsMarginsWhenUnset keeps the behaviour callers rely on: options without margins
+// give 36 points on every side, like a zero gutter gives 12.
+func TestNewFromTemplate_DefaultsMarginsWhenUnset(t *testing.T) {
+	for name, opts := range map[string]*TemplateOptions{
+		"nil options":         nil,
+		"options, no margins": {Preset: PresetA4},
+	} {
+		pkg, err := NewFromTemplate(opts)
+		if err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+		if top, bottom, left, right := masterMargins(t, pkg); top != "36" || bottom != "36" || left != "36" || right != "36" {
+			t.Errorf("%s: margins %s %s %s %s, want 36 on every side", name, top, bottom, left, right)
+		}
+	}
+}

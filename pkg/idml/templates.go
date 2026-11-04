@@ -111,7 +111,7 @@ type TemplateOptions struct {
 	// "Portrait" (default) or "Landscape"
 	Orientation string
 
-	// Margins in points (default: 36 points = 0.5 inches)
+	// Margins in points. When all four are zero, the default of 36 points (0.5 inches) is used on every side.
 	Margins struct {
 		Top    float64
 		Bottom float64
@@ -208,6 +208,9 @@ func NewFromTemplate(opts *TemplateOptions) (*Package, error) {
 	}
 	if opts.ColumnGutter <= 0 {
 		opts.ColumnGutter = 12
+	}
+	if opts.Margins.Top == 0 && opts.Margins.Bottom == 0 && opts.Margins.Left == 0 && opts.Margins.Right == 0 {
+		opts.Margins.Top, opts.Margins.Bottom, opts.Margins.Left, opts.Margins.Right = 36, 36, 36, 36
 	}
 
 	pkg := New()
@@ -342,6 +345,10 @@ func generateMasterSpread(opts *TemplateOptions, dims PageDimensions) ([]byte, e
 		CenterY      float64
 		ColumnCount  int
 		ColumnGutter float64
+		MarginTop    float64
+		MarginBottom float64
+		MarginLeft   float64
+		MarginRight  float64
 	}{
 		DOMVersion:   opts.DOMVersion,
 		PageWidth:    dims.Width,
@@ -350,6 +357,10 @@ func generateMasterSpread(opts *TemplateOptions, dims PageDimensions) ([]byte, e
 		CenterY:      dims.Height / 2,
 		ColumnCount:  opts.ColumnCount,
 		ColumnGutter: opts.ColumnGutter,
+		MarginTop:    opts.Margins.Top,
+		MarginBottom: opts.Margins.Bottom,
+		MarginLeft:   opts.Margins.Left,
+		MarginRight:  opts.Margins.Right,
 	}
 
 	var buf bytes.Buffer
