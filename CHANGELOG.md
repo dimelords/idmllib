@@ -10,11 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
-- `internal/xmlutil/compare.go` moved to `internal/xmlcompare`. It compares two XML documents for
-  the fidelity and roundtrip tests and is called only from tests, but `xmlutil` is reached from
-  `pkg/resources`, so its `beevik/etree` and `google/go-cmp` imports sat in the build of every
-  program that uses this library. `go list -deps ./pkg/...` is now the standard library only; both
-  dependencies stay in `go.mod`, where the tests still need them
 
 ### Deprecated
 
@@ -23,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [3.2.4] - 2026-11-05
+
+### Changed
+- `internal/xmlutil/compare.go` moved to `internal/xmlcompare`. It compares two XML documents for
+  the fidelity and roundtrip tests and is called only from tests, but `xmlutil` is reached from
+  `pkg/resources`, so its `beevik/etree` and `google/go-cmp` imports sat in the build of every
+  program that uses this library. `go list -deps ./pkg/...` is now the standard library only; both
+  dependencies stay in `go.mod`, where the tests still need them
 
 ## [3.2.3] - 2026-11-05
 
