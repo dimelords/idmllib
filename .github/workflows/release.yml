@@ -1,0 +1,149 @@
+# Release automation for idmllib
+# The changelog is the source of truth: when main is green and its newest
+# released section names a version that has no tag yet, that version is
+# tagged and published. There is no separate "Release X.Y.Z" commit to
+# remember, and re-running this on an already released version does nothing.
+
+name: Release
+
+on:
+  workflow_run:
+    workflows: [ CI ]
+    types: [ completed ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# One release at a time, and never cancel one half way through tagging.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Tag and release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Only off a green CI run on main, or by hand.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The commit CI actually passed on, not whatever main has moved
+          # to since. fetch-depth 0 brings the tags we check against.
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.ref || github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Read the newest released version from the changelog
+        id: changelog
+        run: |
+          set -euo pipefail
+
+          # The first "## [X.Y.Z] - date" heading. "## [Unreleased]" has no
+          # version number of that shape, so it is skipped on its own.
+          heading=$(grep -m1 -E '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md || true)
+          if [ -z "$heading" ]; then
+            echo "No released version heading in CHANGELOG.md" >&2
+            exit 1
+          fi
+          version=$(printf '%s\n' "$heading" | sed -E 's/^## \[([0-9]+\.[0-9]+\.[0-9]+)\].*/\1/')
+
+          # Everything under that heading up to the next one, trimmed of
+          # blank lines at either end.
+          awk -v v="$version" '
+            $0 ~ "^## \\[" v "\\]" { inside = 1; next }
+            inside && /^## / { exit }
+            inside { print }
+          ' CHANGELOG.md | sed -e '/./,$!d' | tac | sed -e '/./,$!d' | tac > release-notes.md
+
+          if [ ! -s release-notes.md ]; then
+            echo "Changelog section for $version is empty" >&2
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          echo "Newest released version in the changelog: $version"
+
+      - name: Check the version against the module path
+        env:
+          VERSION: ${{ steps.changelog.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          # A Go module at /vN may only be tagged vN.y.z. Without this a
+          # changelog bumped to 4.0.0 would get a tag the module path
+          # cannot serve, and go get would not see the release at all.
+          major=${VERSION%%.*}
+          module=$(awk '/^module /{print $2; exit}' go.mod)
+          suffix=${module##*/}
+
+          if [ "$major" -ge 2 ]; then
+            expected="v$major"
+          else
+            expected=""
+          fi
+
+          case "$suffix" in
+            v[0-9]*) actual="$suffix" ;;
+            *)       actual="" ;;
+          esac
+
+          if [ "$actual" != "$expected" ]; then
+            echo "Version $VERSION does not match module $module" >&2
+            echo "Expected the module path to end in '${expected:-no version suffix}'" >&2
+            exit 1
+          fi
+
+      - name: Stop if the version is already released
+        id: tagged
+        env:
+          TAG: ${{ steps.changelog.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "$TAG already exists; nothing to release"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create and push the tag
+        if: steps.tagged.outputs.exists == 'false'
+        env:
+          TAG: ${{ steps.changelog.outputs.tag }}
+          VERSION: ${{ steps.changelog.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $VERSION"
+          git push origin "$TAG"
+
+      - name: Publish the GitHub release
+        if: steps.tagged.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.changelog.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" --title "$TAG" --notes-file release-notes.md
+
+      - name: Summary
+        env:
+          TAG: ${{ steps.changelog.outputs.tag }}
+          EXISTS: ${{ steps.tagged.outputs.exists }}
+        run: |
+          {
+            if [ "$EXISTS" = "true" ]; then
+              echo "## $TAG was already released"
+            else
+              echo "## Released $TAG"
+              echo ""
+              cat release-notes.md
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
