@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [3.2.3] - 2026-11-05
+
+### Fixed
+- `NewFromTemplate` now applies `TemplateOptions.Margins`. The option was validated and then ignored: the master spread template hardcoded `Top="36" Bottom="36" Left="36" Right="36"`, so a caller asking for different margins silently got half an inch. A side left at zero still gets 36 points, so a caller that never set margins keeps the document it gets today
+- `NewFromTemplate` writes `DocumentPreference` and `ViewPreference` into `Resources/Preferences.xml` instead of `designmap.xml`. That is where InDesign keeps the page setup; the old placement matched this repository's own hand-built `testdata/example.idml` rather than a real export. Documents built from the template open in InDesign 2026 and read back the page size, margins, column count and gutter they were given
+
 ## [3.2.2] - 2026-10-27
 
 ### Fixed

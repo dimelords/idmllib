@@ -22,6 +22,9 @@ var (
 	getMasterspreadTemplate = sync.OnceValues(func() (*template.Template, error) {
 		return template.New("masterspread").Parse(string(minimalMasterSpread))
 	})
+	getPreferencesTemplate = sync.OnceValues(func() (*template.Template, error) {
+		return template.New("preferences").Parse(string(minimalPreferences))
+	})
 )
 
 // Template files embedded at compile time.
@@ -59,6 +62,10 @@ var minimalBackingStory []byte
 
 //go:embed templates/minimal/metadata.xml
 var minimalMetadata []byte
+
+// defaultMargin is the page margin, in points, used for every side left at
+// zero. It is half an inch, the value the templates used to hardcode.
+const defaultMargin = 36
 
 // DocumentPreset defines standard page sizes and configurations.
 type DocumentPreset string
@@ -185,8 +192,8 @@ func (opts *TemplateOptions) GetDimensions() PageDimensions {
 //
 // The created package will have:
 //   - designmap.xml with configured document structure
-//   - MasterSpreads/MasterSpread_ub4.xml with master page
-//   - Resources/Preferences.xml with sensible defaults
+//   - MasterSpreads/MasterSpread_ub4.xml with master page and margins
+//   - Resources/Preferences.xml with the page setup and sensible defaults
 //   - Required directory structure
 func NewFromTemplate(opts *TemplateOptions) (*Package, error) {
 	if opts == nil {
@@ -209,6 +216,22 @@ func NewFromTemplate(opts *TemplateOptions) (*Package, error) {
 	if opts.ColumnGutter <= 0 {
 		opts.ColumnGutter = 12
 	}
+	// A side left at zero gets the documented default. Before this the
+	// templates hardcoded 36 and ignored Margins entirely, so defaulting
+	// here keeps every existing caller on the margins they get today
+	// while a caller that sets them finally gets what it asked for.
+	if opts.Margins.Top == 0 {
+		opts.Margins.Top = defaultMargin
+	}
+	if opts.Margins.Bottom == 0 {
+		opts.Margins.Bottom = defaultMargin
+	}
+	if opts.Margins.Left == 0 {
+		opts.Margins.Left = defaultMargin
+	}
+	if opts.Margins.Right == 0 {
+		opts.Margins.Right = defaultMargin
+	}
 
 	pkg := New()
 
@@ -216,7 +239,7 @@ func NewFromTemplate(opts *TemplateOptions) (*Package, error) {
 	dims := opts.GetDimensions()
 
 	// Generate customized designmap.xml
-	designmap, err := generateDesignMap(opts, dims)
+	designmap, err := generateDesignMap(opts)
 	if err != nil {
 		return nil, common.WrapErrorWithPath("idml", "create from template", PathDesignmap, err)
 	}
@@ -233,8 +256,14 @@ func NewFromTemplate(opts *TemplateOptions) (*Package, error) {
 		return nil, common.WrapErrorWithPath("idml", "create from template", PathMasterSpread, err)
 	}
 
-	// Add minimal Preferences.xml
-	if err := pkg.addFileFromTemplate(PathPreferences, minimalPreferences); err != nil {
+	// Generate Resources/Preferences.xml. This is where InDesign keeps
+	// DocumentPreference and ViewPreference, so the page setup is written
+	// here rather than into designmap.xml.
+	preferences, err := generatePreferences(opts, dims)
+	if err != nil {
+		return nil, common.WrapErrorWithPath("idml", "create from template", PathPreferences, err)
+	}
+	if err := pkg.addFileFromTemplate(PathPreferences, preferences); err != nil {
 		return nil, common.WrapErrorWithPath("idml", "create from template", PathPreferences, err)
 	}
 
@@ -297,26 +326,18 @@ func NewFromTemplate(opts *TemplateOptions) (*Package, error) {
 }
 
 // generateDesignMap creates a customized designmap.xml based on options.
-func generateDesignMap(opts *TemplateOptions, dims PageDimensions) ([]byte, error) {
+// The page setup itself lives in Resources/Preferences.xml, so only the DOM
+// version is substituted here.
+func generateDesignMap(opts *TemplateOptions) ([]byte, error) {
 	tmpl, err := getDesignmapTemplate()
 	if err != nil {
 		return nil, common.WrapError("idml", "generate design map", fmt.Errorf("failed to parse designmap template: %w", err))
 	}
 
 	data := struct {
-		DOMVersion   string
-		PageWidth    float64
-		PageHeight   float64
-		Orientation  string
-		ColumnCount  int
-		ColumnGutter float64
+		DOMVersion string
 	}{
-		DOMVersion:   opts.DOMVersion,
-		PageWidth:    dims.Width,
-		PageHeight:   dims.Height,
-		Orientation:  opts.Orientation,
-		ColumnCount:  opts.ColumnCount,
-		ColumnGutter: opts.ColumnGutter,
+		DOMVersion: opts.DOMVersion,
 	}
 
 	var buf bytes.Buffer
@@ -342,6 +363,10 @@ func generateMasterSpread(opts *TemplateOptions, dims PageDimensions) ([]byte, e
 		CenterY      float64
 		ColumnCount  int
 		ColumnGutter float64
+		MarginTop    float64
+		MarginBottom float64
+		MarginLeft   float64
+		MarginRight  float64
 	}{
 		DOMVersion:   opts.DOMVersion,
 		PageWidth:    dims.Width,
@@ -350,11 +375,48 @@ func generateMasterSpread(opts *TemplateOptions, dims PageDimensions) ([]byte, e
 		CenterY:      dims.Height / 2,
 		ColumnCount:  opts.ColumnCount,
 		ColumnGutter: opts.ColumnGutter,
+		MarginTop:    opts.Margins.Top,
+		MarginBottom: opts.Margins.Bottom,
+		MarginLeft:   opts.Margins.Left,
+		MarginRight:  opts.Margins.Right,
 	}
 
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return nil, common.WrapError("idml", "generate master spread", fmt.Errorf("failed to execute masterspread template: %w", err))
+	}
+
+	return buf.Bytes(), nil
+}
+
+// generatePreferences creates Resources/Preferences.xml based on options.
+// DocumentPreference and ViewPreference belong here: that is where every
+// IDML InDesign writes keeps them, and where InDesign looks for the page
+// setup. They used to be written into designmap.xml instead, which matched
+// this repository's own hand-built fixture rather than a real export.
+func generatePreferences(opts *TemplateOptions, dims PageDimensions) ([]byte, error) {
+	tmpl, err := getPreferencesTemplate()
+	if err != nil {
+		return nil, common.WrapError("idml", "generate preferences", fmt.Errorf("failed to parse preferences template: %w", err))
+	}
+
+	data := struct {
+		PageWidth    float64
+		PageHeight   float64
+		Orientation  string
+		ColumnCount  int
+		ColumnGutter float64
+	}{
+		PageWidth:    dims.Width,
+		PageHeight:   dims.Height,
+		Orientation:  opts.Orientation,
+		ColumnCount:  opts.ColumnCount,
+		ColumnGutter: opts.ColumnGutter,
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return nil, common.WrapError("idml", "generate preferences", fmt.Errorf("failed to execute preferences template: %w", err))
 	}
 
 	return buf.Bytes(), nil

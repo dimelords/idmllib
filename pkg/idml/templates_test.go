@@ -163,16 +163,19 @@ func TestNewFromTemplate_DocumentParsing(t *testing.T) {
 				t.Fatalf("NewFromTemplate() failed: %v", err)
 			}
 
-			// Verify designmap.xml contains correct dimensions
-			entry := pkg.files["designmap.xml"]
-			content := string(entry.data)
+			// The page setup lives in Resources/Preferences.xml, where
+			// InDesign keeps it, not in designmap.xml.
+			content := string(pkg.files["Resources/Preferences.xml"].data)
 
-			// Check for width and height in XML
 			if !strings.Contains(content, fmt.Sprintf("PageWidth=\"%.3f\"", tt.wantWidth)) {
-				t.Errorf("designmap.xml missing PageWidth=%.3f", tt.wantWidth)
+				t.Errorf("Resources/Preferences.xml missing PageWidth=%.3f", tt.wantWidth)
 			}
 			if !strings.Contains(content, fmt.Sprintf("PageHeight=\"%.3f\"", tt.wantHeight)) {
-				t.Errorf("designmap.xml missing PageHeight=%.3f", tt.wantHeight)
+				t.Errorf("Resources/Preferences.xml missing PageHeight=%.3f", tt.wantHeight)
+			}
+
+			if designmap := string(pkg.files["designmap.xml"].data); strings.Contains(designmap, "<DocumentPreference") {
+				t.Error("designmap.xml still carries DocumentPreference; InDesign keeps it in Resources/Preferences.xml")
 			}
 		})
 	}
@@ -204,6 +207,48 @@ func TestNewFromTemplate_MasterSpread(t *testing.T) {
 	}
 	if !strings.Contains(content, "<MarginPreference") {
 		t.Error("MasterSpread missing MarginPreference")
+	}
+}
+
+func TestNewFromTemplate_AppliesMargins(t *testing.T) {
+	opts := &TemplateOptions{Preset: PresetLetterUS}
+	opts.Margins.Top = 36.8503937007874  // 13 mm
+	opts.Margins.Bottom = 36.8503937007874
+	opts.Margins.Left = 34.015748031496063 // 12 mm
+	opts.Margins.Right = 34.015748031496063
+
+	pkg, err := NewFromTemplate(opts)
+	if err != nil {
+		t.Fatalf("NewFromTemplate() failed: %v", err)
+	}
+
+	content := string(pkg.files["MasterSpreads/MasterSpread_ub4.xml"].data)
+	for _, want := range []string{
+		`Top="36.8503937007874"`,
+		`Bottom="36.8503937007874"`,
+		`Left="34.01574803149607"`,
+		`Right="34.01574803149607"`,
+	} {
+		if !strings.Contains(content, want) {
+			t.Errorf("MasterSpread missing %s", want)
+		}
+	}
+	if strings.Contains(content, `Top="36"`) {
+		t.Error(`MasterSpread still has the hardcoded Top="36"`)
+	}
+}
+
+func TestNewFromTemplate_DefaultsMarginsToHalfAnInch(t *testing.T) {
+	// A caller that leaves Margins at zero keeps the margins this
+	// template produced before Margins was wired up at all.
+	pkg, err := NewFromTemplate(&TemplateOptions{Preset: PresetLetterUS})
+	if err != nil {
+		t.Fatalf("NewFromTemplate() failed: %v", err)
+	}
+
+	content := string(pkg.files["MasterSpreads/MasterSpread_ub4.xml"].data)
+	if !strings.Contains(content, `Top="36" Bottom="36" Left="36" Right="36"`) {
+		t.Errorf("MasterSpread does not carry the default 36pt margins:\n%s", content)
 	}
 }
 

@@ -11,6 +11,4 @@
 	<idPkg:Preferences src="Resources/Preferences.xml" />
 	<idPkg:Tags src="XML/Tags.xml" />
 	<idPkg:MasterSpread src="MasterSpreads/MasterSpread_ub4.xml" />
-	<ViewPreference HorizontalMeasurementUnits="Points" VerticalMeasurementUnits="Points" />
-	<DocumentPreference PageWidth="{{printf "%.3f" .PageWidth}}" PageHeight="{{printf "%.3f" .PageHeight}}" PageOrientation="{{.Orientation}}" ColumnCount="{{.ColumnCount}}" ColumnGutter="{{.ColumnGutter}}" />
 </Document>
