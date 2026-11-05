@@ -10,4 +10,6 @@
 	<TextFramePreference FootnotesEnableOverrides="false" FootnotesSpanAcrossColumns="false" FootnotesMinimumSpacing="12" FootnotesSpaceBetween="6" TextColumnCount="1" TextColumnGutter="12" TextColumnFixedWidth="144" UseFixedColumnWidth="false" FirstBaselineOffset="AscentOffset" MinimumFirstBaselineOffset="0" VerticalJustification="TopAlign" VerticalThreshold="0" IgnoreWrap="false" />
 	<TextPreference TypographersQuotes="true" HighlightHjViolations="false" HighlightKeeps="false" HighlightSubstitutedGlyphs="false" HighlightCustomSpacing="false" HighlightSubstitutedFonts="true" UseOpticalSize="true" UseParagraphLeading="false" SuperscriptSize="58.3" SuperscriptPosition="33.3" SubscriptSize="58.3" SubscriptPosition="33.3" SmallCap="70" />
 	<TextDefault FirstLineIndent="0" LeftIndent="0" RightIndent="0" SpaceBefore="0" SpaceAfter="0" Justification="LeftAlign" FontStyle="Regular" PointSize="12" AppliedFont="Minion Pro" />
+	<DocumentPreference PageWidth="{{printf "%.3f" .PageWidth}}" PageHeight="{{printf "%.3f" .PageHeight}}" PageOrientation="{{.Orientation}}" ColumnCount="{{.ColumnCount}}" ColumnGutter="{{.ColumnGutter}}" />
+	<ViewPreference HorizontalMeasurementUnits="Points" VerticalMeasurementUnits="Points" />
 </idPkg:Preferences>

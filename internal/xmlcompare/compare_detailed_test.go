@@ -1,4 +1,4 @@
-package xmlutil
+package xmlcompare
 
 import (
 	"os"

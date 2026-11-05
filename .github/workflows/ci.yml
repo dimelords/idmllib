@@ -60,7 +60,8 @@ jobs:
         working-directory: cmd
         run: go vet ./...
       - name: Coverage summary
-        run: go tool cover -func=coverage.out | tail -1 | awk '{print "Coverage: " $3}'
+        run: |
+          go tool cover -func=coverage.out | tail -1 | awk '{print "Coverage: " $3}'
       - name: Upload coverage to Codecov
         if: matrix.go-version == '1.26'
         uses: codecov/codecov-action@v4

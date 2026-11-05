@@ -19,6 +19,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [3.2.4] - 2026-11-05
+
+### Changed
+- `internal/xmlutil/compare.go` moved to `internal/xmlcompare`. It compares two XML documents for
+  the fidelity and roundtrip tests and is called only from tests, but `xmlutil` is reached from
+  `pkg/resources`, so its `beevik/etree` and `google/go-cmp` imports sat in the build of every
+  program that uses this library. `go list -deps ./pkg/...` is now the standard library only; both
+  dependencies stay in `go.mod`, where the tests still need them
+
+## [3.2.3] - 2026-11-05
+
+### Fixed
+- `NewFromTemplate` now applies `TemplateOptions.Margins`. The option was validated and then ignored: the master spread template hardcoded `Top="36" Bottom="36" Left="36" Right="36"`, so a caller asking for different margins silently got half an inch. A side left at zero still gets 36 points, so a caller that never set margins keeps the document it gets today
+- `NewFromTemplate` writes `DocumentPreference` and `ViewPreference` into `Resources/Preferences.xml` instead of `designmap.xml`. That is where InDesign keeps the page setup; the old placement matched this repository's own hand-built `testdata/example.idml` rather than a real export. Documents built from the template open in InDesign 2026 and read back the page size, margins, column count and gutter they were given
+
 ## [3.2.2] - 2026-10-27
 
 ### Fixed
@@ -95,7 +110,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DependencyTracker for analyzing element dependencies
 - Golden file testing infrastructure
 - CLI tool with interactive TUI interface
-- Zero external dependencies (Go stdlib only)
+- ~~Zero external dependencies (Go stdlib only)~~ — not true when written. Importing `pkg/idml`
+  pulled in `beevik/etree` and `google/go-cmp`, which reached the public import path through
+  `internal/xmlutil`, and stayed there until the comparison helpers moved to
+  `internal/xmlcompare`. Corrected 2026-11-05
 
 ### Changed
 - **BREAKING**: Updated module path to `github.com/dimelords/idmllib/v2` following Go module versioning semantics for v2.0.0

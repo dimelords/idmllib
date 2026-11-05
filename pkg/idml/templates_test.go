@@ -163,16 +163,19 @@ func TestNewFromTemplate_DocumentParsing(t *testing.T) {
 				t.Fatalf("NewFromTemplate() failed: %v", err)
 			}
 
-			// Verify designmap.xml contains correct dimensions
-			entry := pkg.files["designmap.xml"]
-			content := string(entry.data)
+			// The page setup lives in Resources/Preferences.xml, where
+			// InDesign keeps it, not in designmap.xml.
+			content := string(pkg.files["Resources/Preferences.xml"].data)
 
-			// Check for width and height in XML
 			if !strings.Contains(content, fmt.Sprintf("PageWidth=\"%.3f\"", tt.wantWidth)) {
-				t.Errorf("designmap.xml missing PageWidth=%.3f", tt.wantWidth)
+				t.Errorf("Resources/Preferences.xml missing PageWidth=%.3f", tt.wantWidth)
 			}
 			if !strings.Contains(content, fmt.Sprintf("PageHeight=\"%.3f\"", tt.wantHeight)) {
-				t.Errorf("designmap.xml missing PageHeight=%.3f", tt.wantHeight)
+				t.Errorf("Resources/Preferences.xml missing PageHeight=%.3f", tt.wantHeight)
+			}
+
+			if designmap := string(pkg.files["designmap.xml"].data); strings.Contains(designmap, "<DocumentPreference") {
+				t.Error("designmap.xml still carries DocumentPreference; InDesign keeps it in Resources/Preferences.xml")
 			}
 		})
 	}
@@ -204,6 +207,48 @@ func TestNewFromTemplate_MasterSpread(t *testing.T) {
 	}
 	if !strings.Contains(content, "<MarginPreference") {
 		t.Error("MasterSpread missing MarginPreference")
+	}
+}
+
+func TestNewFromTemplate_AppliesMargins(t *testing.T) {
+	opts := &TemplateOptions{Preset: PresetLetterUS}
+	opts.Margins.Top = 36.8503937007874  // 13 mm
+	opts.Margins.Bottom = 36.8503937007874
+	opts.Margins.Left = 34.015748031496063 // 12 mm
+	opts.Margins.Right = 34.015748031496063
+
+	pkg, err := NewFromTemplate(opts)
+	if err != nil {
+		t.Fatalf("NewFromTemplate() failed: %v", err)
+	}
+
+	content := string(pkg.files["MasterSpreads/MasterSpread_ub4.xml"].data)
+	for _, want := range []string{
+		`Top="36.8503937007874"`,
+		`Bottom="36.8503937007874"`,
+		`Left="34.01574803149607"`,
+		`Right="34.01574803149607"`,
+	} {
+		if !strings.Contains(content, want) {
+			t.Errorf("MasterSpread missing %s", want)
+		}
+	}
+	if strings.Contains(content, `Top="36"`) {
+		t.Error(`MasterSpread still has the hardcoded Top="36"`)
+	}
+}
+
+func TestNewFromTemplate_DefaultsMarginsToHalfAnInch(t *testing.T) {
+	// A caller that leaves Margins at zero keeps the margins this
+	// template produced before Margins was wired up at all.
+	pkg, err := NewFromTemplate(&TemplateOptions{Preset: PresetLetterUS})
+	if err != nil {
+		t.Fatalf("NewFromTemplate() failed: %v", err)
+	}
+
+	content := string(pkg.files["MasterSpreads/MasterSpread_ub4.xml"].data)
+	if !strings.Contains(content, `Top="36" Bottom="36" Left="36" Right="36"`) {
+		t.Errorf("MasterSpread does not carry the default 36pt margins:\n%s", content)
 	}
 }
 
@@ -417,53 +462,6 @@ func TestStandardPresets_AllPresetsDefined(t *testing.T) {
 
 		if dims.Width <= 0 || dims.Height <= 0 {
 			t.Errorf("Invalid dimensions for %v: %+v", preset, dims)
-		}
-	}
-}
-
-// masterMargins returns the margins of the first page of the template's master spread, as written.
-func masterMargins(t *testing.T, pkg *Package) (top, bottom, left, right string) {
-	t.Helper()
-	ms, err := pkg.MasterSpread(PathMasterSpread)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(ms.Pages) == 0 || ms.Pages[0].MarginPreference == nil {
-		t.Fatal("master spread has no page with a MarginPreference")
-	}
-	m := ms.Pages[0].MarginPreference
-	return m.Top, m.Bottom, m.Left, m.Right
-}
-
-// TestNewFromTemplate_AppliesMargins checks that TemplateOptions.Margins reaches the master page. It used to be
-// validated and then ignored, leaving every side at 36 points.
-func TestNewFromTemplate_AppliesMargins(t *testing.T) {
-	opts := DefaultTemplateOptions()
-	opts.Margins.Top, opts.Margins.Bottom, opts.Margins.Left, opts.Margins.Right = 72, 54, 40.5, 36.8503937007874
-	pkg, err := NewFromTemplate(opts)
-	if err != nil {
-		t.Fatal(err)
-	}
-	pkg2 := reread(t, pkg, "margins-template.idml")
-	top, bottom, left, right := masterMargins(t, pkg2)
-	if top != "72" || bottom != "54" || left != "40.5" || right != "36.8503937007874" {
-		t.Errorf("margins top %s, bottom %s, left %s, right %s; want 72, 54, 40.5, 36.8503937007874", top, bottom, left, right)
-	}
-}
-
-// TestNewFromTemplate_DefaultsMarginsWhenUnset keeps the behaviour callers rely on: options without margins
-// give 36 points on every side, like a zero gutter gives 12.
-func TestNewFromTemplate_DefaultsMarginsWhenUnset(t *testing.T) {
-	for name, opts := range map[string]*TemplateOptions{
-		"nil options":         nil,
-		"options, no margins": {Preset: PresetA4},
-	} {
-		pkg, err := NewFromTemplate(opts)
-		if err != nil {
-			t.Fatalf("%s: %v", name, err)
-		}
-		if top, bottom, left, right := masterMargins(t, pkg); top != "36" || bottom != "36" || left != "36" || right != "36" {
-			t.Errorf("%s: margins %s %s %s %s, want 36 on every side", name, top, bottom, left, right)
 		}
 	}
 }

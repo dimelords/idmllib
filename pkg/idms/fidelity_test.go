@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/dimelords/idmllib/v3/internal/xmlutil"
+	"github.com/dimelords/idmllib/v3/internal/xmlcompare"
 )
 
 // TestFidelityReMarshalIsLossless parses every IDMS snippet in testdata and
@@ -33,7 +33,7 @@ func TestFidelityReMarshalIsLossless(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Marshal: %v", err)
 			}
-			diffs, err := xmlutil.CompareXMLWithDetails(in, out, xmlutil.StrictCompareOptions())
+			diffs, err := xmlcompare.CompareXMLWithDetails(in, out, xmlcompare.StrictCompareOptions())
 			if err != nil {
 				t.Fatalf("compare: %v", err)
 			}

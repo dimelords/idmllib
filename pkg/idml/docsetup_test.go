@@ -75,12 +75,25 @@ func TestSetDocumentSetupRejects(t *testing.T) {
 	}
 }
 
-// TestSetDocumentSetupCreatesElement covers a package whose Preferences.xml has no DocumentPreference, as the
-// ones NewFromTemplate makes.
+// TestSetDocumentSetupCreatesElement covers a package whose Preferences.xml has no DocumentPreference.
 func TestSetDocumentSetupCreatesElement(t *testing.T) {
 	pkg, err := NewFromTemplate(nil)
 	if err != nil {
 		t.Fatal(err)
+	}
+	prefs, err := pkg.Preferences()
+	if err != nil {
+		t.Fatal(err)
+	}
+	kept := prefs.Elements[:0]
+	for _, el := range prefs.Elements {
+		if el.XMLName.Local != "DocumentPreference" {
+			kept = append(kept, el)
+		}
+	}
+	prefs.Elements = kept
+	if _, err := pkg.DocumentSetup(); err == nil {
+		t.Fatal("the test package still has a DocumentPreference")
 	}
 	want := DocumentSetup{PageWidth: 500, PageHeight: 700, FacingPages: true, PagesPerDocument: 1}
 	if err := pkg.SetDocumentSetup(want); err != nil {

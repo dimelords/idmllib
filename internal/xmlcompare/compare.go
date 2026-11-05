@@ -1,4 +1,10 @@
-package xmlutil
+// Package xmlcompare compares two XML documents structurally, for the
+// fidelity and roundtrip tests. It lives apart from internal/xmlutil
+// because it is the only code in this repository that needs etree and
+// go-cmp, and xmlutil is reached from pkg/resources: keeping the two
+// together put both dependencies in the build of every program that
+// imports this library, none of which call any of this.
+package xmlcompare
 
 import (
 	"fmt"
