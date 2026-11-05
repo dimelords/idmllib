@@ -211,7 +211,7 @@ func main() {
 	}
 
 	outputFile := "debug-output.idms"
-	//nolint:gosec // G703: the path is a constant; gosec taint analysis reports a false positive here
+	// #nosec G703 - outputFile is the constant literal above; the taint analysis is a false positive
 	if err := os.WriteFile(outputFile, data, 0600); err != nil {
 		log.Fatalf("❌ Failed to write output: %v", err)
 	}

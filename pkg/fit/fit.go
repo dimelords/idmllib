@@ -261,10 +261,7 @@ func Budget(sample string, c Constraints, m Measurer) int {
 	if avg <= 0 {
 		return 0
 	}
-	lines := c.MaxLines
-	if lines < 1 {
-		lines = 1
-	}
+	lines := max(c.MaxLines, 1)
 	return int(c.FrameWidth * float64(lines) / avg)
 }
 
