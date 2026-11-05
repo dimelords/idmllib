@@ -8,7 +8,7 @@
 			<Properties>
 				<PageColor type="enumeration">UseMasterColor</PageColor>
 			</Properties>
-			<MarginPreference ColumnCount="{{.ColumnCount}}" ColumnGutter="{{.ColumnGutter}}" Top="36" Bottom="36" Left="36" Right="36" ColumnDirection="Horizontal" />
+			<MarginPreference ColumnCount="{{.ColumnCount}}" ColumnGutter="{{.ColumnGutter}}" Top="{{.MarginTop}}" Bottom="{{.MarginBottom}}" Left="{{.MarginLeft}}" Right="{{.MarginRight}}" ColumnDirection="Horizontal" />
 		</Page>
 	</MasterSpread>
 </idPkg:MasterSpread>
