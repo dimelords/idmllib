@@ -289,8 +289,14 @@ it did not.
 
 ## Dependencies
 
-The library depends on `github.com/beevik/etree` and `github.com/google/go-cmp`, both reached
-through `internal/xmlutil`. Everything else — `gopter` and `goldie` — is used only by tests.
+The library itself pulls in nothing outside the standard library:
+
+```bash
+go list -deps ./pkg/... | grep -v '^github.com/dimelords/idmllib'   # stdlib only
+```
+
+`etree`, `go-cmp`, `gopter` and `goldie` appear in `go.mod` because the tests use them. The CLI is
+a separate module and has its own dependencies, so it costs a library consumer nothing.
 
 ## Documentation
 

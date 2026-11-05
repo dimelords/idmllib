@@ -2,7 +2,6 @@ module github.com/dimelords/idmllib/v3
 
 go 1.25.0
 
-
 require (
 	github.com/beevik/etree v1.8.0
 	github.com/google/go-cmp v0.7.0
