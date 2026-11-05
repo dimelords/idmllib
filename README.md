@@ -1,65 +1,24 @@
 <div align="center">
   <img src="assets/idmllib-icon.png" alt="idmllib" width="200"/>
-  
-  # IDML Library
+
+  # idmllib
 
   [![Go Reference](https://pkg.go.dev/badge/github.com/dimelords/idmllib/v3.svg)](https://pkg.go.dev/github.com/dimelords/idmllib/v3)
   [![Go Report Card](https://goreportcard.com/badge/github.com/dimelords/idmllib)](https://goreportcard.com/report/github.com/dimelords/idmllib)
-  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![CI](https://github.com/dimelords/idmllib/actions/workflows/ci.yml/badge.svg)](https://github.com/dimelords/idmllib/actions/workflows/ci.yml)
-  [![Security](https://github.com/dimelords/idmllib/actions/workflows/ci.yml/badge.svg?label=Security&logo=security)](https://github.com/dimelords/idmllib/security)
-  
-  **A Go library for reading, writing, and manipulating Adobe InDesign IDML (InDesign Markup Language) files.**
-  
-  Parse IDML documents and export TextFrames as InDesign Snippets (IDMS) with intelligent filtering of styles, colors, and resources.
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+  **Read, write and manipulate Adobe InDesign IDML files in Go.**
 </div>
 
-## Status
+IDML is InDesign's XML-based interchange format: a ZIP archive of XML documents describing a
+document's text, layout, styles and graphics. idmllib parses that structure into typed Go values,
+lets you modify it, and writes it back in a form InDesign opens without complaint.
 
-✅ **Production Ready** - Full parsing, modification API, and IDMS export
-
-### Current Capabilities
-
-- ✅ Read IDML files (ZIP archive handling)
-- ✅ Parse `designmap.xml` with full Document structure
-- ✅ Parse Stories, Spreads, and Resources (Styles, Fonts, Graphics)
-- ✅ Marshal all types back to XML with perfect roundtrip
-- ✅ Content modification API (add/update/remove stories and resources)
-- ✅ Dependency tracking and resource management
-- ✅ Selection API for programmatic element access
-- ✅ IDMS snippet export functionality
-- ✅ Domain-driven architecture for maintainability
-- ✅ Lossless roundtrip: unknown attributes and child order are preserved, unmodified files are written back byte for byte (see docs/FIDELITY.md)
-- ✅ Streaming mode: ~58% less memory for documents with embedded images (see docs/STREAMING_MODE_DESIGN.md)
-- ✅ Lazy reading: entries loaded on demand, untouched ones copied compressed on write (114 MB → 0.8 MB for a structure-only read)
-
-## Overview
-
-> **Concurrency:** a `Package` is not safe for concurrent use. Read and modify a package from one goroutine, or guard it with your own lock. Independent packages can be processed in parallel.
-
-IDML is Adobe InDesign's XML-based file format. This library provides a clean, type-safe API for working with IDML files in Go.
-
-### Package Structure
-
-```
-pkg/
-├── idml/          # Main API - Package coordinator and backward-compatible types
-├── common/        # Shared types (Properties, PathGeometry, etc.)
-├── document/      # Document structure (designmap.xml)
-├── spread/        # Page layouts (Spreads/*.xml)
-├── story/         # Text content (Stories/*.xml)
-├── resources/     # Styles, fonts, and graphics (Resources/*.xml)
-├── analysis/      # Dependency tracking
-└── idms/          # IDMS snippet export
-```
-
-### Features
-
-- ✅ **Epic 1: Foundation** - Core IDML read/write with ZIP handling
-- ✅ **Epic 2: Modification API** - Full document manipulation capabilities
-- ✅ **Epic 3: IDMS Export** - Generate InDesign snippets from selections
-- ✅ **Epic 5: Architecture** - Domain-driven package structure
-- 📋 **Future: High-Level APIs** - Simplified document creation and editing
+Its distinguishing property is fidelity. A file read and written unchanged comes back byte for
+byte, and a file you do modify keeps everything you did not touch — unknown attributes, child
+order, the long decimals InDesign writes. That matters because IDML is a round-tripping format:
+anything the library silently drops is data a designer loses.
 
 ## Installation
 
@@ -67,399 +26,301 @@ pkg/
 go get github.com/dimelords/idmllib/v3
 ```
 
+Requires Go 1.25 or later. The interactive CLI is a separate module and requires Go 1.26.
+
+## Quick start
+
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/dimelords/idmllib/v3/pkg/idml"
+)
+
+func main() {
+	pkg, err := idml.Read("document.idml")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	doc, err := pkg.Document()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("DOM version: %s", doc.DOMVersion)
+	log.Printf("stories: %d, spreads: %d", len(doc.Stories), len(doc.Spreads))
+
+	st, err := pkg.Story("Stories/Story_u123.xml")
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("paragraph ranges: %d", len(st.ParagraphStyleRanges))
+
+	sp, err := pkg.Spread("Spreads/Spread_ue6.xml")
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("text frames: %d", len(sp.TextFrames))
+}
+```
+
+## What it does
+
+- **Reads and writes IDML** — ZIP handling, the uncompressed `mimetype` entry, file order, the lot.
+- **Parses the whole document** — `designmap.xml`, stories, spreads and master spreads, styles,
+  fonts, graphics, preferences and tags, into typed structs.
+- **Modifies content** — add, update and remove stories, text frames and rectangles, with optional
+  validation that the styles, fonts and colors they reference actually exist.
+- **Tracks resources** — find and remove orphaned styles, fonts, colors and swatches; validate that
+  every reference in a document resolves.
+- **Exports IDMS snippets** — select page items and write an InDesign snippet carrying exactly the
+  resources those items depend on, inlined.
+- **Keeps memory in hand** — streaming mode and lazy reading for image-heavy documents.
+
+> **Concurrency:** a `Package` is not safe for concurrent use. Read and modify one from a single
+> goroutine, or guard it with your own lock. Independent packages can be processed in parallel.
+
 ## Usage
 
-### Reading and Inspecting IDML Files
+### Modifying content
 
 ```go
 package main
 
 import (
-    "log"
-    "github.com/dimelords/idmllib/v3/pkg/idml"
+	"log"
+
+	"github.com/dimelords/idmllib/v3/pkg/idml"
+	"github.com/dimelords/idmllib/v3/pkg/story"
 )
 
 func main() {
-    // Read an IDML file
-    pkg, err := idml.Read("document.idml")
-    if err != nil {
-        log.Fatal(err)
-    }
+	pkg, err := idml.Read("document.idml")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    // Access parsed document structure
-    doc, err := pkg.Document()
-    if err != nil {
-        log.Fatal(err)
-    }
+	newStory := &story.Story{Self: "u1234"}
+	newStory.ParagraphStyleRanges = []story.ParagraphStyleRange{{
+		AppliedParagraphStyle: "ParagraphStyle/$ID/NormalParagraphStyle",
+		CharacterStyleRanges: []story.CharacterStyleRange{
+			story.NewCharacterStyleRange(
+				"CharacterStyle/$ID/[No character style]",
+				[]story.Content{{Text: "Hello, World!"}},
+			),
+		},
+	}}
 
-    // Inspect document properties
-    log.Printf("Document version: %s", doc.Version)
-    log.Printf("Stories: %d", len(doc.Stories))
-    log.Printf("Spreads: %d", len(doc.Spreads))
+	if err := pkg.AddStory("Stories/Story_u1234.xml", newStory, idml.DefaultValidationOptions()); err != nil {
+		log.Fatal(err)
+	}
 
-    // Access a story
-    story, err := pkg.Story("Stories/Story_u123.xml")
-    if err != nil {
-        log.Fatal(err)
-    }
-    log.Printf("Story has %d paragraph ranges", len(story.ParagraphStyleRanges))
-
-    // Access a spread
-    spread, err := pkg.Spread("Spreads/Spread_ue6.xml")
-    if err != nil {
-        log.Fatal(err)
-    }
-    log.Printf("Spread has %d text frames", len(spread.TextFrames))
+	if err := idml.Write(pkg, "output.idml"); err != nil {
+		log.Fatal(err)
+	}
 }
 ```
 
-### Modifying Content
+`AddStory` also registers the story in `designmap.xml`. A story present in the archive but absent
+from the manifest is ignored by InDesign, which is a hard failure to debug from the outside.
+
+### Cleaning up unused resources
 
 ```go
 package main
 
 import (
-    "log"
-    "github.com/dimelords/idmllib/v3/pkg/idml"
-    "github.com/dimelords/idmllib/v3/pkg/story"
+	"log"
+
+	"github.com/dimelords/idmllib/v3/pkg/idml"
 )
 
 func main() {
-    pkg, err := idml.Read("document.idml")
-    if err != nil {
-        log.Fatal(err)
-    }
+	pkg, err := idml.Read("document.idml")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    // Create a new story
-    newStory := &story.Story{}
-    newStory.Self = "u1234"
-    newStory.ParagraphStyleRanges = []story.ParagraphStyleRange{
-        {
-            AppliedParagraphStyle: "ParagraphStyle/$ID/NormalParagraphStyle",
-            CharacterStyleRanges: []story.CharacterStyleRange{
-                story.NewCharacterStyleRange(
-                    "CharacterStyle/$ID/[No character style]",
-                    "Hello, World!",
-                ),
-            },
-        },
-    }
+	rm := idml.NewResourceManager(pkg)
 
-    // Add the story to the package
-    err = pkg.AddStory("Stories/Story_u1234.xml", newStory)
-    if err != nil {
-        log.Fatal(err)
-    }
+	orphans, err := rm.FindOrphans()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("unused paragraph styles: %d", len(orphans.ParagraphStyles))
+	log.Printf("unused colors: %d", len(orphans.Colors))
 
-    // Save the modified document
-    err = idml.Write(pkg, "output.idml")
-    if err != nil {
-        log.Fatal(err)
-    }
+	result, err := rm.CleanupOrphans(idml.CleanupOptions{
+		RemoveOrphanedFonts:           true,
+		RemoveOrphanedParagraphStyles: true,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("removed %d fonts, %d paragraph styles",
+		len(result.RemovedFonts), len(result.RemovedParagraphStyles))
+
+	if err := idml.Write(pkg, "cleaned.idml"); err != nil {
+		log.Fatal(err)
+	}
 }
 ```
 
-### Resource Management
+`CleanupOptions` is opt-in per resource kind, and `DryRun` reports what would go without touching
+the document. Object styles are left alone by default, since they are often kept as templates.
+
+### Exporting an IDMS snippet
 
 ```go
 package main
 
 import (
-    "log"
-    "github.com/dimelords/idmllib/v3/pkg/idml"
+	"log"
+
+	"github.com/dimelords/idmllib/v3/pkg/idml"
+	"github.com/dimelords/idmllib/v3/pkg/idms"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
 )
 
 func main() {
-    pkg, err := idml.Read("document.idml")
-    if err != nil {
-        log.Fatal(err)
-    }
+	pkg, err := idml.Read("document.idml")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    // Create a resource manager
-    rm := idml.NewResourceManager(pkg)
+	frame, err := idml.PageItemOfType[spread.TextFrame](pkg, "u1e6")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    // Find orphaned resources (unused styles, colors, etc.)
-    report := rm.FindOrphans()
-    log.Printf("Found %d orphaned styles", len(report.OrphanedStyles))
-    log.Printf("Found %d orphaned colors", len(report.OrphanedColors))
+	sel := idml.NewSelection()
+	sel.AddTextFrame(frame)
 
-    // Clean up orphaned resources
-    cleanupReport := rm.CleanupOrphans()
-    log.Printf("Removed %d unused resources", cleanupReport.TotalRemoved)
+	snippet, err := idms.NewExporter(pkg).ExportSelection(sel)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    // Save the cleaned document
-    err = idml.Write(pkg, "cleaned.idml")
-    if err != nil {
-        log.Fatal(err)
-    }
+	if err := idms.Write(snippet, "snippet.idms"); err != nil {
+		log.Fatal(err)
+	}
 }
 ```
 
-### Exporting IDMS Snippets
+The exporter walks the selection's dependencies — stories, styles and the styles they are based on,
+fonts, colors, swatches, graphics — and embeds just those in the snippet. IDMS inlines its
+resources rather than referencing separate files, so the snippet is self-contained.
 
-```go
-package main
+### Large documents
 
-import (
-    "log"
-    "github.com/dimelords/idmllib/v3/pkg/idml"
-    "github.com/dimelords/idmllib/v3/pkg/idms"
-)
+`ReadOptions.Lazy` reads archive entries on demand and copies untouched ones straight through on
+write, which turns a structure-only read of a 114 MB document into roughly 0.8 MB of memory. Call
+`Package.Close` when finished. `ReadOptions.StreamingMode` roughly halves the memory held for
+documents with embedded images; see [docs/STREAMING_MODE_DESIGN.md](docs/STREAMING_MODE_DESIGN.md).
 
-func main() {
-    // Read source IDML document
-    pkg, err := idml.Read("document.idml")
-    if err != nil {
-        log.Fatal(err)
-    }
+## Packages
 
-    // Select elements to export
-    sel := idml.NewSelection()
-    textFrame, _ := idml.PageItemOfType[spread.TextFrame](pkg, "u1e6")
-    sel.AddTextFrame(textFrame)
+| Package | Contents |
+| --- | --- |
+| `pkg/idml` | The coordinator and public API: `Read`, `Write`, `Package`, selections, resource management |
+| `pkg/document` | `designmap.xml` — the document manifest, layers, sections, hyperlinks |
+| `pkg/spread` | `Spreads/*.xml` and `MasterSpreads/*.xml` — pages and page items |
+| `pkg/story` | `Stories/*.xml` — text content and its formatting ranges |
+| `pkg/resources` | `Resources/*.xml` — styles, fonts, graphics, preferences |
+| `pkg/common` | Types shared across domains |
+| `pkg/analysis` | Dependency tracking |
+| `pkg/idms` | IDMS snippet export |
+| `pkg/fit` | Text fitting: does this text fit this frame at this style |
 
-    // Export as IDMS snippet
-    exporter := idms.NewExporter(pkg)
-    snippet, err := exporter.ExportSelection(sel)
-    if err != nil {
-        log.Fatal(err)
-    }
+The packages mirror the IDML file structure, which keeps the dependency graph acyclic and makes it
+obvious where a given piece of the format lives. See [ARCHITECTURE.md](ARCHITECTURE.md).
 
-    // Write the snippet
-    err = snippet.Write("snippet.idms")
-    if err != nil {
-        log.Fatal(err)
-    }
-}
-```
+## CLI
 
-## CLI Tool
-
-The project includes an interactive CLI tool for exploring and manipulating IDML files:
+An interactive terminal tool for exploring and exporting from IDML files:
 
 ```bash
-# Build the CLI
 (cd cmd && go build -o ../bin/idmllib ./cli)
-
-# Run interactively
 ./bin/idmllib
 ```
 
-Features:
-- Browse document structure
-- Inspect stories, spreads, and resources
-- Export IDMS snippets
-- Analyze dependencies
-- Resource management
+It browses the document structure, inspects stories, spreads and resources, exports IDMS snippets
+and reports dependencies.
 
 ## Development
 
-### Requirements
-
-- Go 1.26 or later (the toolchain is pinned in go.mod)
-- golangci-lint (for code quality checks)
-
-### Code Quality and Linting
-
-This project uses [golangci-lint](https://golangci-lint.run/) for comprehensive code quality checks.
-
-#### Installation
-
 ```bash
-# Install golangci-lint
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-
-# Or using homebrew on macOS
-brew install golangci-lint
-
-# Or using the install script
-curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.2
-```
-
-#### Running Linting
-
-```bash
-# Run all linting checks
-golangci-lint run
-
-# Run with specific timeout
-golangci-lint run --timeout=10m
-
-# Run on specific files or directories
-golangci-lint run ./pkg/idml/
-
-# Fix auto-fixable issues
-golangci-lint run --fix
-```
-
-#### Linting Configuration
-
-The project uses a comprehensive `.golangci.yml` configuration that includes:
-
-- **Error checking**: errcheck, gosec, staticcheck
-- **Code quality**: gosimple, ineffassign, unused
-- **Formatting**: gofmt, goimports, misspell
-- **Type safety**: typecheck, govet
-
-The configuration is designed to be strict but practical for existing codebases.
-
-#### Continuous Integration
-
-The project includes a comprehensive CI/CD pipeline (`.github/workflows/ci.yml`) that:
-
-- **Runs on every push and pull request** to main/develop branches
-- **Linting**: Fails the build if any linting violations are found
-- **Testing**: Runs tests on multiple Go versions (1.22, 1.23) with race detection
-- **Coverage**: Generates coverage reports and uploads to Codecov
-- **Security**: Runs Gosec security scanning
-- **Build**: Ensures all binaries build successfully
-
-The pipeline is configured to **fail fast** - if linting or tests fail, subsequent jobs are skipped.
-
-### Testing
-
-```bash
-# Run all tests
 go test ./...
-
-# Run with coverage
-go test -cover ./...
-
-# Run with race detection and coverage
-go test -v -race -coverprofile=coverage.out ./...
-
-# Generate HTML coverage report
-go tool cover -html=coverage.out -o coverage.html
-
-# Run specific package tests
-go test ./pkg/idml -v
-
-# Update golden files when intentionally changing output
-UPDATE_GOLDEN=1 go test ./pkg/idml
+go test -race -coverprofile=coverage.out ./...
 ```
 
-#### Test Cleanup Patterns
+The fidelity tests are the ones that matter most: parsing and re-marshalling every fixture must
+produce structurally identical XML.
 
-This project follows strict test cleanup patterns to keep the repository clean:
-
-**Automatic Cleanup**:
-```go
-func TestExample(t *testing.T) {
-    // Use t.TempDir() for automatic cleanup
-    tempDir := t.TempDir()
-    outputPath := filepath.Join(tempDir, "output.idml")
-    
-    // Test logic here...
-    // No manual cleanup needed - t.TempDir() handles it
-}
+```bash
+go test ./pkg/idml ./pkg/idms -run Fidelity
 ```
 
-**Debug Mode with Cleanup**:
-```go
-func TestExampleWithDebug(t *testing.T) {
-    var outputPath string
-    
-    if *preserveTestOutput {
-        outputPath = "debug_output.idml"
-        t.Cleanup(func() {
-            if !t.Failed() {
-                os.Remove(outputPath)
-            }
-        })
-    } else {
-        tempDir := t.TempDir()
-        outputPath = filepath.Join(tempDir, "output.idml")
-    }
-    
-    // Test logic...
-}
+Golden files are refreshed with the `-update` flag, and only deliberately — run the fidelity tests
+first.
+
+```bash
+go test ./pkg/idml ./pkg/idms -update
 ```
 
-**Test Artifact Guidelines**:
-- Never commit test output files to the repository
-- Use `t.TempDir()` for temporary files that should be cleaned up automatically
-- Place persistent test data in `testdata/` directories
-- Use debug flags sparingly and ensure cleanup after debugging
+Linting uses [golangci-lint](https://golangci-lint.run/) v2 with the configuration in
+`.golangci.yml`, which enables `govet`, `staticcheck`, `errcheck`, `ineffassign`, `unused`,
+`misspell`, `gosec`, `forcetypeassert`, `nilerr` and `modernize`. Both modules are linted:
 
-### Test Coverage
-
-- Overall: ~74%
-- pkg/analysis: 93.6%
-- pkg/idml: 61.1%
-- pkg/idms: 70.6%
-- internal/xmlutil: 79.5%
-
-### Project Structure
-
-```
-idmllib/
-├── pkg/
-│   ├── idml/          # Main API and coordinator
-│   ├── common/        # Shared types
-│   ├── document/      # Document structure
-│   ├── spread/        # Page layouts
-│   ├── story/         # Text content
-│   ├── resources/     # Styles, fonts, graphics
-│   ├── analysis/      # Dependency tracking
-│   └── idms/          # IDMS export
-├── internal/
-│   ├── xmlutil/       # XML utilities
-│   └── testutil/      # Test helpers
-├── cmd/
-│   ├── cli/           # Interactive CLI tool
-│   └── debug-export/  # Debug utilities
-├── docs/              # Documentation
-└── testdata/          # Test IDML files
+```bash
+golangci-lint run
+(cd cmd && golangci-lint run --config=../.golangci.yml)
 ```
 
-## Architecture
+CI runs linting, tests on Go 1.26 and 1.27 with the race detector, a short fuzzing pass over the
+parsers, `govulncheck` and `gosec`, and builds the CLI.
 
-This library uses a domain-driven architecture where packages mirror the IDML file structure:
+Before changing any parser, read [docs/FIDELITY.md](docs/FIDELITY.md). Every element struct carries
+an `OtherAttrs` catch-all, and types with several kinds of child record and replay child order; a
+new struct that skips either will fail the fidelity tests, and would silently corrupt documents if
+it did not.
 
-- **pkg/common**: Shared types used across domains
-- **pkg/document**: designmap.xml types
-- **pkg/spread**: Spreads/*.xml types (page items, layouts)
-- **pkg/story**: Stories/*.xml types (text content)
-- **pkg/resources**: Resources/*.xml types (styles, fonts, graphics)
-- **pkg/idml**: Main coordinator and public API
+## Dependencies
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation.
+The library itself pulls in nothing outside the standard library:
 
-## Resources
+```bash
+go list -deps ./pkg/... | grep -v '^github.com/dimelords/idmllib'   # stdlib only
+```
 
-- [Adobe IDML Specification](https://www.adobe.com/devnet/indesign/sdk.html)
-- [Project Documentation](claude.md)
-- [Architecture Documentation](ARCHITECTURE.md)
+`etree`, `go-cmp`, `gopter` and `goldie` appear in `go.mod` because the tests use them. The CLI is
+a separate module and has its own dependencies, so it costs a library consumer nothing.
+
+## Documentation
+
+- [Package reference](https://pkg.go.dev/github.com/dimelords/idmllib/v3)
+- [ARCHITECTURE.md](ARCHITECTURE.md) — package layout and design decisions
+- [docs/FIDELITY.md](docs/FIDELITY.md) — what lossless means here, and how it is enforced
+- [docs/STREAMING_MODE_DESIGN.md](docs/STREAMING_MODE_DESIGN.md) — streaming and lazy reading
+- [CHANGELOG.md](CHANGELOG.md) — release history
+- [Adobe IDML specification](https://www.adobe.com/devnet/indesign/sdk.html)
+
+## Maintenance
+
+idmllib is written and maintained by its author for use in production typesetting systems. Bug
+reports, questions and feature requests are welcome as
+[issues](https://github.com/dimelords/idmllib/issues) — a reduced IDML file that reproduces the
+problem is worth a great deal, since most bugs in this domain are specific to how one document was
+built.
+
+The API is stable within v3; anything breaking would arrive as a new major version.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+MIT — see [LICENSE](LICENSE).
 
 ## Author
 
 Fredrik Gustafsson ([@dimelords](https://github.com/dimelords))
-
-## Changelog
-
-### v2.0.0 (2025-01-13)
-- ✅ **BREAKING**: Updated module path to `github.com/dimelords/idmllib/v3` following Go module versioning semantics
-- ✅ Complete IDML read/write support with roundtrip fidelity
-- ✅ Domain-driven package architecture mirroring IDML file structure
-- ✅ Go 1.26 toolchain with comprehensive security fixes
-- ✅ CLI tool with interactive TUI interface
-- ✅ ResourceManager for tracking, validating, and cleaning up resources
-- ✅ Selection API for programmatically selecting elements by ID
-- ✅ IDMS snippet export functionality
-- ✅ Zero external dependencies (Go stdlib only)
-- ✅ 74% overall test coverage with comprehensive roundtrip tests
-- ✅ Clean separation of concerns with zero circular dependencies
-- ✅ Comprehensive linting and CI/CD pipeline with security scanning
-
-### v0.1.0
-- ✅ Initial release with basic IDML read/write
-- ✅ Document, Story, and Spread parsing
-- ✅ Full roundtrip capability

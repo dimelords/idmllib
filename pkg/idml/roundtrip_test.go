@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dimelords/idmllib/v3/internal/xmlutil"
+	"github.com/dimelords/idmllib/v3/internal/xmlcompare"
 )
 
 // TestRoundtrip verifies that we can read an IDML file and write it back
@@ -100,7 +100,7 @@ func TestRoundtrip_ByteComparison(t *testing.T) {
 
 				// For XML files, use structural comparison (attribute order doesn't matter)
 				if strings.HasSuffix(origFile.Name, ".xml") {
-					if err := xmlutil.CompareXML(origData, outData); err != nil {
+					if err := xmlcompare.CompareXML(origData, outData); err != nil {
 						t.Errorf("File %q XML structure differs: %v", origFile.Name, err)
 						t.Logf("  Original: %d bytes (CRC32: 0x%x)", len(origData), origFile.CRC32)
 						t.Logf("  Output:   %d bytes (CRC32: 0x%x)", len(outData), outFile.CRC32)

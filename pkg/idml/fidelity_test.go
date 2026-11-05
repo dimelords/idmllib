@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dimelords/idmllib/v3/internal/xmlutil"
+	"github.com/dimelords/idmllib/v3/internal/xmlcompare"
 )
 
 // Fidelity tests guard the core promise of the library: parsing a file and
@@ -158,7 +158,7 @@ func TestFidelityReMarshalIsLossless(t *testing.T) {
 				// longer holds; TestMarkModifiedCausesRemarshal tests the
 				// property directly instead of inferring it from
 				// formatting noise.
-				diffs, err := xmlutil.CompareXMLWithDetails(in, outData, xmlutil.StrictCompareOptions())
+				diffs, err := xmlcompare.CompareXMLWithDetails(in, outData, xmlcompare.StrictCompareOptions())
 				if err != nil {
 					t.Errorf("%s: compare failed: %v", name, err)
 					continue

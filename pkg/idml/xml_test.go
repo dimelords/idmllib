@@ -3,7 +3,7 @@ package idml
 import (
 	"testing"
 
-	"github.com/dimelords/idmllib/v3/internal/xmlutil"
+	"github.com/dimelords/idmllib/v3/internal/xmlcompare"
 )
 
 // TestXMLRoundtrip verifies that we can read XML files from a Package,
@@ -50,7 +50,7 @@ func TestXMLRoundtrip_StructuralComparison(t *testing.T) {
 					}
 
 					// Test 1: Parse to etree.Document (no typed structs!)
-					doc, err := xmlutil.ParseToMap(data.data)
+					doc, err := xmlcompare.ParseToMap(data.data)
 					if err != nil {
 						t.Errorf("failed to parse %s: %v", xmlFile, err)
 						return
@@ -61,24 +61,24 @@ func TestXMLRoundtrip_StructuralComparison(t *testing.T) {
 					}
 
 					// Test 2: Self-comparison using go-cmp (via etree)
-					if err := xmlutil.CompareXML(data.data, data.data); err != nil {
+					if err := xmlcompare.CompareXML(data.data, data.data); err != nil {
 						t.Errorf("self-comparison failed for %s: %v", xmlFile, err)
 					}
 
 					// Test 3: Self-comparison using etree directly
-					if err := xmlutil.CompareXMLWithEtree(data.data, data.data); err != nil {
+					if err := xmlcompare.CompareXMLWithEtree(data.data, data.data); err != nil {
 						t.Errorf("etree self-comparison failed for %s: %v", xmlFile, err)
 					}
 
 					// Test 4: Normalize and compare
-					normalized, err := xmlutil.NormalizeXML(data.data)
+					normalized, err := xmlcompare.NormalizeXML(data.data)
 					if err != nil {
 						t.Errorf("failed to normalize %s: %v", xmlFile, err)
 						return
 					}
 
 					// Compare original vs normalized (structural comparison)
-					if err := xmlutil.CompareXML(data.data, normalized); err != nil {
+					if err := xmlcompare.CompareXML(data.data, normalized); err != nil {
 						t.Logf("Note: Normalized XML differs from original for %s", xmlFile)
 						t.Logf("      This is expected - formatting changes")
 					} else {

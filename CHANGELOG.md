@@ -19,6 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [3.2.4] - 2026-11-05
+
+### Changed
+- `internal/xmlutil/compare.go` moved to `internal/xmlcompare`. It compares two XML documents for
+  the fidelity and roundtrip tests and is called only from tests, but `xmlutil` is reached from
+  `pkg/resources`, so its `beevik/etree` and `google/go-cmp` imports sat in the build of every
+  program that uses this library. `go list -deps ./pkg/...` is now the standard library only; both
+  dependencies stay in `go.mod`, where the tests still need them
+
 ## [3.2.3] - 2026-11-05
 
 ### Fixed
@@ -101,7 +110,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DependencyTracker for analyzing element dependencies
 - Golden file testing infrastructure
 - CLI tool with interactive TUI interface
-- Zero external dependencies (Go stdlib only)
+- ~~Zero external dependencies (Go stdlib only)~~ — not true when written. Importing `pkg/idml`
+  pulled in `beevik/etree` and `google/go-cmp`, which reached the public import path through
+  `internal/xmlutil`, and stayed there until the comparison helpers moved to
+  `internal/xmlcompare`. Corrected 2026-11-05
 
 ### Changed
 - **BREAKING**: Updated module path to `github.com/dimelords/idmllib/v2` following Go module versioning semantics for v2.0.0
