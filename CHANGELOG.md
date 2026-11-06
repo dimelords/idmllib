@@ -19,6 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [3.3.0] - 2026-11-05
+
+### Added
+- Typed document setup in `Resources/Preferences.xml`, which was only reachable as raw elements. `Package.DocumentSetup` / `SetDocumentSetup` read and write the page size, facing pages, pages per document, binding, bleed and slug (`DocumentSetup`; bleed and slug as top, bottom, inside, outside, with the `UniformSize` flags kept in step). `Package.BaselineGrid` / `SetBaselineGrid` do the baseline grid's start, division and whether it counts from the top of the page or the top margin. `Package.DefaultMargins` / `SetDefaultMargins` do the `MarginPreference` new pages get. Attributes these types don't model are kept, and a missing element is created
+- Page geometry helpers in `spread`: `PageGeometricBounds`, and `PageItemTransform` for a left, right or single page (`PageSide`), placed in the spread the way InDesign writes it. `MarginPreference.SetMargins` takes top, bottom, inside and outside, and `MarginPreference.SetColumns` writes `ColumnCount`, `ColumnGutter` and `ColumnsPositions` from the page width: equal columns, or explicit widths that must add up to the text area
+- Parent pages. `spread.NewMasterSpread` builds a master spread from `MasterSpreadOptions` (name, page size, one page or a facing pair, margins, columns); `Spread.MasterName` / `SetMasterName` read and set its name. `Package.AddMasterSpread` adds it and registers it as an `<idPkg:MasterSpread>` in `designmap.xml`. `AddSpread` registers an `<idPkg:Spread>`, which InDesign ignores for a master spread. `Package.ApplyMaster` applies a parent page to a document page and checks that both exist
+- `Package.RemoveMasterSpread` removes a parent page and its designmap entry. Pages that apply it make the call fail, or with `detach` get `AppliedMaster="n"`. `Package.RemoveSpread` removes a document spread; a section starting on one of its pages moves to the next spread's first page, or the previous one's. The last spread can't be removed
+- `Package.ResetXMLStructure` empties the document's XML structure down to its root element and returns how many elements it removed. A page from an XML workflow keeps tagged elements in `XML/BackingStory.xml` that point at stories and page items; once those are removed, the references point at nothing
+
 ## [3.2.4] - 2026-11-05
 
 ### Changed
