@@ -278,8 +278,9 @@ golangci-lint run
 (cd cmd && golangci-lint run --config=../.golangci.yml)
 ```
 
-CI runs linting, tests on Go 1.26 and 1.27 with the race detector, a short fuzzing pass over the
-parsers, `govulncheck` and `gosec`, and builds the CLI.
+CI runs linting, tests on Go 1.25, 1.26 and 1.27 with the race detector, a check that `pkg/`
+imports only the standard library, a short fuzzing pass over the parsers, `govulncheck` and
+`gosec`, and builds the CLI.
 
 Before changing any parser, read [docs/FIDELITY.md](docs/FIDELITY.md). Every element struct carries
 an `OtherAttrs` catch-all, and types with several kinds of child record and replay child order; a

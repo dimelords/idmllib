@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **idmlbuild** is a Go library for reading, writing, and manipulating Adobe InDesign IDML (InDesign Markup Language) files. IDML files are ZIP archives containing XML documents that define InDesign layouts, text, styles, and graphics.
 
-- **Language**: Go 1.26+ (toolchain pinned in go.mod and .go-version)
+- **Language**: Go 1.25+ for the library (go.mod; downstream services build on 1.25), Go 1.26 for cmd/. .go-version is the local dev toolchain. CI tests 1.25, 1.26 and 1.27.
 - **Type**: Library (not an application)
 - **Repository**: github.com/dimelords/idmlbuild
 
