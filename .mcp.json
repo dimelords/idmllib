@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "huddle": {
+      "type": "http",
+      "url": "https://huddle-mcp-production.up.railway.app/mcp",
+      "headers": {
+        "X-Huddle-Group": "dimelords/idmllib"
+      }
+    }
+  }
+}

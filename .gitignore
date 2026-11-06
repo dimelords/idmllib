@@ -78,7 +78,9 @@ __debug_bin
 # Kiro
 .kiro/
 
-.claude/
+# Claude Code: the project's own settings are shared, personal ones are not
+.claude/*
+!.claude/settings.json
 
 # Build output
 bin/
