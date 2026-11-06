@@ -264,7 +264,7 @@ hand-written tag.
 ## Common Pitfalls
 
 1. **Namespace bugs**: NEVER create `xmlns:_xmlns="xmlns"` attributes
-   - Fixed in document_metadata.go - use that pattern
+   - Guarded in internal/xmlutil/metadata.go, which strips the broken declaration after marshalling - use that pattern
 
 2. **File order**: ZIP file order matters for byte-identical roundtrips
    - Use `Package.fileOrder` to preserve original order
