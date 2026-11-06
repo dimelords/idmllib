@@ -1,7 +1,7 @@
 # CI/CD Pipeline for idmlbuild
 # Runs linting, tests with coverage, vulnerability scanning and builds on every
-# push and pull request. The Go version comes from go.mod so CI and developers
-# always agree.
+# push and pull request. Jobs that need one Go version take it from go.mod; the
+# test matrix also covers the library's floor and the newest release.
 
 name: CI
 
@@ -44,8 +44,13 @@ jobs:
     timeout-minutes: 20
     strategy:
       matrix:
-        # go.mod's version plus the newest stable release
-        go-version: ['1.26', '1.27']
+        # 1.25 is the library's floor (go.mod; downstream services build on it).
+        # 1.26 is what cmd/ needs, 1.27 the newest stable release.
+        go-version: ['1.25', '1.26', '1.27']
+    env:
+      # Build with the toolchain under test, never a downloaded newer one, so the
+      # 1.25 leg fails if the library starts needing 1.26.
+      GOTOOLCHAIN: local
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -54,9 +59,19 @@ jobs:
           check-latest: true
       - name: Download dependencies
         run: go mod download
+      - name: Library depends only on the standard library
+        run: |
+          extra=$(go list -deps -f '{{if not .Standard}}{{.ImportPath}}{{end}}' ./pkg/... \
+            | grep -v '^github.com/dimelords/idmllib/' || true)
+          if [ -n "$extra" ]; then
+            echo "::error::pkg/ pulls third-party packages into every consumer's build:"
+            echo "$extra"
+            exit 1
+          fi
       - name: Run tests with race detector and coverage
         run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
       - name: Vet the cmd module
+        if: matrix.go-version != '1.25'
         working-directory: cmd
         run: go vet ./...
       - name: Coverage summary
