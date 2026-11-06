@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__huddle__whoami",
+      "mcp__huddle__inbox",
+      "mcp__huddle__list_questions",
+      "mcp__huddle__get_attachment",
+      "mcp__huddle__ask",
+      "mcp__huddle__wait_for_answer",
+      "mcp__huddle__approve_answer",
+      "mcp__huddle__memory_save"
+    ]
+  },
+  "enabledPlugins": {
+    "huddle@huddle": true
+  },
+  "enabledMcpjsonServers": [
+    "huddle"
+  ],
+  "extraKnownMarketplaces": {
+    "huddle": {
+      "source": {
+        "source": "github",
+        "repo": "dimelords/huddle"
+      }
+    }
+  }
+}
