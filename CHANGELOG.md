@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Embedded PDFs. `spread.NewPDFRectangle` builds a graphic frame with a PDF placed in it and the PDF file inside the IDML, the shape InDesign writes once a PDF's link is embedded: the bytes base64-encoded in the PDF's `Contents`, its `GraphicBounds`, a `PDFAttribute` (page, crop, transparent background) and a `Link` with `StoredState="Embedded"`. The document opens with the graphic in place and no file next to it. The PDF's scale and position in the frame are the caller's, as for `NewImageRectangle`; data that isn't a PDF, a size or scale that isn't positive and a negative page number are refused. `PDF.EmbeddedContents` decodes an embedded PDF back to its file (InDesign's several CDATA sections included) and reports a PDF that is only linked; `PDF.GraphicBounds` reads the placed box
 
 ### Changed
 
