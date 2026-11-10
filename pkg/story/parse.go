@@ -200,6 +200,12 @@ func (c *CharacterStyleRange) UnmarshalXML(d *xml.Decoder, start xml.StartElemen
 					return err
 				}
 				c.Children = append(c.Children, CharacterChild{Table: &v})
+			case "TextVariableInstance":
+				var v TextVariableInstance
+				if err := d.DecodeElement(&v, &t); err != nil {
+					return err
+				}
+				c.Children = append(c.Children, CharacterChild{TextVariableInstance: &v})
 			default:
 				// Unknown element - store as RawXMLElement
 				var raw common.RawXMLElement
@@ -289,6 +295,10 @@ func (c CharacterStyleRange) MarshalXML(e *xml.Encoder, start xml.StartElement) 
 			}
 		} else if child.Table != nil {
 			if err := e.Encode(child.Table); err != nil {
+				return err
+			}
+		} else if child.TextVariableInstance != nil {
+			if err := e.Encode(child.TextVariableInstance); err != nil {
 				return err
 			}
 		} else if child.Other != nil {

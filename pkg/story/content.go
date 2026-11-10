@@ -322,8 +322,8 @@ func (p *ParagraphStyleRange) writeText(b *strings.Builder) {
 }
 
 // writeText appends the printed text of the range: content, line breaks,
-// hyperlink sources, tagged inline content and inserted or moved tracked
-// changes. Deleted changes, notes, footnotes and tables are not part of the
+// hyperlink sources, tagged inline content, the text text variables showed
+// when the document was written, and inserted or moved tracked changes. Deleted changes, notes, footnotes and tables are not part of the
 // main text flow and are skipped.
 func (c *CharacterStyleRange) writeText(b *strings.Builder) {
 	for i := range c.Children {
@@ -333,6 +333,8 @@ func (c *CharacterStyleRange) writeText(b *strings.Builder) {
 			b.WriteString(ch.Content.Text)
 		case ch.Br != nil:
 			b.WriteString("\n")
+		case ch.TextVariableInstance != nil:
+			b.WriteString(ch.TextVariableInstance.ResultText)
 		case ch.XMLElement != nil:
 			ch.XMLElement.writeText(b)
 		case ch.HyperlinkTextSource != nil:

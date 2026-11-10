@@ -126,15 +126,17 @@ type CharacterStyleRange struct {
 
 // CharacterChild represents either a Content element or a Br element
 type CharacterChild struct {
-	Content             *Content              // If non-nil, this is a Content element
-	Br                  *Br                   // If non-nil, this is a Br element
-	XMLElement          *XMLElement           // Tagged inline content
-	Change              *Change               // Tracked change
-	Note                *Note                 // Editorial note (not printed)
-	HyperlinkTextSource *HyperlinkTextSource  // Hyperlink source text
-	Footnote            *Footnote             // Footnote (not in main flow)
-	Table               *Table                // Anchored table
-	Other               *common.RawXMLElement // If non-nil, this is an unknown element
+	Content             *Content             // If non-nil, this is a Content element
+	Br                  *Br                  // If non-nil, this is a Br element
+	XMLElement          *XMLElement          // Tagged inline content
+	Change              *Change              // Tracked change
+	Note                *Note                // Editorial note (not printed)
+	HyperlinkTextSource *HyperlinkTextSource // Hyperlink source text
+	Footnote            *Footnote            // Footnote (not in main flow)
+	Table               *Table               // Anchored table
+	// TextVariableInstance is a text variable placed in the text.
+	TextVariableInstance *TextVariableInstance
+	Other                *common.RawXMLElement // If non-nil, this is an unknown element
 }
 
 // Content represents actual text content.

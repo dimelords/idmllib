@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Custom text variables, which hold text a document sets itself, such as a publication's name or an edition's date, and were only reachable as raw elements. `TextVariable.CustomTextPreference` (`CustomTextVariablePreference`) types InDesign's `<Properties><Contents type="string">`; `TextVariable.CustomText` / `SetCustomText` read and set the text, and `document.NewCustomTextVariable` makes one with the Self InDesign gives it. `Document.TextVariable` finds a variable by name; `Document.AddTextVariable` adds one, written right after the existing variables in a designmap that was read, where InDesign keeps them. `Package.AddCustomTextVariable` adds one to the document; `Package.SetCustomTextVariable` sets its text and the `ResultText` of its instances in every story, for readers that don't recompose (InDesign takes the text from designmap.xml)
+- Text variable instances in stories. `story.TextVariableInstance` is a typed `CharacterChild`, where it used to be kept as a raw element; its `ResultText` is part of `ExtractText`. `story.NewTextVariableRange` builds the character style range InDesign writes for one, marked `PageNumberType="TextVariable"`, and `Story.TextVariableInstances` lists a story's instances
+- `testdata/textvariables.idml`, written by InDesign 2026: two custom text variables placed on a page and on a parent page
 
 ### Changed
 
