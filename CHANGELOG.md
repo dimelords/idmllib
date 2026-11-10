@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [3.4.0] - 2026-11-09
+
+### Added
+- Stacking order across page item kinds. `Spread.StackingOrder` returns the Selfs of a spread's top-level page items, bottom to top, as the spread would be written; `Spread.SetStackingOrder` restacks them from a list naming each of them once. Items appended through the typed slices are written grouped by kind (text frames first), so until now a text frame added after a filled rectangle could only end up under it. Pages, the flattener preference and items kept as raw elements stay where they are; the typed items fill the places page items have, in the new order. A list that leaves an item out, names one twice or names something else is refused and changes nothing. Works for master spreads too
+
 ## [3.3.0] - 2026-11-05
 
 ### Added

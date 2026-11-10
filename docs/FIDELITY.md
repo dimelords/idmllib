@@ -39,7 +39,10 @@ children while unmarshaling in a `childOrder common.ChildOrder` field and
 replay it when marshaling (`common.EncodeChildren`). Children appended after
 parsing are written after the recorded ones, grouped by kind; removed
 children are skipped. For a spread this means newly added items land on top
-of the stack.
+of the stack. To place them elsewhere in the stack, or to order appended
+items of different kinds, use `Spread.StackingOrder` and
+`Spread.SetStackingOrder` (pkg/spread/stacking.go), which rewrite the slices
+and the recorded order together.
 
 Two implementations exist:
 
