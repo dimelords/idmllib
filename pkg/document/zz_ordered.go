@@ -118,3 +118,23 @@ func (x *TextVariable) UnmarshalXML(d *xml.Decoder, start xml.StartElement) erro
 func (x TextVariable) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return common.MarshalOrdered(x, x.childOrder, e, start)
 }
+
+// UnmarshalXML decodes <CustomTextVariablePreference> recording child order (see common.UnmarshalOrdered).
+func (x *CustomTextVariablePreference) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return common.UnmarshalOrdered(x, &x.childOrder, d, start)
+}
+
+// MarshalXML encodes <CustomTextVariablePreference> replaying the recorded child order.
+func (x CustomTextVariablePreference) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return common.MarshalOrdered(x, x.childOrder, e, start)
+}
+
+// UnmarshalXML decodes the <Properties> of a CustomTextVariablePreference recording child order (see common.UnmarshalOrdered).
+func (x *CustomTextVariableProperties) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return common.UnmarshalOrdered(x, &x.childOrder, d, start)
+}
+
+// MarshalXML encodes the <Properties> of a CustomTextVariablePreference replaying the recorded child order.
+func (x CustomTextVariableProperties) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return common.MarshalOrdered(x, x.childOrder, e, start)
+}

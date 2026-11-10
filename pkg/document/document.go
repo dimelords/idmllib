@@ -462,6 +462,7 @@ type TextVariable struct {
 	CaptionMetadataPreference     *CaptionMetadataVariablePreference `xml:"CaptionMetadataVariablePreference,omitempty"`
 	PageNumberPreference          *PageNumberVariablePreference      `xml:"PageNumberVariablePreference,omitempty"`
 	MatchParagraphStylePreference *MatchParagraphStylePreference     `xml:"MatchParagraphStylePreference,omitempty"`
+	CustomTextPreference          *CustomTextVariablePreference      `xml:"CustomTextVariablePreference,omitempty"`
 
 	// Catch-all for other TextVariable children or unknown preference types
 	OtherElements []common.RawXMLElement `xml:",any"`
