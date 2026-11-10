@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom text variables, which hold text a document sets itself, such as a publication's name or an edition's date, and were only reachable as raw elements. `TextVariable.CustomTextPreference` (`CustomTextVariablePreference`) types InDesign's `<Properties><Contents type="string">`; `TextVariable.CustomText` / `SetCustomText` read and set the text, and `document.NewCustomTextVariable` makes one with the Self InDesign gives it. `Document.TextVariable` finds a variable by name; `Document.AddTextVariable` adds one, written right after the existing variables in a designmap that was read, where InDesign keeps them. `Package.AddCustomTextVariable` adds one to the document; `Package.SetCustomTextVariable` sets its text and the `ResultText` of its instances in every story, for readers that don't recompose (InDesign takes the text from designmap.xml)
 - Text variable instances in stories. `story.TextVariableInstance` is a typed `CharacterChild`, where it used to be kept as a raw element; its `ResultText` is part of `ExtractText`. `story.NewTextVariableRange` builds the character style range InDesign writes for one, marked `PageNumberType="TextVariable"`, and `Story.TextVariableInstances` lists a story's instances
 - `testdata/textvariables.idml`, written by InDesign 2026: two custom text variables placed on a page and on a parent page
+- Embedded PDFs. `spread.NewPDFRectangle` builds a graphic frame with a PDF placed in it and the PDF file inside the IDML, the shape InDesign writes once a PDF's link is embedded: the bytes base64-encoded in the PDF's `Contents`, its `GraphicBounds`, a `PDFAttribute` (page, crop, transparent background) and a `Link` with `StoredState="Embedded"`. The document opens with the graphic in place and no file next to it. The PDF's scale and position in the frame are the caller's, as for `NewImageRectangle`; data that isn't a PDF, a size or scale that isn't positive and a negative page number are refused. `PDF.EmbeddedContents` decodes an embedded PDF back to its file (InDesign's several CDATA sections included) and reports a PDF that is only linked; `PDF.GraphicBounds` reads the placed box
 
 ### Changed
 
@@ -21,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [3.4.0] - 2026-11-09
+
+### Added
+- Stacking order across page item kinds. `Spread.StackingOrder` returns the Selfs of a spread's top-level page items, bottom to top, as the spread would be written; `Spread.SetStackingOrder` restacks them from a list naming each of them once. Items appended through the typed slices are written grouped by kind (text frames first), so until now a text frame added after a filled rectangle could only end up under it. Pages, the flattener preference and items kept as raw elements stay where they are; the typed items fill the places page items have, in the new order. A list that leaves an item out, names one twice or names something else is refused and changes nothing. Works for master spreads too
 
 ## [3.3.0] - 2026-11-05
 
