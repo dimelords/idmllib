@@ -27,6 +27,12 @@ import (
 // already, for example from crop metadata; this does not compute a
 // fit-to-frame scale.
 //
+// InDesign applies that scale only when the Image records its own size in
+// GraphicBounds: without them it keeps the offset and places the image at
+// 100%, checked with InDesign 2026. An image placed at a scale other than 1
+// needs Image.SetGraphicBounds with its size in points (ImageInfo reads it
+// from the file). NewEmbeddedImageRectangle writes them itself.
+//
 // ItemTransform is deliberately left unset. It is not a free choice: an
 // absent ItemTransform and an explicit identity matrix mean different things
 // to InDesign. Setting "1 0 0 1 0 0" on a frame whose PathGeometry is in
