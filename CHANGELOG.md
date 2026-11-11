@@ -8,8 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Text wrap on text frames. `TextFrame.TextWrapPreference` is typed, as it is on rectangles, ovals, polygons, lines and groups; it used to be kept as a raw element. A text frame over another frame's text, such as a headline or a caption over body text, can be read and given a wrap. `NewBoundingBoxWrap` builds what InDesign writes for "Wrap around bounding box" on both sides, and `TextWrapPreference.Offsets` / `SetOffsets` read and set the offsets in its `TextWrapOffset`. The `WrapNone`, `WrapBoundingBox`, `WrapContour`, `WrapJumpObject` and `WrapNextColumn` constants name the modes
+- `testdata/textframewrap.idml`, written by InDesign 2026: a text frame wrapped by its bounding box over a frame of placeholder text
 
 ### Changed
+- A text frame's TextWrapPreference is now written from the typed field: the same element and attributes, with its indentation written as tabs where the raw copy escaped them (the `marshal_text_only` golden file)
 
 ### Deprecated
 
