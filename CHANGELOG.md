@@ -8,8 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Frames anchored in text. `story.CharacterChild.Rectangle` is a typed `spread.Rectangle` placed in a character range, the way InDesign writes an inline, above line or custom anchored graphic frame; it used to be kept as a raw element. It parses and is written back in place, its `AnchoredObjectSetting` kept with its other children, so a frame from `NewEmbeddedImageRectangle` can go into a story's text, an image that moves with its paragraph. `Story.Rectangles` lists a story's anchored frames
-- `testdata/anchoredimage.idml`, written by InDesign 2026: a text frame with two frames anchored in it, custom anchored and inline, each with a PNG placed and its link embedded
 
 ### Changed
 
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [3.7.0] - 2026-11-12
+
+### Added
+- Frames anchored in text. `story.CharacterChild.Rectangle` is a typed `spread.Rectangle` placed in a character range, the way InDesign writes an inline, above line or custom anchored graphic frame; it used to be kept as a raw element. It parses and is written back in place, its `AnchoredObjectSetting` kept with its other children, so a frame from `NewEmbeddedImageRectangle` can go into a story's text, an image that moves with its paragraph. `Story.Rectangles` lists a story's anchored frames
+- `testdata/anchoredimage.idml`, written by InDesign 2026: a text frame with two frames anchored in it, custom anchored and inline, each with a PNG placed and its link embedded
 
 ## [3.6.0] - 2026-11-12
 
