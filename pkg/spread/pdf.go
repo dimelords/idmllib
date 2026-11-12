@@ -85,12 +85,7 @@ func NewPDFRectangle(
 		},
 		Properties: &common.Properties{OtherElements: []common.RawXMLElement{
 			{XMLName: xml.Name{Local: "Contents"}, Content: cdataBase64(pdf.Data)},
-			{XMLName: xml.Name{Local: "GraphicBounds"}, Attrs: []xml.Attr{
-				{Name: xml.Name{Local: "Left"}, Value: "0"},
-				{Name: xml.Name{Local: "Top"}, Value: "0"},
-				{Name: xml.Name{Local: "Right"}, Value: num(pdf.Width)},
-				{Name: xml.Name{Local: "Bottom"}, Value: num(pdf.Height)},
-			}},
+			graphicBoundsElement(0, 0, pdf.Width, pdf.Height),
 		}},
 		PDFAttribute: &PDFAttribute{PageNumber: strconv.Itoa(page), PDFCrop: crop, TransparentBackground: "true"},
 		Link: &Link{
@@ -106,10 +101,27 @@ func NewPDFRectangle(
 // EmbeddedContents returns the file of a PDF that is embedded in the IDML, decoded from its Contents. It returns
 // false when the PDF has no Contents, which is the case for a PDF that is only linked.
 func (p *PDF) EmbeddedContents() ([]byte, bool, error) {
-	if p == nil || p.Properties == nil {
+	if p == nil {
 		return nil, false, nil
 	}
-	for _, el := range p.Properties.OtherElements {
+	return embeddedContents(p.Properties, p.Self, "PDF")
+}
+
+// GraphicBounds returns the bounds of the placed box in the PDF's own coordinates, as the PDF's GraphicBounds
+// records them, and false when it has none.
+func (p *PDF) GraphicBounds() (left, top, right, bottom float64, ok bool) {
+	if p == nil {
+		return 0, 0, 0, 0, false
+	}
+	return graphicBounds(p.Properties)
+}
+
+// embeddedContents decodes the Contents of a graphic's Properties: the file of an embedded PDF or image.
+func embeddedContents(props *common.Properties, self, what string) ([]byte, bool, error) {
+	if props == nil {
+		return nil, false, nil
+	}
+	for _, el := range props.OtherElements {
 		if el.XMLName.Local != "Contents" {
 			continue
 		}
@@ -118,20 +130,19 @@ func (p *PDF) EmbeddedContents() ([]byte, bool, error) {
 		text = strings.Join(strings.Fields(text), "")
 		data, err := base64.StdEncoding.DecodeString(text)
 		if err != nil {
-			return nil, true, common.Errorf("spread", "decode embedded PDF", p.Self, "%v", err)
+			return nil, true, common.Errorf("spread", "decode embedded "+what, self, "%v", err)
 		}
 		return data, true, nil
 	}
 	return nil, false, nil
 }
 
-// GraphicBounds returns the bounds of the placed box in the PDF's own coordinates, as the PDF's GraphicBounds
-// records them, and false when it has none.
-func (p *PDF) GraphicBounds() (left, top, right, bottom float64, ok bool) {
-	if p == nil || p.Properties == nil {
+// graphicBounds reads the GraphicBounds of a graphic's Properties.
+func graphicBounds(props *common.Properties) (left, top, right, bottom float64, ok bool) {
+	if props == nil {
 		return 0, 0, 0, 0, false
 	}
-	for _, el := range p.Properties.OtherElements {
+	for _, el := range props.OtherElements {
 		if el.XMLName.Local != "GraphicBounds" {
 			continue
 		}
