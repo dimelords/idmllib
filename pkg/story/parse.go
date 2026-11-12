@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 
 	"github.com/dimelords/idmllib/v3/pkg/common"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
 )
 
 // ParseStory parses a Story XML file into a Story struct.
@@ -206,6 +207,12 @@ func (c *CharacterStyleRange) UnmarshalXML(d *xml.Decoder, start xml.StartElemen
 					return err
 				}
 				c.Children = append(c.Children, CharacterChild{TextVariableInstance: &v})
+			case "Rectangle":
+				var v spread.Rectangle
+				if err := d.DecodeElement(&v, &t); err != nil {
+					return err
+				}
+				c.Children = append(c.Children, CharacterChild{Rectangle: &v})
 			default:
 				// Unknown element - store as RawXMLElement
 				var raw common.RawXMLElement
@@ -299,6 +306,10 @@ func (c CharacterStyleRange) MarshalXML(e *xml.Encoder, start xml.StartElement) 
 			}
 		} else if child.TextVariableInstance != nil {
 			if err := e.Encode(child.TextVariableInstance); err != nil {
+				return err
+			}
+		} else if child.Rectangle != nil {
+			if err := e.EncodeElement(child.Rectangle, xml.StartElement{Name: xml.Name{Local: "Rectangle"}}); err != nil {
 				return err
 			}
 		} else if child.Other != nil {
