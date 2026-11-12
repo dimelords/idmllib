@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [3.6.0] - 2026-11-12
+
+### Added
 - Embedded images. `spread.NewEmbeddedImageRectangle` builds a graphic frame with a JPEG or PNG placed in it and the file inside the IDML, the shape InDesign writes once an image's link is embedded: the bytes base64-encoded in the Image's `Contents`, its `GraphicBounds` (its size in points at its resolution), its `ActualPpi` and a `Link` with `StoredState="Embedded"`. The document opens with the image in place and no file next to it; this is the image counterpart of `NewPDFRectangle`. The image's scale and position in the frame are the caller's, as for `NewImageRectangle`. Data that isn't of the format given, another format, and a size or scale that isn't positive are refused. `Image.EmbeddedContents` decodes an embedded image back to its file and reports one that is only linked; `Image.GraphicBounds` reads its bounds
 - `spread.ImageInfo` reads a JPEG's or PNG's format, size in pixels and resolution (a JPEG's JFIF density, a PNG's `pHYs`, 72 ppi when the file gives none); `ImageFileInfo.Size` gives the size in points that `EmbeddedImage` and `SetGraphicBounds` take
 - `Image.SetGraphicBounds` records an image's bounds. InDesign applies an image's `ItemTransform` scale only when its `GraphicBounds` are there: an image from `NewImageRectangle` at a scale other than 1 opened at 100% (checked with InDesign 2026), and with its bounds set it opens at its scale
@@ -17,14 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - A text frame's TextWrapPreference is now written from the typed field: the same element and attributes, with its indentation written as tabs where the raw copy escaped them (the `marshal_text_only` golden file)
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## [3.5.0] - 2026-11-10
 
