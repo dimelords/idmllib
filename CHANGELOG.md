@@ -12,8 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `spread.ImageInfo` reads a JPEG's or PNG's format, size in pixels and resolution (a JPEG's JFIF density, a PNG's `pHYs`, 72 ppi when the file gives none); `ImageFileInfo.Size` gives the size in points that `EmbeddedImage` and `SetGraphicBounds` take
 - `Image.SetGraphicBounds` records an image's bounds. InDesign applies an image's `ItemTransform` scale only when its `GraphicBounds` are there: an image from `NewImageRectangle` at a scale other than 1 opened at 100% (checked with InDesign 2026), and with its bounds set it opens at its scale
 - `testdata/embeddedimage.idml`, written by InDesign 2026: a JPEG (150 ppi) and a PNG (96 ppi) it made itself, placed and their links embedded
+- Text wrap on text frames. `TextFrame.TextWrapPreference` is typed, as it is on rectangles, ovals, polygons, lines and groups; it used to be kept as a raw element. A text frame over another frame's text, such as a headline or a caption over body text, can be read and given a wrap. `NewBoundingBoxWrap` builds what InDesign writes for "Wrap around bounding box" on both sides, and `TextWrapPreference.Offsets` / `SetOffsets` read and set the offsets in its `TextWrapOffset`. The `WrapNone`, `WrapBoundingBox`, `WrapContour`, `WrapJumpObject` and `WrapNextColumn` constants name the modes
+- `testdata/textframewrap.idml`, written by InDesign 2026: a text frame wrapped by its bounding box over a frame of placeholder text
 
 ### Changed
+- A text frame's TextWrapPreference is now written from the typed field: the same element and attributes, with its indentation written as tabs where the raw copy escaped them (the `marshal_text_only` golden file)
 
 ### Deprecated
 

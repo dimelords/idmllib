@@ -298,6 +298,8 @@ type TextFrame struct {
 
 	// Child elements
 	Properties *common.Properties `xml:"Properties,omitempty"`
+	// TextWrapPreference is how text in other frames wraps around this one, as for the other page items.
+	TextWrapPreference *TextWrapPreference `xml:"TextWrapPreference,omitempty"`
 
 	// Catch-all for all other attributes and elements
 	OtherElements []common.RawXMLElement `xml:",any"`

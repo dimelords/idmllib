@@ -153,10 +153,10 @@
 &#x9;&#x9;&#x9;&#x9;</Properties>
 &#x9;&#x9;&#x9;</TextFramePreference>
 			<TextWrapPreference Inverse="false" ApplyToMasterPageOnly="false" TextWrapSide="BothSides" TextWrapMode="None">
-&#x9;&#x9;&#x9;&#x9;<Properties>
-&#x9;&#x9;&#x9;&#x9;&#x9;<TextWrapOffset Top="0" Left="0" Bottom="0" Right="0" />
-&#x9;&#x9;&#x9;&#x9;</Properties>
-&#x9;&#x9;&#x9;</TextWrapPreference>
+				<Properties>
+					<TextWrapOffset Top="0" Left="0" Bottom="0" Right="0" />
+				</Properties>
+			</TextWrapPreference>
 		</TextFrame>
 	</Spread>
 	<Story Self="ud1" UserText="true" IsEndnoteStory="false" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
