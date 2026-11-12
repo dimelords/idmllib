@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dimelords/idmllib/v3/pkg/common"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
 )
 
 // Typed story content beyond plain paragraph and character ranges. All types
@@ -258,6 +259,21 @@ func (s *Story) Tables() []*Table {
 			for i := range csr.Children {
 				if t := csr.Children[i].Table; t != nil {
 					out = append(out, t)
+				}
+			}
+		}
+	}
+	return out
+}
+
+// Rectangles returns the graphic frames anchored anywhere in the story's main text flow, in document order.
+func (s *Story) Rectangles() []*spread.Rectangle {
+	out := []*spread.Rectangle{}
+	for _, psr := range s.Paragraphs() {
+		for _, csr := range psr.Ranges() {
+			for i := range csr.Children {
+				if r := csr.Children[i].Rectangle; r != nil {
+					out = append(out, r)
 				}
 			}
 		}

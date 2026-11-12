@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 
 	"github.com/dimelords/idmllib/v3/pkg/common"
+	"github.com/dimelords/idmllib/v3/pkg/spread"
 )
 
 // File represents an InDesign File XML file.
@@ -134,6 +135,10 @@ type CharacterChild struct {
 	HyperlinkTextSource *HyperlinkTextSource // Hyperlink source text
 	Footnote            *Footnote            // Footnote (not in main flow)
 	Table               *Table               // Anchored table
+	// Rectangle is a graphic frame anchored in the text: an inline, above line or custom anchored object, such as an
+	// image that moves with the paragraph it is in. Its AnchoredObjectSetting (when the frame has one of its own
+	// rather than its object style's) is kept with its other children.
+	Rectangle *spread.Rectangle
 	// TextVariableInstance is a text variable placed in the text.
 	TextVariableInstance *TextVariableInstance
 	Other                *common.RawXMLElement // If non-nil, this is an unknown element
