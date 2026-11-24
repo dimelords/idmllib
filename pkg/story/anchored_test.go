@@ -120,7 +120,7 @@ func TestAnchoredItems(t *testing.T) {
 // compact drops the whitespace between elements, so the test can look for siblings.
 func compact(s string) string {
 	var b strings.Builder
-	for _, line := range strings.Split(s, "\n") {
+	for line := range strings.SplitSeq(s, "\n") {
 		b.WriteString(strings.TrimSpace(line))
 	}
 	return strings.ReplaceAll(b.String(), "> <", "><")
