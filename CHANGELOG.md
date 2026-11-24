@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [3.8.1] - 2026-11-24
+
+### Fixed
+- An unknown element whose local name isn't an XML name, such as `<a:0 xmlns:a="…">`, is refused when read. encoding/xml checks only the whole prefixed name, so it accepted the element, and `common.RawXMLElement` wrote it back as `<0 xmlns="…">`, which no XML parser reads. Namespaces in XML requires the local part to be a name; well-formed IDML is read as before. Found by `FuzzParseStory`, whose seed corpus now holds the input
+
 ## [3.8.0] - 2026-11-24
 
 ### Added

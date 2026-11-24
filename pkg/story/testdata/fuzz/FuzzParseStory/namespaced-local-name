@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("<idPkg:Story xmlns:idPkg=\"http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging\"><Story Self=\"\"><XMLElement><a:0 xmlns:a=\"A00000000000\"/></XMLElement></Story></idPkg:Story>")

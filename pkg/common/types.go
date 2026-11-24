@@ -11,6 +11,8 @@ package common
 
 import (
 	"encoding/xml"
+	"fmt"
+	"unicode"
 )
 
 // RawXMLElement represents an arbitrary XML element that hasn't been explicitly modeled yet.
@@ -26,6 +28,42 @@ type RawXMLElement struct {
 	XMLName xml.Name
 	Attrs   []xml.Attr `xml:",any,attr"`
 	Content []byte     `xml:",innerxml"`
+}
+
+// UnmarshalXML decodes the element as it is, after checking its name. encoding/xml resolves a prefixed name such as
+// a:b to its namespace and local part and checks only the whole name, so it accepts <a:0 xmlns:a="…">, whose local
+// part isn't a name of its own. Written back, the element would be <0 xmlns="…">, which no XML parser reads.
+// Namespaces in XML requires the local part to be a name (an NCName), so such an element is refused.
+func (r *RawXMLElement) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	if !isNCName(start.Name.Local) {
+		return fmt.Errorf("element %q: its local name %q is not an XML name", start.Name.Space+":"+start.Name.Local, start.Name.Local)
+	}
+	type plain RawXMLElement // the default decoding, without this method
+	var p plain
+	if err := d.DecodeElement(&p, &start); err != nil {
+		return err
+	}
+	*r = RawXMLElement(p)
+	return nil
+}
+
+// isNCName reports whether s can be a name's local part: a letter or an underscore, then letters, digits, marks,
+// underscores, hyphens and full stops, with no colon. encoding/xml has already checked the characters of the whole
+// name; this is about where the local part starts.
+func isNCName(s string) bool {
+	for i, r := range s {
+		switch {
+		case r == ':':
+			return false
+		case unicode.IsLetter(r) || r == '_':
+		case i == 0:
+			return false
+		case unicode.IsDigit(r) || r == '-' || r == '.' || r == '\u00B7' || unicode.In(r, unicode.Mn, unicode.Mc):
+		default:
+			return false
+		}
+	}
+	return s != ""
 }
 
 // Properties represents the Properties container element.
