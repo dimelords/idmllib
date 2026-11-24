@@ -139,6 +139,14 @@ type CharacterChild struct {
 	// image that moves with the paragraph it is in. Its AnchoredObjectSetting (when the frame has one of its own
 	// rather than its object style's) is kept with its other children.
 	Rectangle *spread.Rectangle
+	// TextFrame, Group, Polygon, Oval and GraphicLine are the other page items anchored in the text the same way: a
+	// text frame with a story of its own, a group of items (say, icons), a drawn shape or a line. Each keeps its
+	// AnchoredObjectSetting, when it has one, with its other children. Story.Anchored lists them all.
+	TextFrame   *spread.TextFrame
+	Group       *spread.Group
+	Polygon     *spread.Polygon
+	Oval        *spread.Oval
+	GraphicLine *spread.GraphicLine
 	// TextVariableInstance is a text variable placed in the text.
 	TextVariableInstance *TextVariableInstance
 	Other                *common.RawXMLElement // If non-nil, this is an unknown element

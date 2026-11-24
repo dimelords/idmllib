@@ -213,6 +213,36 @@ func (c *CharacterStyleRange) UnmarshalXML(d *xml.Decoder, start xml.StartElemen
 					return err
 				}
 				c.Children = append(c.Children, CharacterChild{Rectangle: &v})
+			case "TextFrame":
+				var v spread.TextFrame
+				if err := d.DecodeElement(&v, &t); err != nil {
+					return err
+				}
+				c.Children = append(c.Children, CharacterChild{TextFrame: &v})
+			case "Group":
+				var v spread.Group
+				if err := d.DecodeElement(&v, &t); err != nil {
+					return err
+				}
+				c.Children = append(c.Children, CharacterChild{Group: &v})
+			case "Polygon":
+				var v spread.Polygon
+				if err := d.DecodeElement(&v, &t); err != nil {
+					return err
+				}
+				c.Children = append(c.Children, CharacterChild{Polygon: &v})
+			case "Oval":
+				var v spread.Oval
+				if err := d.DecodeElement(&v, &t); err != nil {
+					return err
+				}
+				c.Children = append(c.Children, CharacterChild{Oval: &v})
+			case "GraphicLine":
+				var v spread.GraphicLine
+				if err := d.DecodeElement(&v, &t); err != nil {
+					return err
+				}
+				c.Children = append(c.Children, CharacterChild{GraphicLine: &v})
 			default:
 				// Unknown element - store as RawXMLElement
 				var raw common.RawXMLElement
@@ -310,6 +340,26 @@ func (c CharacterStyleRange) MarshalXML(e *xml.Encoder, start xml.StartElement) 
 			}
 		} else if child.Rectangle != nil {
 			if err := e.EncodeElement(child.Rectangle, xml.StartElement{Name: xml.Name{Local: "Rectangle"}}); err != nil {
+				return err
+			}
+		} else if child.TextFrame != nil {
+			if err := e.EncodeElement(child.TextFrame, xml.StartElement{Name: xml.Name{Local: "TextFrame"}}); err != nil {
+				return err
+			}
+		} else if child.Group != nil {
+			if err := e.EncodeElement(child.Group, xml.StartElement{Name: xml.Name{Local: "Group"}}); err != nil {
+				return err
+			}
+		} else if child.Polygon != nil {
+			if err := e.EncodeElement(child.Polygon, xml.StartElement{Name: xml.Name{Local: "Polygon"}}); err != nil {
+				return err
+			}
+		} else if child.Oval != nil {
+			if err := e.EncodeElement(child.Oval, xml.StartElement{Name: xml.Name{Local: "Oval"}}); err != nil {
+				return err
+			}
+		} else if child.GraphicLine != nil {
+			if err := e.EncodeElement(child.GraphicLine, xml.StartElement{Name: xml.Name{Local: "GraphicLine"}}); err != nil {
 				return err
 			}
 		} else if child.Other != nil {

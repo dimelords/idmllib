@@ -23,14 +23,23 @@ type XMLElement struct {
 	MarkupTag  string   `xml:"MarkupTag,attr,omitempty"`  // Reference to the XMLTag, e.g. "XMLTag/story"
 	XMLContent string   `xml:"XMLContent,attr,omitempty"` // Story this element's content lives in
 
-	XMLAttributes        []XMLAttribute         `xml:"XMLAttribute"`
-	ParagraphStyleRanges []ParagraphStyleRange  `xml:"ParagraphStyleRange"`
-	CharacterStyleRanges []CharacterStyleRange  `xml:"CharacterStyleRange"`
-	XMLElements          []XMLElement           `xml:"XMLElement"`
-	Contents             []Content              `xml:"Content"`
-	Brs                  []Br                   `xml:"Br"`
-	OtherElements        []common.RawXMLElement `xml:",any"`
-	OtherAttrs           []xml.Attr             `xml:",any,attr"`
+	XMLAttributes        []XMLAttribute        `xml:"XMLAttribute"`
+	ParagraphStyleRanges []ParagraphStyleRange `xml:"ParagraphStyleRange"`
+	CharacterStyleRanges []CharacterStyleRange `xml:"CharacterStyleRange"`
+	XMLElements          []XMLElement          `xml:"XMLElement"`
+	Contents             []Content             `xml:"Content"`
+	Brs                  []Br                  `xml:"Br"`
+	// TextFrames, Rectangles, Groups, Polygons, Ovals and GraphicLines are page items the element tags where
+	// they are anchored in the text, such as an inline text frame with a tag of its own. Story.Anchored lists
+	// them with the rest, in document order.
+	TextFrames    []spread.TextFrame     `xml:"TextFrame"`
+	Rectangles    []spread.Rectangle     `xml:"Rectangle"`
+	Groups        []spread.Group         `xml:"Group"`
+	Polygons      []spread.Polygon       `xml:"Polygon"`
+	Ovals         []spread.Oval          `xml:"Oval"`
+	GraphicLines  []spread.GraphicLine   `xml:"GraphicLine"`
+	OtherElements []common.RawXMLElement `xml:",any"`
+	OtherAttrs    []xml.Attr             `xml:",any,attr"`
 
 	childOrder common.ChildOrder
 }
@@ -279,6 +288,95 @@ func (s *Story) Rectangles() []*spread.Rectangle {
 		}
 	}
 	return out
+}
+
+// Anchored is one page item anchored in a story's text, inline, above line or custom anchored. Exactly one field
+// is set. It points into the story, so a caller can change the item in place, say give it and its story Selfs of
+// their own when copying the story.
+type Anchored struct {
+	TextFrame   *spread.TextFrame
+	Rectangle   *spread.Rectangle
+	Group       *spread.Group
+	Polygon     *spread.Polygon
+	Oval        *spread.Oval
+	GraphicLine *spread.GraphicLine
+}
+
+// Anchored returns every page item anchored in the story's main text flow, in document order: in character
+// ranges, and in the XML elements that tag text or an item at any level. It doesn't go into an anchored group's
+// own items, which the group holds, nor into tables, footnotes and notes.
+func (s *Story) Anchored() []Anchored {
+	var out []Anchored
+	common.ForEachChild(s.childOrder, []string{"ParagraphStyleRange", "XMLElement"}, []int{len(s.ParagraphStyleRanges), len(s.XMLElements)},
+		func(k, i int) {
+			if k == 0 {
+				s.ParagraphStyleRanges[i].anchored(&out)
+			} else {
+				s.XMLElements[i].anchored(&out)
+			}
+		})
+	return out
+}
+
+func (p *ParagraphStyleRange) anchored(out *[]Anchored) {
+	common.ForEachChild(p.childOrder, []string{"CharacterStyleRange", "XMLElement"}, []int{len(p.CharacterStyleRanges), len(p.XMLElements)},
+		func(k, i int) {
+			if k == 0 {
+				p.CharacterStyleRanges[i].anchored(out)
+			} else {
+				p.XMLElements[i].anchored(out)
+			}
+		})
+}
+
+func (c *CharacterStyleRange) anchored(out *[]Anchored) {
+	for i := range c.Children {
+		switch ch := &c.Children[i]; {
+		case ch.TextFrame != nil:
+			*out = append(*out, Anchored{TextFrame: ch.TextFrame})
+		case ch.Rectangle != nil:
+			*out = append(*out, Anchored{Rectangle: ch.Rectangle})
+		case ch.Group != nil:
+			*out = append(*out, Anchored{Group: ch.Group})
+		case ch.Polygon != nil:
+			*out = append(*out, Anchored{Polygon: ch.Polygon})
+		case ch.Oval != nil:
+			*out = append(*out, Anchored{Oval: ch.Oval})
+		case ch.GraphicLine != nil:
+			*out = append(*out, Anchored{GraphicLine: ch.GraphicLine})
+		case ch.XMLElement != nil:
+			ch.XMLElement.anchored(out)
+		}
+	}
+}
+
+func (x *XMLElement) anchored(out *[]Anchored) {
+	names := []string{"ParagraphStyleRange", "CharacterStyleRange", "XMLElement",
+		"TextFrame", "Rectangle", "Group", "Polygon", "Oval", "GraphicLine"}
+	lens := []int{len(x.ParagraphStyleRanges), len(x.CharacterStyleRanges), len(x.XMLElements),
+		len(x.TextFrames), len(x.Rectangles), len(x.Groups), len(x.Polygons), len(x.Ovals), len(x.GraphicLines)}
+	common.ForEachChild(x.childOrder, names, lens, func(k, i int) {
+		switch k {
+		case 0:
+			x.ParagraphStyleRanges[i].anchored(out)
+		case 1:
+			x.CharacterStyleRanges[i].anchored(out)
+		case 2:
+			x.XMLElements[i].anchored(out)
+		case 3:
+			*out = append(*out, Anchored{TextFrame: &x.TextFrames[i]})
+		case 4:
+			*out = append(*out, Anchored{Rectangle: &x.Rectangles[i]})
+		case 5:
+			*out = append(*out, Anchored{Group: &x.Groups[i]})
+		case 6:
+			*out = append(*out, Anchored{Polygon: &x.Polygons[i]})
+		case 7:
+			*out = append(*out, Anchored{Oval: &x.Ovals[i]})
+		case 8:
+			*out = append(*out, Anchored{GraphicLine: &x.GraphicLines[i]})
+		}
+	})
 }
 
 // Cell returns the cell at the given column and row, or nil.
