@@ -8,8 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- The other page items anchored in text. `story.CharacterChild` has `TextFrame`, `Group`, `Polygon`, `Oval` and `GraphicLine`, typed `spread` items placed in a character range the way InDesign writes an inline, above line or custom anchored object, as `Rectangle` has been since 3.7.0; they used to be kept as raw elements. Each parses and is written back in place, its `AnchoredObjectSetting`, when it has one, kept with its other children
+- `story.XMLElement` has `TextFrames`, `Rectangles`, `Groups`, `Polygons`, `Ovals` and `GraphicLines`: page items an XML element tags where they are anchored in the text, such as an inline text frame with a tag of its own, read and written in document order with the element's other children
+- `Story.Anchored` lists every page item anchored in a story's main text flow, in document order, at any level of tagging, as `story.Anchored` values pointing into the story: so a caller can give the items and their stories Selfs of their own when copying a story into the same document
+- `testdata/anchoreditems.idml`, written by InDesign 2026: a story, tagged as a whole, holding an inline text frame, an inline text frame tagged with an XML element of its own, an inline group of two polygons, and a custom anchored oval and line
 
 ### Changed
+- A page item an XML element tags inline is in its typed list now, not in `XMLElement.OtherElements`
 
 ### Deprecated
 
