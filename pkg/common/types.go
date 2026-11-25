@@ -110,13 +110,98 @@ type KeyValuePair struct {
 	OtherAttrs []xml.Attr `xml:",any,attr"`
 }
 
-// PathGeometry represents path geometry information.
+// PathGeometry represents path geometry information: an item's paths. Most items have one. A compound shape, such
+// as a letter with a counter or an icon with holes, has several, each its own <GeometryPathType>; Paths lists them
+// all, in document order.
 type PathGeometry struct {
+	// GeometryPathType is the item's first path.
 	GeometryPathType *GeometryPathType `xml:"GeometryPathType,omitempty"`
+	// MorePaths are the item's paths after the first, in document order.
+	MorePaths []GeometryPathType `xml:"-"`
 
+	// OtherElements preserves children not modeled above.
+	OtherElements []RawXMLElement `xml:"-"`
 	// OtherAttrs preserves attributes not modeled by a typed field, so
 	// nothing is lost when the element is written back.
 	OtherAttrs []xml.Attr `xml:",any,attr"`
+
+	childOrder ChildOrder
+}
+
+// Paths returns the item's paths, the first and then MorePaths, as pointers into p so they can be changed in
+// place; none when p is nil.
+func (p *PathGeometry) Paths() []*GeometryPathType {
+	if p == nil {
+		return nil
+	}
+	var out []*GeometryPathType
+	if p.GeometryPathType != nil {
+		out = append(out, p.GeometryPathType)
+	}
+	for i := range p.MorePaths {
+		out = append(out, &p.MorePaths[i])
+	}
+	return out
+}
+
+// UnmarshalXML decodes every <GeometryPathType>, the first into GeometryPathType and the rest into MorePaths.
+// encoding/xml would decode them all into the one GeometryPathType, appending each path's points to the first's, so
+// a compound shape came back as a single path.
+func (p *PathGeometry) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	*p = PathGeometry{}
+	UnmarshalAttrs(p, start.Attr)
+	for {
+		tok, err := d.Token()
+		if err != nil {
+			return err
+		}
+		switch t := tok.(type) {
+		case xml.StartElement:
+			if t.Name.Local == "GeometryPathType" {
+				var g GeometryPathType
+				if err := d.DecodeElement(&g, &t); err != nil {
+					return err
+				}
+				if p.GeometryPathType == nil {
+					p.GeometryPathType = &g
+				} else {
+					p.MorePaths = append(p.MorePaths, g)
+				}
+				p.childOrder.Record("GeometryPathType")
+				continue
+			}
+			raw, err := DecodeRaw(d, t)
+			if err != nil {
+				return err
+			}
+			p.OtherElements = append(p.OtherElements, raw)
+			p.childOrder.Record(kindOther)
+		case xml.EndElement:
+			return nil
+		}
+	}
+}
+
+// MarshalXML writes the paths and any other children in the order they were read.
+func (p PathGeometry) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	start.Attr = MarshalAttrs(p)
+	if err := e.EncodeToken(start); err != nil {
+		return err
+	}
+	paths := p.Paths()
+	pathStart := xml.StartElement{Name: xml.Name{Local: "GeometryPathType"}}
+	kinds := []ChildKind{
+		{Name: "GeometryPathType", Len: len(paths), Encode: func(e *xml.Encoder, i int) error {
+			return e.EncodeElement(paths[i], pathStart)
+		}},
+		{Name: kindOther, Len: len(p.OtherElements), Encode: func(e *xml.Encoder, i int) error {
+			return e.Encode(p.OtherElements[i])
+		}},
+	}
+	if err := EncodeChildren(e, p.childOrder, kinds); err != nil {
+		return err
+	}
+	return e.EncodeToken(start.End())
 }
 
 // GeometryPathType defines a geometric path with points.

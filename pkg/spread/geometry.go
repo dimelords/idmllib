@@ -230,7 +230,8 @@ func parseItemTransform(transform string) (Transform, error) {
 
 // BoundsFromPathGeometry calculates bounds from PathGeometry in Properties.
 // This is used as a fallback when GeometricBounds attribute is not present.
-// PathGeometry contains PathPointArray with anchor points that define the frame shape.
+// PathGeometry contains PathPointArray with anchor points that define the frame shape; the bounds span all of the
+// frame's paths.
 //
 // Returns an error if Properties, PathGeometry, or PathPointArray is nil/empty.
 func (tf *TextFrame) BoundsFromPathGeometry() (Bounds, error) {
@@ -247,7 +248,13 @@ func (tf *TextFrame) BoundsFromPathGeometry() (Bounds, error) {
 		return Bounds{}, common.Errorf("spread", "get bounds from path geometry", "", "PathPointArray is nil")
 	}
 
-	points := tf.Properties.PathGeometry.GeometryPathType.PathPointArray.PathPoints
+	// A frame with several paths (a compound shape) spans all of them.
+	var points []common.PathPointType
+	for _, path := range tf.Properties.PathGeometry.Paths() {
+		if path.PathPointArray != nil {
+			points = append(points, path.PathPointArray.PathPoints...)
+		}
+	}
 	if len(points) == 0 {
 		return Bounds{}, common.Errorf("spread", "get bounds from path geometry", "", "PathPointArray is empty")
 	}
