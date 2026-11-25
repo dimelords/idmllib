@@ -19,6 +19,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [3.9.0] - 2026-11-25
+
+### Added
+- `common.PathGeometry.MorePaths` holds an item's paths after the first, and `PathGeometry.Paths` lists them all in document order, as pointers that can be changed in place: a compound shape, such as a letter with a counter or an icon with holes, has several `<GeometryPathType>` elements. `GeometryPathType` stays the first path, so existing callers work as before
+- `PathGeometry.OtherElements` keeps any other child, and the children are written back in the order they were read
+- `testdata/compoundpaths.idml`, written by InDesign 2026: a ring (an oval with a hole, two paths), the letters BOB converted to outlines (one polygon of eight paths), and a group of a ring and a rectangle
+
+### Fixed
+- A compound shape lost its paths. `PathGeometry` held one `GeometryPathType`, and encoding/xml decoded every further `<GeometryPathType>` into it, appending its points to the first path's, so a shape read and written came back as one path: a letter's counter filled in, a logo's pieces joined into one outline. Each path is now kept, and written back as it was. The fidelity tests catch it with the new fixture
+- `TextFrame.BoundsFromPathGeometry` spans all of a frame's paths
+
 ## [3.8.1] - 2026-11-24
 
 ### Fixed

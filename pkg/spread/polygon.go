@@ -69,7 +69,8 @@ func NewRegularPolygon(self string, centerX, centerY, radius float64, sides int,
 	return NewPolygon(self, vertices, layer)
 }
 
-// GetVertices extracts the polygon vertices from PathGeometry.
+// GetVertices extracts the polygon vertices from PathGeometry: those of its first path. A compound polygon's other
+// paths are in PathGeometry.MorePaths (PathGeometry.Paths lists them all).
 //
 // Returns:
 //   - Array of [x, y] coordinate pairs
@@ -115,7 +116,8 @@ func (p *Polygon) GetVertices() ([][2]float64, error) {
 	return vertices, nil
 }
 
-// SetVertices updates the polygon vertices in PathGeometry.
+// SetVertices updates the polygon vertices in PathGeometry: those of its first path. A compound polygon's other
+// paths are left as they are.
 //
 // Parameters:
 //   - vertices: Array of [x, y] coordinate pairs
